@@ -30,6 +30,8 @@ export default function DiscountsPage() {
   const [editId, setEditId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState<{ open: boolean; id: string }>({ open: false, id: '' });
+  const [search, setSearch] = useState('');
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const { showToast } = useToast();
 
   useEffect(() => { fetchDiscounts(); }, []);
@@ -84,6 +86,18 @@ export default function DiscountsPage() {
     setDeleteConfirm({ open: false, id: '' });
   }
 
+  async function handleBulkDelete() {
+    if (!confirm(`هل أنت متأكد من حذف ${selectedIds.length} كود/كودات خصم؟`)) return;
+    const { error } = await supabase.from('discounts').delete().in('id', selectedIds);
+    if (!error) {
+      setDiscounts(prev => prev.filter(d => !selectedIds.includes(d.id)));
+      showToast('تم حذف الخصومات المحددة', 'success');
+      setSelectedIds([]);
+    } else {
+      showToast('فشل حذف الخصومات', 'error');
+    }
+  }
+
   function openEdit(d: Discount) {
     setEditId(d.id);
     setForm({ code: d.code || '', type: d.type, value: String(d.value), description: d.description || '', is_active: d.is_active });
@@ -105,6 +119,24 @@ export default function DiscountsPage() {
           + إضافة خصم
         </button>
       </motion.div>
+
+      {/* Search + Bulk Toolbar */}
+      <div className="flex flex-col sm:flex-row gap-3">
+        <input type="text" placeholder="بحث بكود الخصم أو الوصف..." value={search}
+          onChange={e => setSearch(e.target.value)}
+          className="flex-1 px-4 py-3 bg-[#1a1a1a] border border-luxury-gold/20 rounded-sm text-white focus:border-luxury-gold focus:outline-none" />
+      </div>
+
+      {selectedIds.length > 0 && (
+        <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}
+          className="bg-luxury-gold/10 border border-luxury-gold/30 rounded-sm p-4 flex items-center justify-between">
+          <span className="text-luxury-gold font-bold">تم تحديد {selectedIds.length} كود</span>
+          <button onClick={handleBulkDelete}
+            className="px-4 py-2 bg-red-500/20 text-red-400 hover:bg-red-500/30 border border-red-500/30 rounded-sm transition-colors text-sm">
+            حذف المحددين
+          </button>
+        </motion.div>
+      )}
 
       {/* Form */}
       <AnimatePresence>
@@ -203,16 +235,36 @@ export default function DiscountsPage() {
           <table className="w-full">
             <thead>
               <tr className="border-b border-luxury-gold/20">
+                <th className="p-4 w-12 text-center">
+                  <input type="checkbox"
+                    checked={discounts.filter(d => d.code?.toLowerCase().includes(search.toLowerCase()) || d.description?.toLowerCase().includes(search.toLowerCase()) || !search).length > 0 &&
+                      selectedIds.length === discounts.filter(d => !search || d.code?.toLowerCase().includes(search.toLowerCase()) || d.description?.toLowerCase().includes(search.toLowerCase())).length}
+                    onChange={e => {
+                      const visible = discounts.filter(d => !search || d.code?.toLowerCase().includes(search.toLowerCase()) || d.description?.toLowerCase().includes(search.toLowerCase()));
+                      setSelectedIds(e.target.checked ? visible.map(d => d.id) : []);
+                    }}
+                    className="accent-luxury-gold w-4 h-4 cursor-pointer" />
+                </th>
                 {['الكود', 'النوع', 'القيمة', 'الوصف', 'الحالة', 'إجراءات'].map(h => (
                   <th key={h} className="text-right text-gray-400 font-medium p-4">{h}</th>
                 ))}
               </tr>
             </thead>
             <tbody>
-              {discounts.map((d, i) => (
+              {discounts.filter(d => !search || d.code?.toLowerCase().includes(search.toLowerCase()) || (d.description || '').toLowerCase().includes(search.toLowerCase())
+              ).map((d, i) => (
                 <motion.tr key={d.id} initial={{ opacity: 0 }} animate={{ opacity: 1 }}
                   transition={{ delay: i * 0.03 }}
-                  className="border-b border-luxury-gold/10 hover:bg-luxury-gold/5 transition-colors">
+                  className={`border-b border-luxury-gold/10 hover:bg-luxury-gold/5 transition-colors ${selectedIds.includes(d.id) ? 'bg-luxury-gold/5' : ''}`}>
+                  <td className="p-4 text-center">
+                    <input type="checkbox"
+                      checked={selectedIds.includes(d.id)}
+                      onChange={e => {
+                        const checked = e.target.checked;
+                        setSelectedIds(prev => checked ? [...prev, d.id] : prev.filter(id => id !== d.id));
+                      }}
+                      className="accent-luxury-gold w-4 h-4 cursor-pointer" />
+                  </td>
                   <td className="p-4 font-mono text-luxury-gold font-bold">{d.code || '—'}</td>
                   <td className="p-4 text-gray-300">{d.type === 'percentage' ? 'نسبة مئوية' : 'مبلغ ثابت'}</td>
                   <td className="p-4 text-white font-bold">{d.value}{d.type === 'percentage' ? '%' : ' ر.س'}</td>

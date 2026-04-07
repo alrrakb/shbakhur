@@ -30,7 +30,7 @@ interface Order {
   total_amount: number;
   notes: string | null;
   created_at: string;
-  customers: { name: string; phone: string } | null;
+  customers: { name: string; phone: string; city?: string | null; address?: string | null } | null;
   order_items: { id: string; product_name: string | null; quantity: number; unit_price: number; total_price: number }[];
 }
 
@@ -42,6 +42,7 @@ export default function OrdersPage() {
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [updatingStatus, setUpdatingStatus] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState<{ open: boolean; id: string }>({ open: false, id: '' });
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const { showToast } = useToast();
 
   const fetchOrders = useCallback(async () => {
@@ -100,6 +101,18 @@ export default function OrdersPage() {
     setDeleteConfirm({ open: false, id: '' });
   };
 
+  const handleBulkDelete = async () => {
+    if (!confirm(`هل أنت متأكد من حذف ${selectedIds.length} طلب/طلبات؟`)) return;
+    const { error } = await supabase.from('orders').delete().in('id', selectedIds);
+    if (!error) {
+      setOrders(prev => prev.filter(o => !selectedIds.includes(o.id)));
+      showToast('تم حذف الطلبات المحددة', 'success');
+      setSelectedIds([]);
+    } else {
+      showToast('فشل حذف الطلبات', 'error');
+    }
+  };
+
   const filtered = orders.filter(o => {
     const q = search.toLowerCase();
     return (
@@ -148,6 +161,17 @@ export default function OrdersPage() {
         ))}
       </div>
 
+      {selectedIds.length > 0 && (
+        <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}
+          className="bg-luxury-gold/10 border border-luxury-gold/30 rounded-sm p-4 flex items-center justify-between">
+          <span className="text-luxury-gold font-bold">تم تحديد {selectedIds.length} طلب</span>
+          <button onClick={handleBulkDelete}
+            className="px-4 py-2 bg-red-500/20 text-red-400 hover:bg-red-500/30 border border-red-500/30 rounded-sm transition-colors text-sm">
+            حذف المحددين
+          </button>
+        </motion.div>
+      )}
+
       {/* Filters */}
       <div className="flex flex-col sm:flex-row gap-3">
         <input type="text" placeholder="بحث برقم الطلب أو اسم العميل..." value={search}
@@ -178,6 +202,12 @@ export default function OrdersPage() {
             <table className="w-full">
               <thead>
                 <tr className="border-b border-luxury-gold/20">
+                  <th className="p-4 w-12 text-center">
+                    <input type="checkbox"
+                      checked={filtered.length > 0 && selectedIds.length === filtered.length}
+                      onChange={e => setSelectedIds(e.target.checked ? filtered.map(o => o.id) : [])}
+                      className="accent-luxury-gold w-4 h-4 cursor-pointer" />
+                  </th>
                   {['رقم الطلب', 'العميل', 'المنتجات', 'المبلغ', 'الحالة', 'التاريخ', 'إجراءات'].map(h => (
                     <th key={h} className="text-right text-gray-400 font-medium p-4 whitespace-nowrap">{h}</th>
                   ))}
@@ -189,7 +219,16 @@ export default function OrdersPage() {
                   return (
                     <motion.tr key={order.id} initial={{ opacity: 0 }} animate={{ opacity: 1 }}
                       transition={{ delay: i * 0.03 }}
-                      className="border-b border-luxury-gold/10 hover:bg-luxury-gold/5 transition-colors">
+                      className={`border-b border-luxury-gold/10 hover:bg-luxury-gold/5 transition-colors ${selectedIds.includes(order.id) ? 'bg-luxury-gold/5' : ''}`}>
+                      <td className="p-4 text-center">
+                        <input type="checkbox"
+                          checked={selectedIds.includes(order.id)}
+                          onChange={e => {
+                            const checked = e.target.checked;
+                            setSelectedIds(prev => checked ? [...prev, order.id] : prev.filter(id => id !== order.id));
+                          }}
+                          className="accent-luxury-gold w-4 h-4 cursor-pointer" />
+                      </td>
                       <td className="p-4 font-mono text-luxury-gold text-sm">{order.order_number}</td>
                       <td className="p-4">
                         <div className="text-white font-medium">{order.customers?.name || '—'}</div>

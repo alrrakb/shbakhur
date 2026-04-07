@@ -1,0 +1,2636 @@
+root@srv1023716:~# sudo cat /etc/nginx/sites-available/rezgee.com
+server {
+    server_name rezgee.com www.rezgee.com 148.230.112.17;
+    root /var/www/rezgee/dist;
+    index index.html;
+
+    # Security headers - Drsabled for now 
+    #add_header X-Frame-Options "SAMEORIGIN" always;
+    #add_header X-XSS-Protection "1; mode=block" always;
+    #add_header X-Content-Type-Options "nosniff" always;
+    #add_header Referrer-Policy "no-referrer-when-downgrade" always;
+    #add_header Content-Security-Policy "default-src 'self' http: https: data: blob: 'unsafe-inline'" always;
+
+    # Gzip compression
+    gzip on;
+    gzip_vary on;
+    gzip_min_length 1024;
+    gzip_proxied expired no-cache no-store private auth;
+    gzip_types text/plain text/css text/xml text/javascript application/x-javascript application/xml+rss application/javascript;
+
+    # Static files caching
+    location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot)$ {
+        expires 1y;
+        add_header Cache-Control "public, immutable";
+        try_files $uri =404;
+    }
+
+        # SMTP Server Proxy - Enhanced & Fixed (CORS Duplication Solved)
+    location /smtp/ {
+        # Rewrite URL: /smtp/send-email -> /send-email
+        rewrite ^/smtp/(.*) /$1 break;
+
+        # Proxy to Node.js Server
+        proxy_pass http://127.0.0.1:3001;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+
+        # Increase Timeout
+        proxy_connect_timeout 60s;
+        proxy_send_timeout 60s;
+        proxy_read_timeout 60s;
+
+        # --- FIX: Prevent Double Headers ---
+        # Hide headers from backend to prevent duplicates with Nginx headers below
+        proxy_hide_header Access-Control-Allow-Origin;
+        proxy_hide_header Access-Control-Allow-Methods;
+        proxy_hide_header Access-Control-Allow-Headers;
+
+        # CORS Configuration (Allow Everyone)
+        add_header 'Access-Control-Allow-Origin' '*' always;
+        add_header 'Access-Control-Allow-Methods' 'GET, POST, OPTIONS' always;
+        add_header 'Access-Control-Allow-Headers' 'DNT,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Range,Authorization' always;
+
+        # Handle Preflight OPTIONS
+        if ($request_method = 'OPTIONS') {
+           add_header 'Access-Control-Allow-Origin' '*' always;
+           add_header 'Access-Control-Allow-Methods' 'GET, POST, OPTIONS' always;
+           add_header 'Access-Control-Allow-Headers' 'DNT,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Range,Authorization' always;
+           add_header 'Access-Control-Max-Age' 1728000;
+           add_header 'Content-Type' 'text/plain; charset=utf-8';
+           add_header 'Content-Length' 0;
+           return 204;
+        }
+    }
+
+    # Proxy /robots.txt to Supabase Edge Function
+    location = /robots.txt {
+        proxy_pass https://sbtzngewizgeqzfbhfjy.supabase.co/functions/v1/serve-robots;
+        proxy_set_header Host sbtzngewizgeqzfbhfjy.supabase.co;
+        proxy_ssl_server_name on;
+        proxy_ssl_protocols TLSv1.2 TLSv1.3;
+        proxy_buffering off;
+    }
+
+    # Main application
+    location / {
+        try_files $uri $uri/ /index.html;
+
+        # Security
+        add_header X-Frame-Options "SAMEORIGIN" always;
+        add_header X-XSS-Protection "1; mode=block" always;
+        add_header X-Content-Type-Options "nosniff" always;
+    }
+
+    # API proxy (if needed)
+    location /api/ {
+        proxy_pass http://localhost:4173;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_cache_bypass $http_upgrade;
+    }
+
+    # Error pages
+    error_page 404 /index.html;
+    error_page 500 502 503 504 /50x.html;
+    location = /50x.html {
+        root /usr/share/nginx/html;
+    }
+
+    # Block access to sensitive files
+    location ~ /\. {
+        deny all;
+    }
+
+    location ~ \.(env|log|sql)$ {
+        deny all;
+    }
+
+    listen 443 ssl default_server http2;
+    listen [::]:443 ssl default_server http2;
+    ssl_certificate /etc/letsencrypt/live/rezgee.com/fullchain.pem; # managed by Certbot
+    ssl_certificate_key /etc/letsencrypt/live/rezgee.com/privkey.pem; # managed by Certbot
+    include /etc/letsencrypt/options-ssl-nginx.conf; # managed by Certbot
+    ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem; # managed by Certbot
+}
+
+server {
+    if ($host = www.rezgee.com) {
+        return 301 https://$host$request_uri;
+    } # managed by Certbot
+
+    if ($host = rezgee.com) {
+        return 301 https://$host$request_uri;
+    } # managed by Certbot
+
+    listen 80;
+    server_name rezgee.com www.rezgee.com;
+    return 404; # managed by Certbot
+}
+root@srv1023716:~# sudo cat /root/vps-manager.sh
+#!/bin/bash
+
+# =============================================================================
+# Professional VPS Management Script - Complete & Fixed Edition
+# =============================================================================
+# Version: 2.1
+# Date: 2025-11-02
+# Description: Comprehensive VPS management with error handling
+# =============================================================================
+
+# Colors
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+PURPLE='\033[0;35m'
+CYAN='\033[0;36m'
+NC='\033[0m'
+BOLD='\033[1m'
+
+# Core variables
+MAIN_DOMAIN="rezgee.com"
+WEBSITE_ROOT="/var/www/rezgee"
+BACKUP_DIR="/root/backups"
+LOG_DIR="/var/log/vps-manager"
+NGINX_SITES_AVAILABLE="/etc/nginx/sites-available"
+NGINX_SITES_ENABLED="/etc/nginx/sites-enabled"
+SSL_CERT_PATH="/etc/letsencrypt/live"
+PM2_LOG_DIR="/var/log/pm2"
+
+# Create necessary directories
+mkdir -p "$BACKUP_DIR" "$LOG_DIR" "$PM2_LOG_DIR"
+
+# Check if command exists
+command_exists() {
+    command -v "$1" >/dev/null 2>&1 || which "$1" >/dev/null 2>&1 || type "$1" >/dev/null 2>&1
+}
+
+# Logging function
+log_action() {
+    local message="$1"
+    echo "[$(date '+%Y-%m-%d %H:%M:%S')] $message" >> "$LOG_DIR/actions.log"
+}
+
+# Print colored messages
+print_msg() {
+    local color=$1
+    local message=$2
+    echo -e "${color}${message}${NC}"
+}
+
+# Print header
+print_header() {
+    clear
+    echo -e "${CYAN}╔════════════════════════════════════════════════════════════════╗${NC}"
+    echo -e "${CYAN}║${NC}  ${BOLD}${PURPLE}🚀 Professional VPS Management System v2.1${NC}               ${CYAN}║${NC}"
+    echo -e "${CYAN}╠════════════════════════════════════════════════════════════════╣${NC}"
+    echo -e "${CYAN}║${NC}  📍 Main Domain: ${GREEN}$MAIN_DOMAIN${NC}                              ${CYAN}║${NC}"
+    echo -e "${CYAN}║${NC}  📅 Date: ${YELLOW}$(date '+%Y-%m-%d %H:%M:%S')${NC}                      ${CYAN}║${NC}"
+    echo -e "${CYAN}║${NC}  🖥️  Server: ${YELLOW}$(hostname)${NC}                                   ${CYAN}║${NC}"
+    echo -e "${CYAN}╚════════════════════════════════════════════════════════════════╝${NC}"
+    echo
+}
+
+# Check root privileges
+check_root() {
+    if [ "$EUID" -ne 0 ]; then 
+        print_msg "$RED" "❌ This script must be run as root!"
+        print_msg "$YELLOW" "Usage: sudo $0"
+        exit 1
+    fi
+}
+
+# Display system information
+show_system_info() {
+    print_msg "$CYAN" "📊 System Information:"
+    echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+    
+    local cpu_usage=$(top -bn1 | grep "Cpu(s)" | sed "s/.*, *\([0-9.]*\)%* id.*/\1/" | awk '{print 100 - $1"%"}' 2>/dev/null || echo "N/A")
+    echo -e "${GREEN}🖥️  CPU Usage:${NC} $cpu_usage"
+    
+    local mem_info=$(free -h | awk '/^Mem:/ {print $3 "/" $2}' 2>/dev/null || echo "N/A")
+    local mem_percent=$(free | awk '/^Mem:/ {printf("%.1f%%", $3/$2 * 100)}' 2>/dev/null || echo "N/A")
+    echo -e "${GREEN}💾 RAM Usage:${NC} $mem_info ($mem_percent)"
+    
+    local disk_info=$(df -h / | awk 'NR==2 {print $3 "/" $2}' 2>/dev/null || echo "N/A")
+    local disk_percent=$(df -h / | awk 'NR==2 {print $5}' 2>/dev/null || echo "N/A")
+    echo -e "${GREEN}💿 Disk Usage:${NC} $disk_info ($disk_percent)"
+    
+    local ip_address=$(hostname -I | awk '{print $1}' 2>/dev/null || echo "N/A")
+    echo -e "${GREEN}🌐 IP Address:${NC} $ip_address"
+    
+    local uptime_info=$(uptime -p 2>/dev/null || echo "N/A")
+    echo -e "${GREEN}⏱️  Uptime:${NC} $uptime_info"
+    
+    echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+    echo
+}
+
+# Display services status
+show_services_status() {
+    print_msg "$CYAN" "🔧 Services Status:"
+    echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+    
+    if command_exists systemctl; then
+        systemctl is-active --quiet nginx 2>/dev/null && echo -e "${GREEN}✅ Nginx:${NC} Running" || echo -e "${RED}❌ Nginx:${NC} Stopped"
+        systemctl is-active --quiet ssh 2>/dev/null && echo -e "${GREEN}✅ SSH:${NC} Running" || echo -e "${RED}❌ SSH:${NC} Stopped"
+    else
+        echo -e "${YELLOW}⚠️  systemctl not available${NC}"
+    fi
+    
+    pgrep -x "sslh" > /dev/null 2>&1 && echo -e "${GREEN}✅ SSLH:${NC} Running" || echo -e "${RED}❌ SSLH:${NC} Stopped"
+    
+    if command_exists pm2; then
+        echo -e "${GREEN}✅ PM2:${NC} Installed"
+    else
+        echo -e "${YELLOW}⚠️  PM2:${NC} Not installed"
+    fi
+    
+    if command_exists ufw; then
+        ufw status 2>/dev/null | grep -q "Status: active" && echo -e "${GREEN}✅ UFW Firewall:${NC} Active" || echo -e "${YELLOW}⚠️  UFW Firewall:${NC} Inactive"
+    else
+        echo -e "${YELLOW}⚠️  UFW:${NC} Not installed"
+    fi
+    
+    echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+    echo
+}
+
+# PM2 Management
+manage_pm2() {
+    print_header
+    print_msg "$CYAN" "📦 PM2 Process Manager"
+    echo
+    
+    # Check if PM2 is installed
+    if ! command_exists pm2; then
+        print_msg "$RED" "❌ PM2 is not installed!"
+        echo
+        print_msg "$YELLOW" "Would you like to install PM2? (yes/no)"
+        read -p "> " install_pm2
+        
+        if [ "$install_pm2" = "yes" ]; then
+            print_msg "$BLUE" "📦 Installing PM2..."
+            npm install -g pm2
+            print_msg "$GREEN" "✅ PM2 installed successfully!"
+        fi
+        echo
+        read -p "Press Enter to continue..."
+        return
+    fi
+    
+    echo -e "${YELLOW}1)${NC} List all PM2 processes"
+    echo -e "${YELLOW}2)${NC} Restart all processes"
+    echo -e "${YELLOW}3)${NC} Restart specific app"
+    echo -e "${YELLOW}4)${NC} Stop all processes"
+    echo -e "${YELLOW}5)${NC} Start all processes"
+    echo -e "${YELLOW}6)${NC} View logs (real-time)"
+    echo -e "${YELLOW}7)${NC} View app logs"
+    echo -e "${YELLOW}8)${NC} Monitor processes"
+    echo -e "${YELLOW}9)${NC} Save PM2 state"
+    echo -e "${YELLOW}10)${NC} Delete process"
+    echo -e "${YELLOW}11)${NC} Restart PM2 daemon"
+    echo -e "${YELLOW}0)${NC} Back"
+    echo
+    read -p "Select option: " pm2_choice
+    
+    case $pm2_choice in
+        1)
+            pm2 list
+            ;;
+        2)
+            print_msg "$BLUE" "🔄 Restarting all PM2 processes..."
+            pm2 restart all
+            pm2 save
+            print_msg "$GREEN" "✅ All processes restarted!"
+            log_action "PM2: Restarted all processes"
+            ;;
+        3)
+            pm2 list
+            echo
+            read -p "Enter app name or ID: " app_name
+            if [ -n "$app_name" ]; then
+                pm2 restart "$app_name"
+                print_msg "$GREEN" "✅ Process restarted!"
+                log_action "PM2: Restarted $app_name"
+            fi
+            ;;
+        4)
+            pm2 stop all
+            print_msg "$YELLOW" "⚠️  All processes stopped!"
+            log_action "PM2: Stopped all processes"
+            ;;
+        5)
+            pm2 start all
+            print_msg "$GREEN" "✅ All processes started!"
+            log_action "PM2: Started all processes"
+            ;;
+        6)
+            print_msg "$CYAN" "📋 Real-time logs (Press Ctrl+C to exit)..."
+            sleep 1
+            pm2 logs
+            ;;
+        7)
+            pm2 list
+            echo
+            read -p "Enter app name: " app_name
+            if [ -n "$app_name" ]; then
+                pm2 logs "$app_name" --lines 100
+            fi
+            ;;
+        8)
+            pm2 monit
+            ;;
+        9)
+            pm2 save
+            print_msg "$GREEN" "✅ PM2 state saved!"
+            log_action "PM2: State saved"
+            ;;
+        10)
+            pm2 list
+            echo
+            read -p "Enter app name or ID to delete: " app_name
+            if [ -n "$app_name" ]; then
+                pm2 delete "$app_name"
+                pm2 save
+                print_msg "$GREEN" "✅ Process deleted!"
+                log_action "PM2: Deleted $app_name"
+            fi
+            ;;
+        11)
+            pm2 kill
+            sleep 2
+            pm2 resurrect
+            print_msg "$GREEN" "✅ PM2 daemon restarted!"
+            log_action "PM2: Daemon restarted"
+            ;;
+        0)
+            return
+            ;;
+    esac
+    
+    echo
+    read -p "Press Enter to continue..."
+}
+
+# Update main project (REZGEE)
+update_main_project() {
+    print_header
+    print_msg "$CYAN" "🔄 Update Main Project (REZGEE)"
+    echo
+    
+    # Check if git is installed
+    if ! command_exists git; then
+        print_msg "$RED" "❌ Git is not installed!"
+        echo
+        read -p "Press Enter to continue..."
+        return
+    fi
+    
+    # Check if project directory exists
+    if [ ! -d "$WEBSITE_ROOT" ]; then
+        print_msg "$RED" "❌ Project directory not found: $WEBSITE_ROOT"
+        echo
+        read -p "Press Enter to continue..."
+        return
+    fi
+    
+    # Check if update script exists
+    UPDATE_SCRIPT="$WEBSITE_ROOT/scripts/maintenance/update-project.sh"
+    if [ ! -f "$UPDATE_SCRIPT" ]; then
+        print_msg "$RED" "❌ Update script not found: $UPDATE_SCRIPT"
+        print_msg "$YELLOW" "💡 Please ensure the update script is in place"
+        echo
+        read -p "Press Enter to continue..."
+        return
+    fi
+    
+    print_msg "$YELLOW" "⚠️  This will pull latest changes from GitHub and rebuild the project."
+    print_msg "$CYAN" "ℹ️  Automatic backup will be created before updating"
+    echo
+    read -p "Continue? (yes/no): " confirm
+    
+    if [ "$confirm" != "yes" ]; then
+        print_msg "$YELLOW" "⚠️  Update cancelled"
+        echo
+        read -p "Press Enter to continue..."
+        return
+    fi
+    
+    log_action "Starting project update for REZGEE App using automated script"
+    echo
+    
+    # Execute the update script
+    print_msg "$BLUE" "🚀 Executing update script..."
+    echo
+    
+    if bash "$UPDATE_SCRIPT"; then
+        print_msg "$GREEN" "✅ Update completed successfully!"
+        log_action "Project update completed successfully"
+    else
+        print_msg "$RED" "❌ Update failed!"
+        print_msg "$YELLOW" "💡 Check logs for details"
+        log_action "Project update failed"
+    fi
+    
+    echo
+    read -p "Press Enter to continue..."
+}
+
+# Add new domain/subdomain
+add_domain() {
+    print_header
+    print_msg "$CYAN" "➕ Add New Domain/Subdomain"
+    echo
+    
+    read -p "Enter domain name (e.g., example.com or sub.example.com): " new_domain
+    if [ -z "$new_domain" ]; then
+        print_msg "$RED" "❌ Domain name cannot be empty"
+        echo
+        read -p "Press Enter to continue..."
+        return
+    fi
+    
+    read -p "Enter project directory (e.g., /var/www/myproject): " project_dir
+    if [ -z "$project_dir" ]; then
+        print_msg "$RED" "❌ Project directory cannot be empty"
+        echo
+        read -p "Press Enter to continue..."
+        return
+    fi
+    
+    read -p "Is this a static site? (yes/no): " is_static
+    
+    if [ "$is_static" = "no" ]; then
+        read -p "Enter application port: " app_port
+        if [ -z "$app_port" ]; then
+            print_msg "$RED" "❌ Port cannot be empty"
+            echo
+            read -p "Press Enter to continue..."
+            return
+        fi
+    fi
+    
+    read -p "Enable SSL with Let's Encrypt? (yes/no): " enable_ssl
+    
+    # Create project directory
+    print_msg "$BLUE" "📁 Creating project directory..."
+    mkdir -p "$project_dir"
+    
+    # Create Nginx configuration
+    print_msg "$BLUE" "⚙️  Creating Nginx configuration..."
+    
+    if [ "$is_static" = "yes" ]; then
+        cat > "$NGINX_SITES_AVAILABLE/$new_domain" <<EOF
+server {
+    listen 80;
+    server_name $new_domain www.$new_domain;
+    
+    root $project_dir;
+    index index.html index.htm;
+    
+    # Security headers
+    add_header X-Frame-Options "SAMEORIGIN" always;
+    add_header X-XSS-Protection "1; mode=block" always;
+    add_header X-Content-Type-Options "nosniff" always;
+    
+    # Gzip compression
+    gzip on;
+    gzip_vary on;
+    gzip_min_length 1024;
+    gzip_types text/plain text/css text/xml text/javascript application/javascript;
+    
+    # Static files caching
+    location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot)$ {
+        expires 1y;
+        add_header Cache-Control "public, immutable";
+    }
+    
+    location / {
+        try_files \$uri \$uri/ /index.html;
+    }
+    
+    # Block access to sensitive files
+    location ~ /\. {
+        deny all;
+    }
+}
+EOF
+    else
+        cat > "$NGINX_SITES_AVAILABLE/$new_domain" <<EOF
+server {
+    listen 80;
+    server_name $new_domain www.$new_domain;
+    
+    location / {
+        proxy_pass http://localhost:$app_port;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade \$http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host \$host;
+        proxy_set_header X-Real-IP \$remote_addr;
+        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto \$scheme;
+        proxy_cache_bypass \$http_upgrade;
+    }
+    
+    # Block access to sensitive files
+    location ~ /\. {
+        deny all;
+    }
+}
+EOF
+    fi
+    
+    # Enable site
+    print_msg "$BLUE" "🔗 Enabling site..."
+    ln -sf "$NGINX_SITES_AVAILABLE/$new_domain" "$NGINX_SITES_ENABLED/"
+    
+    # Test Nginx configuration
+    if nginx -t 2>/dev/null; then
+        systemctl reload nginx
+        print_msg "$GREEN" "✅ Nginx configuration successful!"
+    else
+        print_msg "$RED" "❌ Nginx configuration error!"
+        rm -f "$NGINX_SITES_ENABLED/$new_domain"
+        echo
+        read -p "Press Enter to continue..."
+        return
+    fi
+    
+    # Configure SSL
+    if [ "$enable_ssl" = "yes" ]; then
+        if command_exists certbot; then
+            print_msg "$BLUE" "🔒 Setting up SSL with Let's Encrypt..."
+            certbot --nginx -d "$new_domain" -d "www.$new_domain" --non-interactive --agree-tos --register-unsafely-without-email
+            
+            if [ $? -eq 0 ]; then
+                print_msg "$GREEN" "✅ SSL certificate installed successfully!"
+            else
+                print_msg "$YELLOW" "⚠️  SSL setup failed. You can run certbot manually later."
+            fi
+        else
+            print_msg "$YELLOW" "⚠️  Certbot not installed. SSL skipped."
+        fi
+    fi
+    
+    echo
+    print_msg "$GREEN" "🎉 Domain $new_domain added successfully!"
+    log_action "Added new domain: $new_domain"
+    
+    echo
+    print_msg "$CYAN" "📝 Next steps:"
+    echo "1. Upload your files to: $project_dir"
+    if [ "$is_static" = "no" ]; then
+        echo "2. Make sure your application is running on port $app_port"
+        echo "3. Consider adding PM2 process for auto-restart"
+    fi
+    echo "4. Update DNS records to point to this server"
+    
+    echo
+    read -p "Press Enter to continue..."
+}
+
+# List all domains
+list_domains() {
+    print_header
+    print_msg "$CYAN" "📋 Configured Domains"
+    echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+    
+    if [ ! -d "$NGINX_SITES_ENABLED" ]; then
+        print_msg "$RED" "❌ Nginx sites-enabled directory not found"
+        echo
+        read -p "Press Enter to continue..."
+        return
+    fi
+    
+    local count=1
+    local found=0
+    
+    for site in "$NGINX_SITES_ENABLED"/*; do
+        if [ -f "$site" ] && [ ! -L "$site" -o -e "$site" ]; then
+            local domain=$(basename "$site")
+            local ssl_status="${RED}No SSL${NC}"
+            
+            if [ -d "$SSL_CERT_PATH/$domain" ]; then
+                ssl_status="${GREEN}SSL Enabled${NC}"
+            fi
+            
+            echo -e "${YELLOW}$count)${NC} $domain - $ssl_status"
+            ((count++))
+            found=1
+        fi
+    done
+    
+    if [ $found -eq 0 ]; then
+        print_msg "$YELLOW" "⚠️  No configured domains found"
+    fi
+    
+    echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+    echo
+    read -p "Press Enter to continue..."
+}
+
+# Remove domain
+remove_domain() {
+    print_header
+    print_msg "$CYAN" "🗑️  Remove Domain"
+    echo
+    
+    print_msg "$YELLOW" "Available domains:"
+    local domains=()
+    local count=1
+    
+    for site in "$NGINX_SITES_ENABLED"/*; do
+        if [ -f "$site" ] && [ ! -L "$site" -o -e "$site" ]; then
+            local domain=$(basename "$site")
+            domains+=("$domain")
+            echo -e "${YELLOW}$count)${NC} $domain"
+            ((count++))
+        fi
+    done
+    
+    if [ ${#domains[@]} -eq 0 ]; then
+        print_msg "$RED" "❌ No domains found"
+        echo
+        read -p "Press Enter to continue..."
+        return
+    fi
+    
+    echo -e "${YELLOW}0)${NC} Cancel"
+    echo
+    
+    read -p "Select domain to remove: " choice
+    
+    if [ "$choice" = "0" ]; then
+        return
+    fi
+    
+    if [ "$choice" -gt 0 ] && [ "$choice" -le ${#domains[@]} ]; then
+        local selected_domain="${domains[$((choice-1))]}"
+        
+        print_msg "$RED" "⚠️  WARNING: This will remove $selected_domain configuration!"
+        read -p "Are you sure? (yes/no): " confirm
+        
+        if [ "$confirm" = "yes" ]; then
+            rm -f "$NGINX_SITES_ENABLED/$selected_domain"
+            rm -f "$NGINX_SITES_AVAILABLE/$selected_domain"
+            
+            if nginx -t 2>/dev/null; then
+                systemctl reload nginx
+                print_msg "$GREEN" "✅ Domain removed successfully!"
+                log_action "Removed domain: $selected_domain"
+            else
+                print_msg "$RED" "❌ Nginx configuration error after removal"
+            fi
+        else
+            print_msg "$YELLOW" "⚠️  Cancelled"
+        fi
+    else
+        print_msg "$RED" "❌ Invalid selection"
+    fi
+    
+    echo
+    read -p "Press Enter to continue..."
+}
+
+# Manage Nginx
+manage_nginx() {
+    print_header
+    print_msg "$CYAN" "🌐 Nginx Management"
+    echo
+    
+    if ! command_exists nginx; then
+        print_msg "$RED" "❌ Nginx is not installed!"
+        echo
+        read -p "Press Enter to continue..."
+        return
+    fi
+    
+    echo -e "${YELLOW}1)${NC} Test Nginx configuration"
+    echo -e "${YELLOW}2)${NC} Reload Nginx"
+    echo -e "${YELLOW}3)${NC} Restart Nginx"
+    echo -e "${YELLOW}4)${NC} Stop Nginx"
+    echo -e "${YELLOW}5)${NC} Start Nginx"
+    echo -e "${YELLOW}6)${NC} View Nginx status"
+    echo -e "${YELLOW}7)${NC} View access logs"
+    echo -e "${YELLOW}8)${NC} View error logs"
+    echo -e "${YELLOW}9)${NC} View Nginx configuration"
+    echo -e "${YELLOW}0)${NC} Back"
+    echo
+    read -p "Select option: " nginx_choice
+    
+    case $nginx_choice in
+        1)
+            print_msg "$BLUE" "🔍 Testing Nginx configuration..."
+            nginx -t
+            ;;
+        2)
+            print_msg "$BLUE" "🔄 Reloading Nginx..."
+            systemctl reload nginx && print_msg "$GREEN" "✅ Success!" || print_msg "$RED" "❌ Failed!"
+            log_action "Nginx: Reloaded"
+            ;;
+        3)
+            print_msg "$BLUE" "🔄 Restarting Nginx..."
+            systemctl restart nginx && print_msg "$GREEN" "✅ Success!" || print_msg "$RED" "❌ Failed!"
+            log_action "Nginx: Restarted"
+            ;;
+        4)
+            print_msg "$BLUE" "⏹️  Stopping Nginx..."
+            systemctl stop nginx && print_msg "$GREEN" "✅ Success!" || print_msg "$RED" "❌ Failed!"
+            log_action "Nginx: Stopped"
+            ;;
+        5)
+            print_msg "$BLUE" "▶️  Starting Nginx..."
+            systemctl start nginx && print_msg "$GREEN" "✅ Success!" || print_msg "$RED" "❌ Failed!"
+            log_action "Nginx: Started"
+            ;;
+        6)
+            systemctl status nginx
+            ;;
+        7)
+            if [ -f /var/log/nginx/access.log ]; then
+                print_msg "$CYAN" "📋 Last 50 lines of access log:"
+                tail -n 50 /var/log/nginx/access.log
+            else
+                print_msg "$RED" "❌ Access log not found"
+            fi
+            ;;
+        8)
+            if [ -f /var/log/nginx/error.log ]; then
+                print_msg "$CYAN" "📋 Last 50 lines of error log:"
+                tail -n 50 /var/log/nginx/error.log
+            else
+                print_msg "$RED" "❌ Error log not found"
+            fi
+            ;;
+        9)
+            if [ -f /etc/nginx/nginx.conf ]; then
+                print_msg "$CYAN" "⚙️  Main Nginx configuration:"
+                less /etc/nginx/nginx.conf
+            else
+                print_msg "$RED" "❌ Configuration file not found"
+            fi
+            ;;
+        0)
+            return
+            ;;
+    esac
+    
+    echo
+    read -p "Press Enter to continue..."
+}
+
+# SSL Management
+manage_ssl() {
+    print_header
+    print_msg "$CYAN" "🔒 SSL Certificate Management"
+    echo
+    
+    if ! command_exists certbot; then
+        print_msg "$RED" "❌ Certbot is not installed!"
+        echo
+        print_msg "$YELLOW" "Install certbot with: apt install certbot python3-certbot-nginx"
+        echo
+        read -p "Press Enter to continue..."
+        return
+    fi
+    
+    echo -e "${YELLOW}1)${NC} Check certificate status"
+    echo -e "${YELLOW}2)${NC} Renew all certificates"
+    echo -e "${YELLOW}3)${NC} View certificate details"
+    echo -e "${YELLOW}4)${NC} Test auto-renewal"
+    echo -e "${YELLOW}5)${NC} Add SSL to domain"
+    echo -e "${YELLOW}0)${NC} Back"
+    echo
+    read -p "Select option: " ssl_choice
+    
+    case $ssl_choice in
+        1)
+            print_msg "$BLUE" "🔍 Checking certificate status..."
+            if [ ! -d "$SSL_CERT_PATH" ]; then
+                print_msg "$RED" "❌ No certificates found"
+                echo
+                read -p "Press Enter to continue..."
+                return
+            fi
+            
+            local found=0
+            for cert_dir in "$SSL_CERT_PATH"/*; do
+                if [ -d "$cert_dir" ]; then
+                    local domain=$(basename "$cert_dir")
+                    if [ -f "$cert_dir/fullchain.pem" ]; then
+                        local expiry=$(openssl x509 -enddate -noout -in "$cert_dir/fullchain.pem" 2>/dev/null | cut -d= -f2)
+                        if [ -n "$expiry" ]; then
+                            local days_left=$(( ($(date -d "$expiry" +%s 2>/dev/null || echo 0) - $(date +%s)) / 86400 ))
+                            
+                            if [ $days_left -gt 30 ]; then
+                                echo -e "${GREEN}✅ $domain${NC}: $days_left days remaining"
+                            elif [ $days_left -gt 0 ]; then
+                                echo -e "${YELLOW}⚠️  $domain${NC}: $days_left days remaining"
+                            else
+                                echo -e "${RED}❌ $domain${NC}: EXPIRED!"
+                            fi
+                            found=1
+                        fi
+                    fi
+                fi
+            done
+            
+            if [ $found -eq 0 ]; then
+                print_msg "$YELLOW" "⚠️  No valid certificates found"
+            fi
+            ;;
+        2)
+            print_msg "$BLUE" "🔄 Renewing certificates..."
+            certbot renew && print_msg "$GREEN" "✅ Renewal successful!" || print_msg "$RED" "❌ Renewal failed!"
+            systemctl reload nginx 2>/dev/null
+            log_action "SSL: Certificates renewed"
+            ;;
+        3)
+            read -p "Enter domain name: " domain
+            if [ -n "$domain" ] && [ -f "$SSL_CERT_PATH/$domain/fullchain.pem" ]; then
+                openssl x509 -in "$SSL_CERT_PATH/$domain/fullchain.pem" -text -noout 2>/dev/null | head -n 30
+            else
+                print_msg "$RED" "❌ Certificate not found for $domain"
+            fi
+            ;;
+        4)
+            print_msg "$BLUE" "🧪 Testing auto-renewal..."
+            certbot renew --dry-run
+            ;;
+        5)
+            read -p "Enter domain name: " domain
+            if [ -n "$domain" ]; then
+                certbot --nginx -d "$domain" -d "www.$domain"
+                log_action "SSL: Added certificate for $domain"
+            fi
+            ;;
+        0)
+            return
+            ;;
+    esac
+    
+    echo
+    read -p "Press Enter to continue..."
+}
+
+# Backup system
+create_backup() {
+    print_header
+    print_msg "$CYAN" "💾 Create Backup"
+    echo
+    
+    print_msg "$YELLOW" "Select backup type:"
+    echo -e "${YELLOW}1)${NC} Full backup (Website + Nginx + SSL + PM2)"
+    echo -e "${YELLOW}2)${NC} Website only"
+    echo -e "${YELLOW}3)${NC} Configuration only"
+    echo -e "${YELLOW}0)${NC} Cancel"
+    echo
+    read -p "Select option: " backup_choice
+    
+    if [ "$backup_choice" = "0" ]; then
+        return
+    fi
+    
+    local timestamp=$(date +%Y%m%d_%H%M%S)
+    local backup_name="backup_${timestamp}"
+    local backup_path="$BACKUP_DIR/$backup_name"
+    
+    mkdir -p "$backup_path"
+    
+    case $backup_choice in
+        1)
+            print_msg "$BLUE" "📦 Creating full backup..."
+            
+            print_msg "$YELLOW" "📁 Backing up website files..."
+            if [ -d /var/www ]; then
+                tar -czf "$backup_path/website.tar.gz" -C /var/www . 2>/dev/null && print_msg "$GREEN" "✅ Website backed up" || print_msg "$RED" "❌ Failed"            fi
+            
+            print_msg "$YELLOW" "⚙️  Backing up Nginx config..."
+            if [ -d /etc/nginx ]; then
+                tar -czf "$backup_path/nginx.tar.gz" -C /etc/nginx . 2>/dev/null && print_msg "$GREEN" "✅ Nginx backed up" || print_msg "$RED" "❌ Failed"
+            fi
+            
+            print_msg "$YELLOW" "🔒 Backing up SSL certificates..."
+            if [ -d /etc/letsencrypt ]; then
+                tar -czf "$backup_path/ssl.tar.gz" -C /etc/letsencrypt . 2>/dev/null && print_msg "$GREEN" "✅ SSL backed up" || print_msg "$RED" "❌ Failed"            fi
+            
+            print_msg "$YELLOW" "📦 Backing up PM2 config..."
+            if command_exists pm2; then
+                pm2 save 2>/dev/null
+                if [ -d ~/.pm2 ]; then
+                    cp -r ~/.pm2 "$backup_path/pm2_config" 2>/dev/null && print_msg "$GREEN" "✅ PM2 backed up" || print_msg "$RED" "❌ Failed"
+                fi
+            fi
+            
+            print_msg "$YELLOW" "🔧 Backing up SSLH config..."
+            if [ -f /etc/default/sslh ]; then
+                cp /etc/default/sslh "$backup_path/" 2>/dev/null && print_msg "$GREEN" "✅ SSLH backed up" || print_msg "$RED" "❌ Failed"
+            fi
+            ;;
+        2)
+            print_msg "$BLUE" "📁 Backing up website only..."
+            if [ -d /var/www ]; then
+                tar -czf "$backup_path/website.tar.gz" -C /var/www . 2>/dev/null && print_msg "$GREEN" "✅ Success" || print_msg "$RED" "❌ Failed"
+            else
+                print_msg "$RED" "❌ Website directory not found"
+            fi
+            ;;
+        3)
+            print_msg "$BLUE" "⚙️  Backing up configurations only..."
+            if [ -d /etc/nginx ]; then
+                tar -czf "$backup_path/nginx.tar.gz" -C /etc/nginx . 2>/dev/null
+            fi
+            if [ -d /etc/letsencrypt ]; then
+                tar -czf "$backup_path/ssl.tar.gz" -C /etc/letsencrypt . 2>/dev/null
+            fi
+            print_msg "$GREEN" "✅ Configurations backed up"
+            ;;
+        *)
+            print_msg "$RED" "❌ Invalid option"
+            rm -rf "$backup_path"
+            echo
+            read -p "Press Enter to continue..."
+            return
+            ;;
+    esac
+    
+    # Create info file
+    cat > "$backup_path/backup_info.txt" <<EOF
+=================================
+Backup Information
+=================================
+Date: $(date)
+Server: $(hostname)
+IP: $(hostname -I | awk '{print $1}')
+Backup Type: Option $backup_choice
+=================================
+EOF
+    
+    # Compress everything
+    print_msg "$YELLOW" "🗜️  Compressing backup..."
+    cd "$BACKUP_DIR"
+    tar -czf "${backup_name}.tar.gz" "$backup_name" 2>/dev/null
+    rm -rf "$backup_name"
+    
+    if [ -f "${backup_name}.tar.gz" ]; then
+        local backup_size=$(du -h "${backup_name}.tar.gz" 2>/dev/null | cut -f1)
+        print_msg "$GREEN" "✅ Backup created successfully!"
+        print_msg "$CYAN" "📍 Location: $BACKUP_DIR/${backup_name}.tar.gz"
+        print_msg "$CYAN" "📊 Size: $backup_size"
+        
+        # Clean old backups (keep last 7)
+        print_msg "$YELLOW" "🧹 Cleaning old backups..."
+        ls -t "$BACKUP_DIR"/backup_*.tar.gz 2>/dev/null | tail -n +8 | xargs rm -f 2>/dev/null
+        
+        log_action "Backup created: ${backup_name}.tar.gz"
+    else
+        print_msg "$RED" "❌ Backup creation failed"
+    fi
+    
+    echo
+    read -p "Press Enter to continue..."
+}
+
+# Restore backup
+restore_backup() {
+    print_header
+    print_msg "$CYAN" "♻️  Restore Backup"
+    echo
+    
+    print_msg "$YELLOW" "📋 Available backups:"
+    local backups=($(ls -t "$BACKUP_DIR"/backup_*.tar.gz 2>/dev/null))
+    
+    if [ ${#backups[@]} -eq 0 ]; then
+        print_msg "$RED" "❌ No backups found!"
+        echo
+        read -p "Press Enter to continue..."
+        return
+    fi
+    
+    local i=1
+    for backup in "${backups[@]}"; do
+        local backup_name=$(basename "$backup")
+        local backup_date=$(echo "$backup_name" | sed 's/backup_\(.*\)\.tar\.gz/\1/')
+        local backup_size=$(du -h "$backup" 2>/dev/null | cut -f1)
+        echo -e "${YELLOW}$i)${NC} $backup_date (${backup_size})"
+        ((i++))
+    done
+    echo -e "${YELLOW}0)${NC} Cancel"
+    echo
+    
+    read -p "Select backup to restore: " backup_choice
+    
+    if [ "$backup_choice" = "0" ]; then
+        return
+    fi
+    
+    if [ "$backup_choice" -gt 0 ] && [ "$backup_choice" -le ${#backups[@]} ]; then
+        local selected_backup="${backups[$((backup_choice-1))]}"
+        
+        print_msg "$RED" "⚠️  WARNING: This will replace current files!"
+        read -p "Are you sure? (yes/no): " confirm
+        
+        if [ "$confirm" = "yes" ]; then
+            print_msg "$BLUE" "🔄 Restoring backup..."
+            
+            local temp_dir="/tmp/restore_temp_$"
+            mkdir -p "$temp_dir"
+            
+            if tar -xzf "$selected_backup" -C "$temp_dir" 2>/dev/null; then
+                local backup_folder=$(ls "$temp_dir" 2>/dev/null | head -1)
+                
+                if [ -n "$backup_folder" ]; then
+                    if [ -f "$temp_dir/$backup_folder/website.tar.gz" ]; then
+                        print_msg "$YELLOW" "📁 Restoring website files..."
+                        tar -xzf "$temp_dir/$backup_folder/website.tar.gz" -C /var/www 2>/dev/null && print_msg "$GREEN" "✅ Website restored"
+                    fi
+                    
+                    if [ -f "$temp_dir/$backup_folder/nginx.tar.gz" ]; then
+                        print_msg "$YELLOW" "⚙️  Restoring Nginx config..."
+                        tar -xzf "$temp_dir/$backup_folder/nginx.tar.gz" -C /etc/nginx 2>/dev/null && print_msg "$GREEN" "✅ Nginx restored"
+                    fi
+                    
+                    if nginx -t 2>/dev/null; then
+                        systemctl restart nginx 2>/dev/null
+                        print_msg "$GREEN" "✅ Restore completed successfully!"
+                        log_action "Backup restored: $(basename $selected_backup)"
+                    else
+                        print_msg "$RED" "❌ Nginx configuration error!"
+                    fi
+                else
+                    print_msg "$RED" "❌ Invalid backup structure"
+                fi
+            else
+                print_msg "$RED" "❌ Failed to extract backup"
+            fi
+            
+            rm -rf "$temp_dir"
+        else
+            print_msg "$YELLOW" "⚠️  Restore cancelled"
+        fi
+    else
+        print_msg "$RED" "❌ Invalid selection!"
+    fi
+    
+    echo
+    read -p "Press Enter to continue..."
+}
+
+# Monitor resources
+monitor_resources() {
+    print_header
+    print_msg "$CYAN" "📊 Real-time Resource Monitoring (Press Ctrl+C to exit)"
+    echo
+    
+    while true; do
+        local cpu=$(top -bn1 2>/dev/null | grep "Cpu(s)" | sed "s/.*, *\([0-9.]*\)%* id.*/\1/" | awk '{print 100 - $1}' || echo "0")
+        local mem_used=$(free -m 2>/dev/null | awk 'NR==2{print $3}' || echo "0")
+        local mem_total=$(free -m 2>/dev/null | awk 'NR==2{print $2}' || echo "0")
+        local mem_percent=$(free 2>/dev/null | awk 'NR==2{printf "%.1f", ($3/$2) * 100}' || echo "0")
+        local disk_used=$(df -h / 2>/dev/null | awk 'NR==2{print $3}' || echo "0")
+        local disk_total=$(df -h / 2>/dev/null | awk 'NR==2{print $2}' || echo "0")
+        local disk_percent=$(df / 2>/dev/null | awk 'NR==2{print $5}' | sed 's/%//' || echo "0")
+        local connections=$(ss -ant 2>/dev/null | grep -c ESTAB || echo "0")
+        
+        tput cup 5 0
+        echo -e "${GREEN}🖥️  CPU Usage:${NC}     ${cpu}%        "
+        echo -e "${GREEN}💾 RAM Usage:${NC}     ${mem_used}MB / ${mem_total}MB (${mem_percent}%)        "
+        echo -e "${GREEN}💿 Disk Usage:${NC}    ${disk_used} / ${disk_total} (${disk_percent}%)        "
+        echo -e "${GREEN}🌐 Connections:${NC}  ${connections}        "
+        echo "                                                          "
+        
+        sleep 2
+    done
+}
+
+# Firewall management
+manage_firewall() {
+    print_header
+    print_msg "$CYAN" "🔥 UFW Firewall Management"
+    echo
+    
+    if ! command_exists ufw; then
+        print_msg "$RED" "❌ UFW is not installed!"
+        echo
+        print_msg "$YELLOW" "Install with: apt install ufw"
+        echo
+        read -p "Press Enter to continue..."
+        return
+    fi
+    
+    echo -e "${YELLOW}1)${NC} Show UFW status"
+    echo -e "${YELLOW}2)${NC} Enable UFW"
+    echo -e "${YELLOW}3)${NC} Disable UFW"
+    echo -e "${YELLOW}4)${NC} Show rules"
+    echo -e "${YELLOW}5)${NC} Add rule (allow port)"
+    echo -e "${YELLOW}6)${NC} Delete rule"
+    echo -e "${YELLOW}7)${NC} Reset firewall"
+    echo -e "${YELLOW}0)${NC} Back"
+    echo
+    read -p "Select option: " fw_choice
+    
+    case $fw_choice in
+        1)
+            ufw status verbose
+            ;;
+        2)
+            ufw enable
+            print_msg "$GREEN" "✅ UFW enabled"
+            log_action "UFW: Enabled"
+            ;;
+        3)
+            ufw disable
+            print_msg "$YELLOW" "⚠️  UFW disabled"
+            log_action "UFW: Disabled"
+            ;;
+        4)
+            ufw status numbered
+            ;;
+        5)
+            read -p "Enter port: " port
+            read -p "Protocol (tcp/udp/both): " proto
+            if [ "$proto" = "both" ]; then
+                ufw allow $port
+            else
+                ufw allow $port/$proto
+            fi
+            print_msg "$GREEN" "✅ Rule added"
+            log_action "UFW: Added rule for port $port"
+            ;;
+        6)
+            ufw status numbered
+            echo
+            read -p "Rule number to delete: " rule_num
+            if [ -n "$rule_num" ]; then
+                ufw delete $rule_num
+                log_action "UFW: Deleted rule $rule_num"
+            fi
+            ;;
+        7)
+            print_msg "$RED" "⚠️  This will reset all firewall rules!"
+            read -p "Are you sure? (yes/no): " confirm
+            if [ "$confirm" = "yes" ]; then
+                ufw --force reset
+                print_msg "$GREEN" "✅ Firewall reset"
+                log_action "UFW: Reset"
+            fi
+            ;;
+        0)
+            return
+            ;;
+    esac
+    
+    echo
+    read -p "Press Enter to continue..."
+}
+
+# System update
+system_update() {
+    print_header
+    print_msg "$CYAN" "🔄 System Update"
+    echo
+    print_msg "$YELLOW" "⚠️  This may take some time..."
+    echo
+    
+    print_msg "$BLUE" "📦 Updating package list..."
+    apt update
+    
+    echo
+    print_msg "$BLUE" "⬆️  Upgrading packages..."
+    apt upgrade -y
+    
+    echo
+    print_msg "$BLUE" "🧹 Cleaning old packages..."
+    apt autoremove -y
+    apt autoclean
+    
+    print_msg "$GREEN" "✅ System updated successfully!"
+    log_action "System update completed"
+    
+    echo
+    read -p "Press Enter to continue..."
+}
+
+# View logs
+view_logs() {
+    print_header
+    print_msg "$CYAN" "📋 View Logs"
+    echo
+    echo -e "${YELLOW}1)${NC} Nginx Access Log"
+    echo -e "${YELLOW}2)${NC} Nginx Error Log"
+    echo -e "${YELLOW}3)${NC} SSH Auth Log"
+    echo -e "${YELLOW}4)${NC} System Log"
+    echo -e "${YELLOW}5)${NC} UFW Log"
+    echo -e "${YELLOW}6)${NC} PM2 Logs"
+    echo -e "${YELLOW}7)${NC} VPS Manager Actions Log"
+    echo -e "${YELLOW}0)${NC} Back"
+    echo
+    read -p "Select option: " log_choice
+    
+    case $log_choice in
+        1)
+            if [ -f /var/log/nginx/access.log ]; then
+                tail -f /var/log/nginx/access.log
+            else
+                print_msg "$RED" "❌ Log file not found"
+                read -p "Press Enter to continue..."
+            fi
+            ;;
+        2)
+            if [ -f /var/log/nginx/error.log ]; then
+                tail -f /var/log/nginx/error.log
+            else
+                print_msg "$RED" "❌ Log file not found"
+                read -p "Press Enter to continue..."
+            fi
+            ;;
+        3)
+            if [ -f /var/log/auth.log ]; then
+                tail -f /var/log/auth.log
+            else
+                print_msg "$RED" "❌ Log file not found"
+                read -p "Press Enter to continue..."
+            fi
+            ;;
+        4)
+            if [ -f /var/log/syslog ]; then
+                tail -f /var/log/syslog
+            else
+                print_msg "$RED" "❌ Log file not found"
+                read -p "Press Enter to continue..."
+            fi
+            ;;
+        5)
+            if [ -f /var/log/ufw.log ]; then
+                tail -f /var/log/ufw.log
+            else
+                print_msg "$RED" "❌ Log file not found"
+                read -p "Press Enter to continue..."
+            fi
+            ;;
+        6)
+            if command_exists pm2; then
+                pm2 logs
+            else
+                print_msg "$RED" "❌ PM2 not installed"
+                read -p "Press Enter to continue..."
+            fi
+            ;;
+        7)
+            if [ -f "$LOG_DIR/actions.log" ]; then
+                tail -f "$LOG_DIR/actions.log"
+            else
+                print_msg "$RED" "❌ No actions log found"
+                read -p "Press Enter to continue..."
+            fi
+            ;;
+        0)
+            return
+            ;;
+    esac
+}
+
+# Check website health
+check_website_health() {
+    print_header
+    print_msg "$CYAN" "🏥 Website Health Check"
+    echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+    
+    print_msg "$YELLOW" "🔍 Checking Nginx..."
+    if command_exists nginx && nginx -t 2>&1 | grep -q "successful"; then
+        print_msg "$GREEN" "✅ Nginx configuration OK"
+    else
+        print_msg "$RED" "❌ Nginx configuration error"
+    fi
+    
+    print_msg "$YELLOW" "🔍 Checking SSL certificates..."
+    if [ -d "$SSL_CERT_PATH" ]; then
+        local found=0
+        for cert_dir in "$SSL_CERT_PATH"/*; do
+            if [ -d "$cert_dir" ] && [ -f "$cert_dir/fullchain.pem" ]; then
+                local domain=$(basename "$cert_dir")
+                local expiry=$(openssl x509 -enddate -noout -in "$cert_dir/fullchain.pem" 2>/dev/null | cut -d= -f2)
+                if [ -n "$expiry" ]; then
+                    local days_left=$(( ($(date -d "$expiry" +%s 2>/dev/null || echo 0) - $(date +%s)) / 86400 ))
+                    if [ $days_left -gt 30 ]; then
+                        print_msg "$GREEN" "✅ $domain: $days_left days remaining"
+                    else
+                        print_msg "$RED" "⚠️  $domain: $days_left days remaining (renew soon!)"
+                    fi
+                    found=1
+                fi
+            fi
+        done
+        if [ $found -eq 0 ]; then
+            print_msg "$YELLOW" "⚠️  No certificates found"
+        fi
+    else
+        print_msg "$YELLOW" "⚠️  SSL directory not found"
+    fi
+    
+    print_msg "$YELLOW" "🔍 Checking website files..."
+    if [ -d "$WEBSITE_ROOT/dist" ] && [ -f "$WEBSITE_ROOT/dist/index.html" ]; then
+        print_msg "$GREEN" "✅ Website files exist"
+    elif [ -d "$WEBSITE_ROOT" ]; then
+        print_msg "$YELLOW" "⚠️  Website directory exists but no dist folder"
+    else
+        print_msg "$RED" "❌ Website files missing"
+    fi
+    
+    print_msg "$YELLOW" "🔍 Checking ports..."
+    local ports=(80 443 8444 22)
+    for port in "${ports[@]}"; do
+        if ss -tlnp 2>/dev/null | grep -q ":$port"; then
+            print_msg "$GREEN" "✅ Port $port is open"
+        else
+            print_msg "$RED" "❌ Port $port is closed"
+        fi
+    done
+    
+    print_msg "$YELLOW" "🔍 Checking PM2 processes..."
+    if command_exists pm2; then
+        pm2 list | grep -E "online|stopped|errored" || echo "No processes"
+    else
+        print_msg "$YELLOW" "⚠️  PM2 not installed"
+    fi
+    
+    print_msg "$YELLOW" "🔍 Checking internet connection..."
+    if ping -c 1 8.8.8.8 &> /dev/null; then
+        print_msg "$GREEN" "✅ Internet connection OK"
+    else
+        print_msg "$RED" "❌ No internet connection"
+    fi
+    
+    print_msg "$YELLOW" "🔍 Checking DNS resolution..."
+    if command_exists nslookup && nslookup $MAIN_DOMAIN &> /dev/null; then
+        print_msg "$GREEN" "✅ DNS resolution OK"
+    else
+        print_msg "$YELLOW" "⚠️  DNS resolution check skipped"
+    fi
+    
+    echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+    echo
+    read -p "Press Enter to continue..."
+}
+
+# System cleanup
+system_cleanup() {
+    print_header
+    print_msg "$CYAN" "🧹 System Cleanup"
+    echo
+    
+    print_msg "$BLUE" "🗑️  Removing temporary files..."
+    rm -rf /tmp/* 2>/dev/null
+    rm -rf /var/tmp/* 2>/dev/null
+    print_msg "$GREEN" "✅ Temp files cleaned"
+    
+    print_msg "$BLUE" "🗑️  Cleaning old logs..."
+    find /var/log -type f -name "*.log" -mtime +30 -delete 2>/dev/null
+    find /var/log -type f -name "*.gz" -mtime +30 -delete 2>/dev/null
+    print_msg "$GREEN" "✅ Old logs cleaned"
+    
+    print_msg "$BLUE" "🗑️  Cleaning APT cache..."
+    apt-get clean 2>/dev/null
+    apt-get autoclean 2>/dev/null
+    apt-get autoremove -y 2>/dev/null
+    print_msg "$GREEN" "✅ APT cache cleaned"
+    
+    print_msg "$BLUE" "🗑️  Cleaning journalctl..."
+    journalctl --vacuum-time=7d 2>/dev/null
+    print_msg "$GREEN" "✅ Journal cleaned"
+    
+    print_msg "$BLUE" "🗑️  Removing old backups (older than 30 days)..."
+    find "$BACKUP_DIR" -name "backup_*.tar.gz" -mtime +30 -delete 2>/dev/null
+    print_msg "$GREEN" "✅ Old backups removed"
+    
+    local disk_free=$(df -h / 2>/dev/null | awk 'NR==2{print $4}' || echo "N/A")
+    print_msg "$GREEN" "✅ System cleanup completed!"
+    print_msg "$CYAN" "💿 Free disk space: $disk_free"
+    
+    log_action "System cleanup completed"
+    
+    echo
+    read -p "Press Enter to continue..."
+}
+
+# Show statistics
+show_statistics() {
+    print_header
+    print_msg "$CYAN" "📈 Advanced Statistics"
+    echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+    
+    print_msg "$GREEN" "🌐 Nginx Statistics:"
+    if [ -f /var/log/nginx/access.log ]; then
+        local nginx_requests=$(wc -l < /var/log/nginx/access.log 2>/dev/null || echo "0")
+        echo -e "   📊 Total requests: ${YELLOW}$nginx_requests${NC}"
+    fi
+    if [ -f /var/log/nginx/error.log ]; then
+        local nginx_errors=$(wc -l < /var/log/nginx/error.log 2>/dev/null || echo "0")
+        echo -e "   ❌ Total errors: ${YELLOW}$nginx_errors${NC}"
+    fi
+    echo
+    
+    print_msg "$GREEN" "👥 Top 5 visiting IPs:"
+    if [ -f /var/log/nginx/access.log ]; then
+        awk '{print $1}' /var/log/nginx/access.log 2>/dev/null | sort | uniq -c | sort -rn | head -5 | while read count ip; do
+            echo -e "   ${YELLOW}$ip${NC}: $count requests"
+        done
+    else
+        echo "   No data available"
+    fi
+    echo
+    
+    print_msg "$GREEN" "🔌 Active connections:"
+    local tcp_connections=$(ss -ant 2>/dev/null | grep -c ESTAB || echo "0")
+    local listening_ports=$(ss -tlnp 2>/dev/null | grep -c LISTEN || echo "0")
+    echo -e "   📡 TCP connections: ${YELLOW}$tcp_connections${NC}"
+    echo -e "   🎧 Listening ports: ${YELLOW}$listening_ports${NC}"
+    echo
+    
+    print_msg "$GREEN" "⚡ Top 5 CPU consuming processes:"
+    ps aux --sort=-%cpu 2>/dev/null | head -6 | tail -5 | awk '{printf "   %s: %.1f%%\n", $11, $3}' || echo "   No data"
+    echo
+    
+    print_msg "$GREEN" "💾 Top 5 memory consuming processes:"
+    ps aux --sort=-%mem 2>/dev/null | head -6 | tail -5 | awk '{printf "   %s: %.1f%%\n", $11, $4}' || echo "   No data"
+    echo
+    
+    print_msg "$GREEN" "💿 Disk usage by directory:"
+    if [ -d /var/www ]; then
+        du -sh /var/www/* 2>/dev/null | sort -rh | head -5 | while read size path; do
+            echo -e "   ${YELLOW}$path${NC}: $size"
+        done
+    else
+        echo "   No data available"
+    fi
+    
+    echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+    echo
+    read -p "Press Enter to continue..."
+}
+
+# Manage SSLH
+manage_sslh() {
+    print_header
+    print_msg "$CYAN" "🔀 SSLH Management"
+    echo
+    
+    echo -e "${YELLOW}1)${NC} Show SSLH status"
+    echo -e "${YELLOW}2)${NC} Restart SSLH"
+    echo -e "${YELLOW}3)${NC} Stop SSLH"
+    echo -e "${YELLOW}4)${NC} Start SSLH"
+    echo -e "${YELLOW}5)${NC} View SSLH configuration"
+    echo -e "${YELLOW}0)${NC} Back"
+    echo
+    read -p "Select option: " sslh_choice
+    
+    case $sslh_choice in
+        1)
+            if pgrep -x "sslh" > /dev/null 2>&1; then
+                print_msg "$GREEN" "✅ SSLH is running"
+                ps aux | grep sslh | grep -v grep
+            else
+                print_msg "$RED" "❌ SSLH is not running"
+            fi
+            ;;
+        2)
+            pkill sslh 2>/dev/null
+            sleep 1
+            if [ -f /etc/default/sslh ]; then
+                /usr/sbin/sslh $(cat /etc/default/sslh | grep DAEMON_OPTS | cut -d'"' -f2) &
+                print_msg "$GREEN" "✅ SSLH restarted"
+                log_action "SSLH: Restarted"
+            else
+                print_msg "$RED" "❌ SSLH config not found"
+            fi
+            ;;
+        3)
+            pkill sslh 2>/dev/null
+            print_msg "$YELLOW" "⚠️  SSLH stopped"
+            log_action "SSLH: Stopped"
+            ;;
+        4)
+            if [ -f /etc/default/sslh ]; then
+                /usr/sbin/sslh $(cat /etc/default/sslh | grep DAEMON_OPTS | cut -d'"' -f2) &
+                print_msg "$GREEN" "✅ SSLH started"
+                log_action "SSLH: Started"
+            else
+                print_msg "$RED" "❌ SSLH config not found"
+            fi
+            ;;
+        5)
+            if [ -f /etc/default/sslh ]; then
+                cat /etc/default/sslh
+            else
+                print_msg "$RED" "❌ SSLH config not found"
+            fi
+            ;;
+        0)
+            return
+            ;;
+    esac
+    
+    echo
+    read -p "Press Enter to continue..."
+}
+
+# Manage V2Ray proxies
+manage_v2ray() {
+    print_header
+    print_msg "$CYAN" "🎮 V2Ray Gaming Proxies Management"
+    echo
+    echo -e "${YELLOW}1)${NC} Check PUBG Proxy (Port 2087)"
+    echo -e "${YELLOW}2)${NC} Check COD Proxy (Port 2083)"
+    echo -e "${YELLOW}3)${NC} Check COC Proxy (Port 8443)"
+    echo -e "${YELLOW}4)${NC} Show all active ports"
+    echo -e "${YELLOW}5)${NC} Test proxy connections"
+    echo -e "${YELLOW}0)${NC} Back"
+    echo
+    read -p "Select option: " v2ray_choice
+    
+    case $v2ray_choice in
+        1)
+            print_msg "$BLUE" "🔍 Checking PUBG Proxy..."
+            if ss -tlnp 2>/dev/null | grep -q ":2087"; then
+                print_msg "$GREEN" "✅ PUBG Proxy is running on port 2087"
+                ss -tlnp | grep ":2087"
+            else
+                print_msg "$RED" "❌ PUBG Proxy is not running"
+            fi
+            ;;
+        2)
+            print_msg "$BLUE" "🔍 Checking COD Proxy..."
+            if ss -tlnp 2>/dev/null | grep -q ":2083"; then
+                print_msg "$GREEN" "✅ COD Proxy is running on port 2083"
+                ss -tlnp | grep ":2083"
+            else
+                print_msg "$RED" "❌ COD Proxy is not running"
+            fi
+            ;;
+        3)
+            print_msg "$BLUE" "🔍 Checking COC Proxy..."
+            if ss -tlnp 2>/dev/null | grep -q ":8443"; then
+                print_msg "$GREEN" "✅ COC Proxy is running on port 8443"
+                ss -tlnp | grep ":8443"
+            else
+                print_msg "$RED" "❌ COC Proxy is not running"
+            fi
+            ;;
+        4)
+            print_msg "$BLUE" "📊 All active ports:"
+            ss -tlnp 2>/dev/null | grep LISTEN || echo "No listening ports found"
+            ;;
+        5)
+            print_msg "$BLUE" "🧪 Testing connections..."
+            for port in 2087 2083 8443; do
+                if command_exists nc; then
+                    if nc -z 127.0.0.1 $port 2>/dev/null; then
+                        print_msg "$GREEN" "✅ Port $port: Available"
+                    else
+                        print_msg "$RED" "❌ Port $port: Not available"
+                    fi
+                else
+                    if ss -tlnp 2>/dev/null | grep -q ":$port"; then
+                        print_msg "$GREEN" "✅ Port $port: Listening"
+                    else
+                        print_msg "$RED" "❌ Port $port: Not listening"
+                    fi
+                fi
+            done
+            ;;
+        0)
+            return
+            ;;
+    esac
+    
+    echo
+    read -p "Press Enter to continue..."
+}
+
+# Generate comprehensive report
+generate_report() {
+    print_header
+    print_msg "$CYAN" "📝 Generate Comprehensive Report"
+    
+    local report_file="$LOG_DIR/report_$(date +%Y%m%d_%H%M%S).txt"
+    
+    {
+        echo "=================================="
+        echo "VPS Comprehensive Report"
+        echo "=================================="
+        echo "Date: $(date)"
+        echo "Server: $(hostname)"
+        echo "IP: $(hostname -I | awk '{print $1}')"
+        echo "=================================="
+        echo
+        
+        echo "=== System Information ==="
+        echo "CPU: $(top -bn1 2>/dev/null | grep "Cpu(s)" | sed "s/.*, *\([0-9.]*\)%* id.*/\1/" | awk '{print 100 - $1"%"}' || echo "N/A")"
+        echo "RAM: $(free -h 2>/dev/null | awk '/^Mem:/ {print $3 "/" $2}' || echo "N/A")"
+        echo "Disk: $(df -h / 2>/dev/null | awk 'NR==2 {print $3 "/" $2 " (" $5 ")"}' || echo "N/A")"
+        echo "Uptime: $(uptime -p 2>/dev/null || echo "N/A")"
+        echo
+        
+        echo "=== Services Status ==="
+        systemctl is-active nginx 2>/dev/null && echo "✅ Nginx: Running" || echo "❌ Nginx: Stopped"
+        systemctl is-active ssh 2>/dev/null && echo "✅ SSH: Running" || echo "❌ SSH: Stopped"
+        pgrep -x "sslh" > /dev/null 2>&1 && echo "✅ SSLH: Running" || echo "❌ SSLH: Stopped"
+        echo
+        
+        echo "=== PM2 Processes ==="
+        if command_exists pm2; then
+            pm2 list 2>/dev/null || echo "PM2 not available"
+        else
+            echo "PM2 not installed"
+        fi
+        echo
+        
+        echo "=== SSL Certificates ==="
+        if [ -d "$SSL_CERT_PATH" ]; then
+            for cert_dir in "$SSL_CERT_PATH"/*; do
+                if [ -d "$cert_dir" ] && [ -f "$cert_dir/fullchain.pem" ]; then
+                    local domain=$(basename "$cert_dir")
+                    echo "Domain: $domain"
+                    echo "Expiry: $(openssl x509 -enddate -noout -in "$cert_dir/fullchain.pem" 2>/dev/null | cut -d= -f2 || echo "Unknown")"
+                fi
+            done
+        else
+            echo "No SSL certificates found"
+        fi
+        echo
+        
+        echo "=== Active Ports ==="
+        ss -tlnp 2>/dev/null | grep LISTEN || echo "No data"
+        echo
+        
+        echo "=== Top 10 Visiting IPs ==="
+        if [ -f /var/log/nginx/access.log ]; then
+            awk '{print $1}' /var/log/nginx/access.log 2>/dev/null | sort | uniq -c | sort -rn | head -10 || echo "No data"
+        else
+            echo "No access log found"
+        fi
+        echo
+        
+        echo "=== Disk Usage ==="
+        df -h 2>/dev/null || echo "No data"
+        echo
+        
+        echo "=== Last 20 Nginx Access Log Lines ==="
+        if [ -f /var/log/nginx/access.log ]; then
+            tail -20 /var/log/nginx/access.log 2>/dev/null || echo "No data"
+        else
+            echo "No access log found"
+        fi
+        
+    } > "$report_file"
+    
+    print_msg "$GREEN" "✅ Report generated successfully!"
+    print_msg "$CYAN" "📍 Location: $report_file"
+    echo
+    print_msg "$YELLOW" "View report now? (y/n)"
+    read -p "> " view_report
+    
+    if [ "$view_report" = "y" ]; then
+        if command_exists less; then
+            less "$report_file"
+        else
+            cat "$report_file"
+            echo
+            read -p "Press Enter to continue..."
+        fi
+    fi
+    
+    log_action "Report generated: $report_file"
+    
+    echo
+    read -p "Press Enter to continue..."
+}
+
+# Main menu
+main_menu() {
+    while true; do
+        print_header
+        show_system_info
+        show_services_status
+        
+        print_msg "$CYAN" "📋 Main Menu:"
+        echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+        echo -e "${YELLOW}1)${NC}  🌐 Nginx Management"
+        echo -e "${YELLOW}2)${NC}  🔒 SSL Certificate Management"
+        echo -e "${YELLOW}3)${NC}  📦 PM2 Process Manager"
+        echo -e "${YELLOW}4)${NC}  🔄 Update Main Project (REZGEE)"
+        echo -e "${YELLOW}5)${NC}  ➕ Add New Domain/Subdomain"
+        echo -e "${YELLOW}6)${NC}  📋 List All Domains"
+        echo -e "${YELLOW}7)${NC}  🗑️  Remove Domain"
+        echo -e "${YELLOW}8)${NC}  💾 Create Backup"
+        echo -e "${YELLOW}9)${NC}  ♻️  Restore Backup"
+        echo -e "${YELLOW}10)${NC} 📊 Monitor Resources (Real-time)"
+        echo -e "${YELLOW}11)${NC} 🔥 Firewall Management (UFW)"
+        echo -e "${YELLOW}12)${NC} 🔀 SSLH Management"
+        echo -e "${YELLOW}13)${NC} 🎮 V2Ray Gaming Proxies"
+        echo -e "${YELLOW}14)${NC} 📋 View Logs"
+        echo -e "${YELLOW}15)${NC} 🏥 Website Health Check"
+        echo -e "${YELLOW}16)${NC} 📈 Advanced Statistics"
+        echo -e "${YELLOW}17)${NC} 🔄 System Update"
+        echo -e "${YELLOW}18)${NC} 🧹 System Cleanup"
+        echo -e "${YELLOW}19)${NC} 📝 Generate Report"
+        echo -e "${YELLOW}0)${NC}  🚪 Exit"
+        echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+        echo
+        read -p "Select option: " choice
+        
+        case $choice in
+            1) manage_nginx ;;
+            2) manage_ssl ;;
+            3) manage_pm2 ;;
+            4) update_main_project ;;
+            5) add_domain ;;
+            6) list_domains ;;
+            7) remove_domain ;;
+            8) create_backup ;;
+            9) restore_backup ;;
+            10) monitor_resources ;;
+            11) manage_firewall ;;
+            12) manage_sslh ;;
+            13) manage_v2ray ;;
+            14) view_logs ;;
+            15) check_website_health ;;
+            16) show_statistics ;;
+            17) system_update ;;
+            18) system_cleanup ;;
+            19) generate_report ;;
+            0)
+                print_msg "$GREEN" "👋 Thank you for using VPS Management System!"
+                log_action "Script exited normally"
+                exit 0
+                ;;
+            *)
+                print_msg "$RED" "❌ Invalid option!"
+                sleep 2
+                ;;
+        esac
+    done
+}
+
+# Check root and start
+check_root
+log_action "Script started"
+main_menu
+root@srv1023716:~# sudo cat /var/www/rezgee/scripts/maintenance/update-project.sh
+#!/bin/bash
+
+# =======================================================
+# Rezgee Project Auto-Update Script from GitHub
+# Updates the project automatically from GitHub repository
+# =======================================================
+
+set -e  # Stop on any error
+
+# Colors for messages
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+NC='\033[0m' # No Color
+
+# Basic settings
+PROJECT_PATH="/var/www/rezgee"
+BACKUP_DIR="/var/backups/rezgee"
+GIT_BRANCH="main"  # or master depending on your branch name
+LOG_FILE="/var/log/rezgee-update.log"
+TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
+
+# Function to print messages
+print_message() {
+    local color=$1
+    local message=$2
+    echo -e "${color}${message}${NC}"
+    
+    # Create log directory if it doesn't exist
+    local log_dir=$(dirname "$LOG_FILE")
+    if [ ! -d "$log_dir" ]; then
+        mkdir -p "$log_dir" 2>/dev/null || true
+    fi
+    
+    # Log to file (silently fail if can't write)
+    if [ -w "$log_dir" ] || [ -w "$LOG_FILE" ]; then
+        echo "[$(date '+%Y-%m-%d %H:%M:%S')] ${message}" >> "$LOG_FILE" 2>/dev/null || true
+    fi
+}
+
+# Function to check for errors
+check_error() {
+    local exit_code=$?
+    if [ $exit_code -ne 0 ]; then
+        print_message "$RED" "❌ Error: $1 (Exit code: $exit_code)"
+        print_message "$YELLOW" "💡 Check logs for details: $LOG_FILE"
+        exit 1
+    fi
+}
+
+# Function to create backup
+create_backup() {
+    print_message "$BLUE" "📦 Creating backup..."
+    
+    # Check if project path exists
+    if [ ! -d "$PROJECT_PATH" ]; then
+        print_message "$RED" "❌ Error: Project path not found: $PROJECT_PATH"
+        return 1
+    fi
+    
+    # Create backup directory if it doesn't exist
+    if [ ! -d "$BACKUP_DIR" ]; then
+        print_message "$YELLOW" "Creating backup directory: $BACKUP_DIR"
+        mkdir -p "$BACKUP_DIR" 2>/dev/null
+        if [ $? -ne 0 ]; then
+            print_message "$YELLOW" "⚠️  Cannot create $BACKUP_DIR, trying /tmp..."
+            BACKUP_DIR="/tmp/rezgee-backups"
+            mkdir -p "$BACKUP_DIR"
+        fi
+    fi
+    
+    # Check write permissions
+    if [ ! -w "$BACKUP_DIR" ]; then
+        print_message "$YELLOW" "⚠️  No write permission for $BACKUP_DIR, using /tmp..."
+        BACKUP_DIR="/tmp/rezgee-backups"
+        mkdir -p "$BACKUP_DIR"
+    fi
+    
+    # Create compressed backup
+    BACKUP_FILE="$BACKUP_DIR/rezgee_backup_$TIMESTAMP.tar.gz"
+    print_message "$YELLOW" "Creating backup file: $BACKUP_FILE"
+    
+    cd "$PROJECT_PATH" || return 1
+    tar -czf "$BACKUP_FILE" \
+        --exclude='node_modules' \
+        --exclude='.git' \
+        --exclude='dist' \
+        --exclude='build' \
+        --exclude='.next' \
+        --exclude='coverage' \
+        . 2>&1 | head -10
+    
+    if [ -f "$BACKUP_FILE" ]; then
+        BACKUP_SIZE=$(du -h "$BACKUP_FILE" | cut -f1)
+        print_message "$GREEN" "✅ Backup created: $BACKUP_FILE ($BACKUP_SIZE)"
+        
+        # Delete old backups (keep last 5)
+        cd "$BACKUP_DIR"
+        OLD_BACKUPS=$(ls -t rezgee_backup_*.tar.gz 2>/dev/null | tail -n +6)
+        if [ -n "$OLD_BACKUPS" ]; then
+            echo "$OLD_BACKUPS" | xargs rm -f
+            print_message "$YELLOW" "🗑️  Old backups removed"
+        fi
+        return 0
+    else
+        print_message "$YELLOW" "⚠️  Warning: Failed to create backup"
+        print_message "$YELLOW" "Continuing without backup..."
+        return 0  # Don't fail the entire update
+    fi
+}
+
+# Function to check for updates
+check_updates() {
+    print_message "$BLUE" "🔍 Checking for new updates..."
+    
+    cd "$PROJECT_PATH" || return 1
+    
+    # Test GitHub connection first
+    print_message "$YELLOW" "Testing GitHub connection..."
+    if ! git ls-remote origin &>/dev/null; then
+        print_message "$RED" "❌ Cannot connect to GitHub"
+        print_message "$YELLOW" "💡 Possible issues:"
+        print_message "$YELLOW" "   1. No internet connection"
+        print_message "$YELLOW" "   2. SSH key not configured"
+        print_message "$YELLOW" "   3. Wrong repository URL"
+        print_message "$YELLOW" "   4. GitHub access denied"
+        print_message "$YELLOW" ""
+        print_message "$YELLOW" "Current remote URL:"
+        git remote -v | grep origin
+        return 1
+    fi
+    
+    # Fetch latest changes without merging
+    print_message "$YELLOW" "Fetching updates from branch: $GIT_BRANCH..."
+    if ! git fetch origin "$GIT_BRANCH" 2>&1 | tee -a "$LOG_FILE"; then
+        print_message "$RED" "❌ Failed to fetch updates"
+        return 1
+    fi
+    
+    # Check if updates exist
+    LOCAL=$(git rev-parse HEAD 2>/dev/null)
+    REMOTE=$(git rev-parse origin/"$GIT_BRANCH" 2>/dev/null)
+    
+    if [ -z "$LOCAL" ] || [ -z "$REMOTE" ]; then
+        print_message "$RED" "❌ Cannot determine version information"
+        return 1
+    fi
+    
+    if [ "$LOCAL" = "$REMOTE" ]; then
+        print_message "$GREEN" "✅ Project is up to date - no new updates"
+        print_message "$YELLOW" "Current commit: ${LOCAL:0:8}"
+        return 1
+    else
+        print_message "$YELLOW" "📥 New updates found"
+        print_message "$YELLOW" "Local:  ${LOCAL:0:8}"
+        print_message "$YELLOW" "Remote: ${REMOTE:0:8}"
+        
+        # Show what changed
+        print_message "$YELLOW" ""
+        print_message "$YELLOW" "Changes since last update:"
+        git log --oneline HEAD..origin/"$GIT_BRANCH" | head -5
+        
+        return 0
+    fi
+}
+
+# Function to pull updates
+pull_updates() {
+    print_message "$BLUE" "📥 Pulling updates from GitHub..."
+    
+    cd "$PROJECT_PATH"
+    
+    # Check for uncommitted local changes
+    if [ -n "$(git status --porcelain)" ]; then
+        print_message "$YELLOW" "⚠️  Local changes detected - stashing them temporarily"
+        git stash
+        check_error "Failed to stash changes"
+    fi
+    
+    # Pull updates
+    git pull origin "$GIT_BRANCH"
+    check_error "Failed to pull updates"
+    
+    print_message "$GREEN" "✅ Updates pulled successfully"
+}
+
+# Function to install dependencies
+install_dependencies() {
+    print_message "$BLUE" "📦 Updating dependencies..."
+    
+    cd "$PROJECT_PATH"
+    
+    # Check for package.json
+    if [ -f "package.json" ]; then
+        # Install Node.js dependencies
+        if command -v npm &> /dev/null; then
+            print_message "$YELLOW" "📦 Installing npm dependencies (including dev dependencies for build)..."
+            
+            # Use npm ci if package-lock.json exists (faster and cleaner)
+            if [ -f "package-lock.json" ]; then
+                print_message "$YELLOW" "Using npm ci for clean install..."
+                npm ci
+            else
+                print_message "$YELLOW" "Using npm install..."
+                npm install
+            fi
+            
+            check_error "Failed to install npm dependencies"
+            print_message "$GREEN" "✅ npm dependencies installed"
+        fi
+        
+        # Install pnpm dependencies if exists
+        if command -v pnpm &> /dev/null && [ -f "pnpm-lock.yaml" ]; then
+            print_message "$YELLOW" "📦 Installing pnpm dependencies..."
+            pnpm install
+            check_error "Failed to install pnpm dependencies"
+            print_message "$GREEN" "✅ pnpm dependencies installed"
+        fi
+    fi
+    
+    # Check for requirements.txt (Python)
+    if [ -f "requirements.txt" ]; then
+        if command -v pip3 &> /dev/null; then
+            print_message "$YELLOW" "📦 Installing Python dependencies..."
+            pip3 install -r requirements.txt
+            check_error "Failed to install Python dependencies"
+            print_message "$GREEN" "✅ Python dependencies installed"
+        fi
+    fi
+}
+
+# Function to build project
+build_project() {
+    print_message "$BLUE" "🔨 Building project..."
+    
+    cd "$PROJECT_PATH"
+    
+    # Build project if it has a build command
+    if [ -f "package.json" ] && grep -q '"build"' package.json; then
+        if command -v npm &> /dev/null; then
+            print_message "$YELLOW" "🔨 Running npm run build..."
+            
+            # Set NODE_ENV to production for optimized build
+            export NODE_ENV=production
+            
+            # Run build with error output
+            if npm run build 2>&1 | tee -a "$LOG_FILE"; then
+                print_message "$GREEN" "✅ Project built successfully"
+            else
+                print_message "$RED" "❌ Build failed"
+                print_message "$YELLOW" "💡 Common fixes:"
+                print_message "$YELLOW" "   1. Make sure all dependencies are installed: npm install"
+                print_message "$YELLOW" "   2. Check if vite/build tool is in devDependencies"
+                print_message "$YELLOW" "   3. Try: npm install && npm run build"
+                print_message "$YELLOW" "   4. Check .env file exists"
+                return 1
+            fi
+        elif command -v pnpm &> /dev/null; then
+            print_message "$YELLOW" "🔨 Running pnpm build..."
+            export NODE_ENV=production
+            if pnpm build 2>&1 | tee -a "$LOG_FILE"; then
+                print_message "$GREEN" "✅ Project built successfully"
+            else
+                print_message "$RED" "❌ Build failed"
+                return 1
+            fi
+        fi
+    else
+        print_message "$YELLOW" "ℹ️  No build command found in package.json, skipping..."
+    fi
+}
+
+# Function to restart services
+restart_services() {
+    print_message "$BLUE" "🔄 Restarting services..."
+    
+    # Restart PM2 if exists
+    if command -v pm2 &> /dev/null; then
+        print_message "$YELLOW" "🔄 Restarting PM2..."
+        pm2 restart all 2>/dev/null || pm2 start ecosystem.config.js 2>/dev/null || true
+        print_message "$GREEN" "✅ PM2 restarted"
+    fi
+    
+    # Reload Nginx if exists
+    if command -v nginx &> /dev/null; then
+        print_message "$YELLOW" "🔄 Reloading Nginx..."
+        sudo systemctl reload nginx 2>/dev/null || true
+        print_message "$GREEN" "✅ Nginx reloaded"
+    fi
+    
+    # Restart custom service if exists
+    if systemctl is-active --quiet rezgee.service 2>/dev/null; then
+        print_message "$YELLOW" "🔄 Restarting rezgee service..."
+        sudo systemctl restart rezgee.service
+        print_message "$GREEN" "✅ rezgee service restarted"
+    fi
+}
+
+# Function to cleanup temporary files
+cleanup() {
+    print_message "$BLUE" "🧹 Cleaning up temporary files..."
+    
+    cd "$PROJECT_PATH"
+    
+    # Remove cache files
+    rm -rf .cache 2>/dev/null || true
+    rm -rf .parcel-cache 2>/dev/null || true
+    rm -rf .vite 2>/dev/null || true
+    
+    # Clean npm cache
+    if command -v npm &> /dev/null; then
+        npm cache clean --force 2>/dev/null || true
+    fi
+    
+    print_message "$GREEN" "✅ Cleanup completed"
+}
+
+# Function to show version info
+show_version_info() {
+    print_message "$BLUE" "📊 Current version information:"
+    
+    cd "$PROJECT_PATH"
+    
+    # Show last commit
+    echo -e "${GREEN}Last commit:${NC}"
+    git log -1 --pretty=format:"%h - %an, %ar : %s" | tee -a "$LOG_FILE"
+    echo ""
+    
+    # Show current branch
+    echo -e "${GREEN}Current branch:${NC} $(git branch --show-current)" | tee -a "$LOG_FILE"
+}
+
+# Function to restore from backup
+restore_backup() {
+    if [ -z "$1" ]; then
+        print_message "$RED" "❌ Backup file must be specified"
+        echo "Usage: $0 --restore /path/to/backup.tar.gz"
+        exit 1
+    fi
+    
+    BACKUP_FILE="$1"
+    
+    if [ ! -f "$BACKUP_FILE" ]; then
+        print_message "$RED" "❌ Backup file not found: $BACKUP_FILE"
+        exit 1
+    fi
+    
+    print_message "$YELLOW" "⚠️  Are you sure you want to restore from backup? (yes/no)"
+    read -r confirmation
+    
+    if [ "$confirmation" != "yes" ]; then
+        print_message "$YELLOW" "❌ Cancelled"
+        exit 0
+    fi
+    
+    print_message "$BLUE" "📦 Restoring from backup..."
+    
+    # Create backup of current state before restoring
+    create_backup
+    
+    # Restore files
+    rm -rf "$PROJECT_PATH"/*
+    tar -xzf "$BACKUP_FILE" -C "$PROJECT_PATH"
+    check_error "Failed to restore from backup"
+    
+    print_message "$GREEN" "✅ Backup restored successfully"
+    
+    # Restart services
+    restart_services
+}
+
+# Function to list available backups
+list_backups() {
+    print_message "$BLUE" "📦 Available backups:"
+    echo ""
+    
+    if [ ! -d "$BACKUP_DIR" ]; then
+        print_message "$YELLOW" "No backup directory found"
+        return
+    fi
+    
+    cd "$BACKUP_DIR"
+    
+    if [ -z "$(ls -A)" ]; then
+        print_message "$YELLOW" "No backups found"
+        return
+    fi
+    
+    # List backups with details
+    ls -lth rezgee_backup_*.tar.gz 2>/dev/null | awk '{
+        size = $5
+        date = $6" "$7" "$8
+        file = $9
+        printf "  %s  %s  %s\n", file, size, date
+    }' | head -20
+    
+    echo ""
+    print_message "$GREEN" "Total backups: $(ls -1 rezgee_backup_*.tar.gz 2>/dev/null | wc -l)"
+}
+
+# Function to show status
+show_status() {
+    print_message "$BLUE" "═══════════════════════════════════════════"
+    print_message "$BLUE" "    📊 Rezgee Project Status"
+    print_message "$BLUE" "═══════════════════════════════════════════"
+    echo ""
+    
+    # Git status
+    print_message "$YELLOW" "📁 Git Status:"
+    cd "$PROJECT_PATH"
+    git status -s -b | head -10
+    echo ""
+    
+    # Last commit
+    print_message "$YELLOW" "📝 Last Commit:"
+    git log -1 --pretty=format:"  %h - %an, %ar : %s"
+    echo ""
+    echo ""
+    
+    # Services status
+    print_message "$YELLOW" "🔄 Services:"
+    
+    if command -v pm2 &> /dev/null; then
+        echo "  PM2: Running"
+        pm2 list 2>/dev/null | grep -E "name|─" | head -5
+    else
+        echo "  PM2: Not installed"
+    fi
+    echo ""
+    
+    if systemctl is-active --quiet nginx 2>/dev/null; then
+        echo "  Nginx: Active"
+    elif command -v nginx &> /dev/null; then
+        echo "  Nginx: Installed but not running"
+    else
+        echo "  Nginx: Not installed"
+    fi
+    echo ""
+    
+    # Disk usage
+    print_message "$YELLOW" "💾 Disk Usage:"
+    df -h "$PROJECT_PATH" | awk 'NR==2 {printf "  Used: %s / %s (%s)\n", $3, $2, $5}'
+    echo ""
+    
+    # Backup info
+    if [ -d "$BACKUP_DIR" ]; then
+        BACKUP_COUNT=$(ls -1 "$BACKUP_DIR"/rezgee_backup_*.tar.gz 2>/dev/null | wc -l)
+        print_message "$YELLOW" "📦 Backups:"
+        echo "  Total: $BACKUP_COUNT backups"
+        if [ "$BACKUP_COUNT" -gt 0 ]; then
+            LAST_BACKUP=$(ls -t "$BACKUP_DIR"/rezgee_backup_*.tar.gz 2>/dev/null | head -1)
+            echo "  Latest: $(basename "$LAST_BACKUP")"
+        fi
+    fi
+    echo ""
+}
+
+# Function to diagnose issues
+diagnose_system() {
+    print_message "$BLUE" "═══════════════════════════════════════════"
+    print_message "$BLUE" "    🔍 System Diagnostics"
+    print_message "$BLUE" "═══════════════════════════════════════════"
+    echo ""
+    
+    # Check project path
+    print_message "$YELLOW" "1️⃣  Checking project path..."
+    if [ -d "$PROJECT_PATH" ]; then
+        print_message "$GREEN" "   ✅ Project path exists: $PROJECT_PATH"
+        ls -la "$PROJECT_PATH" | head -5
+    else
+        print_message "$RED" "   ❌ Project path not found: $PROJECT_PATH"
+    fi
+    echo ""
+    
+    # Check Git
+    print_message "$YELLOW" "2️⃣  Checking Git repository..."
+    if [ -d "$PROJECT_PATH/.git" ]; then
+        print_message "$GREEN" "   ✅ Git repository exists"
+        cd "$PROJECT_PATH"
+        echo "   Current branch: $(git branch --show-current 2>/dev/null || echo 'unknown')"
+        echo "   Last commit: $(git log -1 --oneline 2>/dev/null || echo 'unknown')"
+        echo "   Remote URL:"
+        git remote -v 2>/dev/null || echo "   No remote configured"
+    else
+        print_message "$RED" "   ❌ Not a Git repository"
+    fi
+    echo ""
+    
+    # Check GitHub connection
+    print_message "$YELLOW" "3️⃣  Checking GitHub connection..."
+    cd "$PROJECT_PATH"
+    if git ls-remote origin &>/dev/null; then
+        print_message "$GREEN" "   ✅ Can connect to GitHub"
+    else
+        print_message "$RED" "   ❌ Cannot connect to GitHub"
+        print_message "$YELLOW" "   Trying to fetch..."
+        git fetch origin 2>&1 | head -5
+    fi
+    echo ""
+    
+    # Check backup directory
+    print_message "$YELLOW" "4️⃣  Checking backup directory..."
+    if [ -d "$BACKUP_DIR" ]; then
+        print_message "$GREEN" "   ✅ Backup directory exists: $BACKUP_DIR"
+        echo "   Backups count: $(ls -1 "$BACKUP_DIR"/rezgee_backup_*.tar.gz 2>/dev/null | wc -l)"
+        echo "   Free space: $(df -h "$BACKUP_DIR" | awk 'NR==2 {print $4}')"
+    else
+        print_message "$YELLOW" "   ⚠️  Backup directory doesn't exist: $BACKUP_DIR"
+        print_message "$YELLOW" "   Will be created automatically"
+    fi
+    echo ""
+    
+    # Check permissions
+    print_message "$YELLOW" "5️⃣  Checking permissions..."
+    echo "   Current user: $(whoami)"
+    echo "   Project owner: $(ls -ld "$PROJECT_PATH" | awk '{print $3":"$4}')"
+    if [ -w "$PROJECT_PATH" ]; then
+        print_message "$GREEN" "   ✅ Can write to project directory"
+    else
+        print_message "$RED" "   ❌ Cannot write to project directory"
+    fi
+    echo ""
+    
+    # Check services
+    print_message "$YELLOW" "6️⃣  Checking services..."
+    if command -v pm2 &> /dev/null; then
+        print_message "$GREEN" "   ✅ PM2 installed"
+    else
+        print_message "$YELLOW" "   ⚠️  PM2 not installed"
+    fi
+    
+    if command -v nginx &> /dev/null; then
+        print_message "$GREEN" "   ✅ Nginx installed"
+    else
+        print_message "$YELLOW" "   ⚠️  Nginx not installed"
+    fi
+    
+    if command -v npm &> /dev/null; then
+        print_message "$GREEN" "   ✅ npm installed ($(npm -v))"
+    else
+        print_message "$YELLOW" "   ⚠️  npm not installed"
+    fi
+    echo ""
+    
+    # Check log file
+    print_message "$YELLOW" "7️⃣  Checking log file..."
+    if [ -f "$LOG_FILE" ]; then
+        print_message "$GREEN" "   ✅ Log file exists: $LOG_FILE"
+        echo "   Size: $(du -h "$LOG_FILE" | cut -f1)"
+        echo "   Last 3 lines:"
+        tail -3 "$LOG_FILE" 2>/dev/null | sed 's/^/   /'
+    else
+        print_message "$YELLOW" "   ⚠️  Log file doesn't exist yet"
+    fi
+    echo ""
+    
+    print_message "$GREEN" "═══════════════════════════════════════════"
+    print_message "$GREEN" "    Diagnostics complete!"
+    print_message "$GREEN" "═══════════════════════════════════════════"
+}
+
+# Function to show help
+show_help() {
+    cat << EOF
+Rezgee Project Update Script
+
+USAGE:
+    $0 [OPTIONS]
+
+OPTIONS:
+    --update            Update project from GitHub (default)
+    --backup-only       Create backup only
+    --restore FILE      Restore from backup
+    --list-backups      List available backups
+    --status            Show project status
+    --diagnose          Run system diagnostics
+    --no-backup         Skip backup creation
+    --force             Force update even if no updates found
+    --help, -h          Show this help message
+
+EXAMPLES:
+    # Normal update with backup
+    $0
+
+    # Update without backup
+    $0 --no-backup
+
+    # Force update
+    $0 --force
+
+    # Create backup only
+    $0 --backup-only
+
+    # List backups
+    $0 --list-backups
+
+    # Restore from backup
+    $0 --restore /var/backups/rezgee/rezgee_backup_20250101_120000.tar.gz
+
+    # Show status
+    $0 --status
+
+    # Diagnose issues
+    $0 --diagnose
+
+NOTES:
+    - Backups are stored in: $BACKUP_DIR
+    - Logs are stored in: $LOG_FILE
+    - Last 5 backups are kept automatically
+    - Project path: $PROJECT_PATH
+
+EOF
+}
+
+# Main function
+main() {
+    # Check for help first
+    if [ "$1" = "--help" ] || [ "$1" = "-h" ]; then
+        show_help
+        exit 0
+    fi
+    
+    print_message "$BLUE" "═══════════════════════════════════════════"
+    print_message "$BLUE" "    🚀 Rezgee Project Update Script"
+    print_message "$BLUE" "═══════════════════════════════════════════"
+    echo ""
+    
+    # Check access permissions
+    if [ ! -d "$PROJECT_PATH" ]; then
+        print_message "$RED" "❌ Project path not found: $PROJECT_PATH"
+        print_message "$YELLOW" "💡 Please check if the project path is correct"
+        exit 1
+    fi
+    
+    if [ ! -d "$PROJECT_PATH/.git" ]; then
+        print_message "$RED" "❌ Project is not a Git repository"
+        print_message "$YELLOW" "💡 Initialize git repository first:"
+        print_message "$YELLOW" "   cd $PROJECT_PATH"
+        print_message "$YELLOW" "   git init"
+        print_message "$YELLOW" "   git remote add origin <your-repo-url>"
+        exit 1
+    fi
+    
+    # Test git access
+    cd "$PROJECT_PATH" || exit 1
+    if ! git status &>/dev/null; then
+        print_message "$RED" "❌ Cannot access git repository"
+        print_message "$YELLOW" "💡 Please check git permissions"
+        exit 1
+    fi
+    
+    # Handle options
+    case "${1:-}" in
+        --status)
+            show_status
+            exit 0
+            ;;
+        --diagnose|--debug)
+            diagnose_system
+            exit 0
+            ;;
+        --backup-only)
+            create_backup
+            exit 0
+            ;;
+        --list-backups)
+            list_backups
+            exit 0
+            ;;
+        --restore)
+            restore_backup "$2"
+            exit 0
+            ;;
+        --no-backup)
+            SKIP_BACKUP=true
+            ;;
+        --force)
+            FORCE_UPDATE=true
+            ;;
+        --update|"")
+            # Default action - update
+            ;;
+        *)
+            print_message "$RED" "❌ Unknown option: $1"
+            echo ""
+            show_help
+            exit 1
+            ;;
+    esac
+    
+    # Create backup (unless skipped)
+    if [ "${SKIP_BACKUP:-false}" != "true" ]; then
+        create_backup
+        if [ $? -ne 0 ]; then
+            print_message "$YELLOW" "⚠️  Backup creation had issues but continuing..."
+        fi
+    fi
+    
+    # Check for updates
+    UPDATES_AVAILABLE=false
+    if check_updates || [ "${FORCE_UPDATE:-false}" = "true" ]; then
+        UPDATES_AVAILABLE=true
+    fi
+    
+    # Pull updates only if available
+    if [ "$UPDATES_AVAILABLE" = true ]; then
+        print_message "$YELLOW" "📥 New updates detected - pulling changes..."
+        pull_updates
+        if [ $? -ne 0 ]; then
+            print_message "$RED" "❌ Failed to pull updates"
+            exit 1
+        fi
+    else
+        print_message "$GREEN" "═══════════════════════════════════════════"
+        print_message "$GREEN" "    ✅ Project is already up to date!"
+        print_message "$GREEN" "═══════════════════════════════════════════"
+        print_message "$BLUE" ""
+        print_message "$BLUE" "ℹ️  Skipping git pull, continuing with other operations..."
+        print_message "$BLUE" ""
+    fi
+    
+    # Continue with remaining operations (regardless of updates)
+    # Install dependencies
+    install_dependencies
+    if [ $? -ne 0 ]; then
+        print_message "$RED" "❌ Failed to install dependencies"
+        exit 1
+    fi
+    
+    # Build project
+    build_project
+    if [ $? -ne 0 ]; then
+        print_message "$RED" "❌ Failed to build project"
+        print_message "$YELLOW" "💡 Project updated but build failed"
+        print_message "$YELLOW" "💡 You may need to build manually:"
+        print_message "$YELLOW" "   cd $PROJECT_PATH"
+        print_message "$YELLOW" "   npm install"
+        print_message "$YELLOW" "   npm run build"
+        exit 1
+    fi
+    
+    # Cleanup
+    cleanup
+    
+    # Restart services
+    restart_services
+    
+    # Show version info
+    show_version_info
+    
+    # Final success message
+    print_message "$GREEN" "═══════════════════════════════════════════"
+    if [ "$UPDATES_AVAILABLE" = true ]; then
+        print_message "$GREEN" "    ✅ Project updated successfully!"
+    else
+        print_message "$GREEN" "    ✅ Project rebuilt successfully!"
+    fi
+    print_message "$GREEN" "═══════════════════════════════════════════"
+}
+
+# Run main function
+main "$@"
+
+root@srv1023716:~# sudo cat /etc/nginx/nginx.conf
+user www-data;
+worker_processes auto;
+pid /run/nginx.pid;
+include /etc/nginx/modules-enabled/*.conf;
+
+
+events {
+        multi_accept on;
+  worker_connections 768;
+}
+
+http {
+        gzip on;
+        gzip_vary on;
+        gzip_comp_level 5;
+        gzip_types    text/plain application/x-javascript text/xml text/css;
+
+        autoindex on;
+  sendfile on;
+  tcp_nopush on;
+  tcp_nodelay on;
+  keepalive_timeout 65;
+  types_hash_max_size 2048;
+  server_tokens off;
+  include /etc/nginx/mime.types;
+
+  # SSL Settings
+  ssl_protocols TLSv1 TLSv1.1 TLSv1.2 TLSv1.3;
+  ssl_prefer_server_ciphers on;
+
+  default_type application/octet-stream;
+  access_log /var/log/nginx/access.log;
+  error_log /var/log/nginx/error.log;
+  client_max_body_size 32M;
+        client_header_buffer_size 8m;
+        large_client_header_buffers 8 8m;
+
+        fastcgi_buffer_size 8m;
+        fastcgi_buffers 8 8m;
+
+        fastcgi_read_timeout 600;
+
+        set_real_ip_from 204.93.240.0/24;
+        set_real_ip_from 204.93.177.0/24;
+        set_real_ip_from 199.27.128.0/21;
+        set_real_ip_from 173.245.48.0/20;
+        set_real_ip_from 103.21.244.0/22;
+        set_real_ip_from 103.22.200.0/22;
+        set_real_ip_from 103.31.4.0/22;
+        set_real_ip_from 141.101.64.0/18;
+        set_real_ip_from 108.162.192.0/18;
+        set_real_ip_from 190.93.240.0/20;
+        set_real_ip_from 188.114.96.0/20;
+        set_real_ip_from 197.234.240.0/22;
+        set_real_ip_from 198.41.128.0/17;
+        real_ip_header     CF-Connecting-IP;
+
+  include /etc/nginx/conf.d/*.conf;
+  include /etc/nginx/sites-enabled/*;
+}
+
+# include /etc/nginx/stream.conf;
+root@srv1023716:~# sudo cat /etc/default/sslh
+RUN=yes
+DAEMON=/usr/sbin/sslh
+
+
+DAEMON_OPTS="--user sslh --listen 0.0.0.0:443 --ssh 127.0.0.1:22 --tls 127.0.0.1:8444 --timeout 5 --pidfile /var/run/sslh/sslh.pid"
+
+root@srv1023716:~# sudo cat /etc/nginx/sites-available/rezgee.com | grep -A 3 "listen"
+    listen 443 ssl default_server http2;
+    listen [::]:443 ssl default_server http2;
+    ssl_certificate /etc/letsencrypt/live/rezgee.com/fullchain.pem; # managed by Certbot
+    ssl_certificate_key /etc/letsencrypt/live/rezgee.com/privkey.pem; # managed by Certbot
+    include /etc/letsencrypt/options-ssl-nginx.conf; # managed by Certbot
+--
+    listen 80;
+    server_name rezgee.com www.rezgee.com;
+    return 404; # managed by Certbot
+}
+root@srv1023716:~# 
