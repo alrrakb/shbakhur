@@ -2,14 +2,19 @@ import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { executeQuery } from '@/lib/db';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+// Supabase client is initialized lazily inside the handler to avoid
+// throwing at module-level during the Next.js build phase.
+function getSupabaseClient() {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseServiceKey =
+    process.env.SUPABASE_SERVICE_ROLE_KEY ||
+    process.env.SUPABASE_Service_role_key;
 
-if (!supabaseUrl || !supabaseServiceKey) {
-  throw new Error('Missing Supabase environment variables');
+  if (!supabaseUrl || !supabaseServiceKey) {
+    throw new Error('Missing Supabase environment variables');
+  }
+  return createClient(supabaseUrl, supabaseServiceKey);
 }
-
-const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
 const WP_DB_HOST = process.env.WP_DB_HOST || 'localhost';
 const WP_DB_USER = process.env.WP_DB_USER || 'root';
@@ -137,6 +142,7 @@ async function downloadAndUploadImage(imageUrl: string, bucket: string, folder: 
     const ext = imageUrl.split('.').pop()?.split('?')[0] || 'jpg';
     const fileName = `${folder}/${Date.now()}-${Math.random().toString(36).substring(7)}.${ext}`;
     
+    const supabase = getSupabaseClient();
     const { data, error } = await supabase.storage
       .from(bucket)
       .upload(fileName, buffer, {
