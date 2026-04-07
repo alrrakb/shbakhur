@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useCart } from '@/context/CartContext';
 import { getNavigationLinks, getSiteLogo, getNewsTickerMessages, type NavLink } from '@/lib/database';
 
@@ -43,7 +44,17 @@ export default function Header() {
   const [siteLogo, setSiteLogo] = useState('http://localhost/my-store/wp-content/uploads/2025/03/sh-logo-1-300x300.png');
   const [storeName, setStoreName] = useState('SH للبخور');
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const router = useRouter();
   const { totalItems } = useCart();
+
+  const handleSearchSubmit = (e?: React.FormEvent) => {
+    e?.preventDefault();
+    if (searchQuery.trim()) {
+      setIsSearchOpen(false);
+      router.push(`/products?search=${encodeURIComponent(searchQuery.trim())}`);
+      setSearchQuery('');
+    }
+  };
 
   useEffect(() => {
     async function fetchData() {
@@ -335,14 +346,17 @@ export default function Header() {
               onClick={(e) => e.stopPropagation()}
             >
               <div className="relative">
-                <input
-                  type="text"
-                  placeholder="ابحث عن منتجات..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full px-6 py-4 bg-transparent text-white text-xl placeholder-gray-500 focus:outline-none"
-                  autoFocus
-                />
+                <form onSubmit={handleSearchSubmit}>
+                  <input
+                    type="text"
+                    placeholder="ابحث عن منتجات..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="w-full px-6 py-4 bg-transparent text-white text-xl placeholder-gray-500 focus:outline-none"
+                    autoFocus
+                  />
+                  <button type="submit" className="hidden">بحث</button>
+                </form>
                 <button
                   onClick={() => setIsSearchOpen(false)}
                   className="absolute left-4 top-1/2 -translate-y-1/2 p-2 text-gray-400 hover:text-luxury-gold"
@@ -353,8 +367,10 @@ export default function Header() {
                 </button>
               </div>
               {searchQuery && (
-                <div className="border-t border-luxury-gold/20 p-4">
-                  <p className="text-gray-500 text-sm">جاري البحث عن: "{searchQuery}"</p>
+                <div className="border-t border-luxury-gold/20 p-4 flex justify-between items-center cursor-pointer hover:bg-luxury-gold/5 transition-colors"
+                     onClick={() => handleSearchSubmit()}>
+                  <p className="text-gray-500 text-sm">عرض النتائج عن: "{searchQuery}"</p>
+                  <span className="text-luxury-gold text-sm font-bold">بحث &larr;</span>
                 </div>
               )}
             </motion.div>

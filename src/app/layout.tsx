@@ -4,10 +4,33 @@ import { CartProvider } from "@/context/CartContext";
 import { ToastProvider } from "@/context/ToastContext";
 import NextTopLoader from 'nextjs-toploader';
 
-export const metadata: Metadata = {
-  title: "SH للبخور | متجر العطور والبخور الفاخرة",
-  description: "متخصص في أجود أنواع البخور والعطور والعود الطبيعي والفاخر",
-};
+import { getSiteLogo } from "@/lib/database";
+
+export async function generateMetadata(): Promise<Metadata> {
+  let logoUrl = '/favicon.ico';
+  try {
+    const siteData = await getSiteLogo();
+    if (siteData && siteData.logo_url) {
+      logoUrl = siteData.logo_url;
+    }
+  } catch (error) {
+    // ignore
+  }
+
+  return {
+    title: "SH للبخور | متجر العطور والبخور الفاخرة",
+    description: "متخصص في أجود أنواع البخور والعطور والعود الطبيعي والفاخر",
+    icons: {
+      icon: logoUrl,
+      shortcut: logoUrl,
+      apple: logoUrl,
+      other: {
+        rel: 'apple-touch-icon-precomposed',
+        url: logoUrl,
+      },
+    }
+  };
+}
 
 export default function RootLayout({
   children,

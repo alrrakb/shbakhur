@@ -23,6 +23,8 @@ export default function ProductsList() {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
+  const [stockFilter, setStockFilter] = useState('');
+  const [discountFilter, setDiscountFilter] = useState('');
   const [deleteModal, setDeleteModal] = useState<{ open: boolean; product: Product | null }>({ open: false, product: null });
   const [multiDeleteModal, setMultiDeleteModal] = useState(false);
   const [selectedProducts, setSelectedProducts] = useState<Set<number>>(new Set());
@@ -268,9 +270,14 @@ export default function ProductsList() {
     }
   };
 
-  const filteredProducts = products.filter(p =>
-    p.title.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredProducts = products.filter(p => {
+    const matchesSearch = p.title.toLowerCase().includes(searchQuery.toLowerCase()) || (p.sku && p.sku.toLowerCase().includes(searchQuery.toLowerCase()));
+    const matchesStock = !stockFilter || p.stock_status === stockFilter;
+    const isDiscounted = p.sale_price && p.regular_price && Number(p.sale_price) < Number(p.regular_price) && Number(p.sale_price) > 0;
+    const matchesDiscount = !discountFilter || (discountFilter === 'discounted' ? isDiscounted : true);
+    
+    return matchesSearch && matchesStock && matchesDiscount;
+  });
 
   return (
     <div className="space-y-6">
@@ -400,20 +407,39 @@ export default function ProductsList() {
         </div>
       </motion.div>
 
-      {/* Search */}
+      {/* Search and Filters */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.1 }}
         className="bg-[#1a1a1a] rounded-sm border border-luxury-gold/20 p-4"
       >
-        <input
-          type="text"
-          placeholder="البحث في المنتجات..."
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          className="w-full px-4 py-3 bg-luxury-black border border-luxury-gold/20 rounded-sm text-white focus:border-luxury-gold focus:outline-none transition-colors"
-        />
+        <div className="flex flex-col md:flex-row gap-4">
+          <input
+            type="text"
+            placeholder="البحث باسم المنتج أو الرمز (SKU)..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="flex-1 px-4 py-3 bg-luxury-black border border-luxury-gold/20 rounded-sm text-white focus:border-luxury-gold focus:outline-none transition-colors"
+          />
+          <select
+            value={stockFilter}
+            onChange={e => setStockFilter(e.target.value)}
+            className="w-full md:w-48 px-4 py-3 bg-luxury-black border border-luxury-gold/20 rounded-sm text-white focus:border-luxury-gold focus:outline-none transition-colors"
+          >
+            <option value="">حالة المخزون (الكل)</option>
+            <option value="instock">متوفر</option>
+            <option value="outofstock">نفذت الكمية</option>
+          </select>
+          <select
+            value={discountFilter}
+            onChange={e => setDiscountFilter(e.target.value)}
+            className="w-full md:w-48 px-4 py-3 bg-luxury-black border border-luxury-gold/20 rounded-sm text-white focus:border-luxury-gold focus:outline-none transition-colors"
+          >
+            <option value="">الخصومات (الكل)</option>
+            <option value="discounted">مخفضة فقط</option>
+          </select>
+        </div>
       </motion.div>
 
       {/* Products Table */}
