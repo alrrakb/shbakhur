@@ -183,7 +183,7 @@ export default function CustomersPage() {
     }
   }
 
-  const uniqueCities = Array.from(new Set(customers.map(c => c.city).filter(Boolean)));
+  const uniqueCities = Array.from(new Set(customers.map(c => c.city).filter((city): city is string => Boolean(city))));
 
   const filtered = customers
     .filter(c => {
