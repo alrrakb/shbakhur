@@ -39,7 +39,8 @@ export async function getProducts(options?: { limit?: number; offset?: number })
         sku: p.sku,
         image: p.image || '',
         created_at: p.created_at,
-        categories: extractedCats
+        categories: extractedCats,
+        stock_status: p.stock_status || 'instock'
       };
     });
 
@@ -185,6 +186,90 @@ export async function getProductsByCategory(
         sale_price: p.sale_price || p.price || '0',
         image: p.image || '',
         created_at: p.created_at,
+        categories: extractedCats
+      };
+    });
+  } catch (error) {
+    return [];
+  }
+}
+
+export async function getAllProducts(options?: { limit?: number; offset?: number }): Promise<Product[]> {
+  try {
+    let query = supabase
+      .from('products')
+      .select('*, product_categories(categories(name))')
+      .order('id', { ascending: false });
+
+    if (options?.limit) {
+      query = query.limit(options.limit);
+    }
+
+    const { data, error } = await query;
+    if (error) throw error;
+
+    return (data || []).map(p => {
+      const extractedCats = (p.product_categories || [])
+        .map((pc: any) => pc.categories)
+        .filter(Boolean);
+
+      return {
+        id: p.id ? p.id.toString() : '',
+        title: p.title || '',
+        slug: p.slug || '',
+        price: p.price?.toString() || p.regular_price?.toString() || '0',
+        sale_price: p.sale_price?.toString() || '',
+        image: p.image || '',
+        short_description: p.short_description || '',
+        stock_status: p.stock_status,
+        is_active: p.is_active !== false,
+        categories: extractedCats
+      };
+    });
+  } catch (error) {
+    return [];
+  }
+}
+
+export async function getSaleProducts(options?: { limit?: number; offset?: number }): Promise<Product[]> {
+  try {
+    let query = supabase
+      .from('products')
+      .select('*, product_categories(categories(name))')
+      .not('sale_price', 'is', null)
+      .not('sale_price', 'eq', '')
+      .not('price', 'is', null)
+      .not('price', 'eq', '')
+      .order('id', { ascending: false });
+
+    if (options?.limit) {
+      query = query.limit(options.limit);
+    }
+
+    const { data, error } = await query;
+    if (error) throw error;
+
+    const filteredData = (data || []).filter(p => {
+      const price = parseFloat(String(p.price).replace(/[^0-9.]/g, ''));
+      const salePrice = parseFloat(String(p.sale_price).replace(/[^0-9.]/g, ''));
+      return salePrice > 0 && salePrice < price;
+    });
+
+    return filteredData.map(p => {
+      const extractedCats = (p.product_categories || [])
+        .map((pc: any) => pc.categories)
+        .filter(Boolean);
+
+      return {
+        id: p.id ? p.id.toString() : '',
+        title: p.title || '',
+        slug: p.slug || '',
+        price: p.price?.toString() || p.regular_price?.toString() || '0',
+        sale_price: p.sale_price?.toString() || '',
+        image: p.image || '',
+        short_description: p.short_description || '',
+        stock_status: p.stock_status,
+        is_active: p.is_active !== false,
         categories: extractedCats
       };
     });
@@ -440,6 +525,21 @@ export async function savePartners(partners: Partner[]): Promise<{ success: bool
   }
 }
 
+export async function getPartnersSettings() {
+  try {
+    const { data, error } = await supabase
+      .from('partners_settings')
+      .select('*')
+      .eq('id', 1)
+      .single();
+
+    if (error) throw error;
+    return data;
+  } catch (error) {
+    return null;
+  }
+}
+
 export async function savePartnersSettings(settings: {
   section_title: string;
   section_description: string;
@@ -618,6 +718,19 @@ export async function getSiteLogo(): Promise<SiteLogo | null> {
     return data;
   } catch (error) {
     return null;
+  }
+}
+
+export async function saveSiteLogo(logo: SiteLogo): Promise<{ success: boolean; error?: string }> {
+  try {
+    const { error } = await supabase
+      .from('site_logo')
+      .upsert({ id: 1, ...logo }, { onConflict: 'id' });
+    
+    if (error) throw error;
+    return { success: true };
+  } catch (error: any) {
+    return { success: false, error: error.message };
   }
 }
 

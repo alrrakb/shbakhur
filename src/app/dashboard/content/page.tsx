@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { getNavigationLinks, saveNavigationLinks, getHeroSlides, saveHeroSlides, saveFooterLinks, getFooterLinks, getFooterSettings, getPartners, savePartners, savePartnersSettings, saveFooterSettings, type NavLink as DbNavLink } from '@/lib/database';
+import { getNavigationLinks, saveNavigationLinks, getHeroSlides, saveHeroSlides, saveFooterLinks, getFooterLinks, getFooterSettings, getPartners, savePartners, savePartnersSettings, getPartnersSettings, saveFooterSettings, getSiteLogo, saveSiteLogo, type NavLink as DbNavLink } from '@/lib/database';
+import { supabase } from '@/lib/supabase';
 import { useToast } from '@/context/ToastContext';
 
 interface Section {
@@ -188,39 +189,21 @@ export default function ContentManagement() {
     site_logo: [{ logo_url: 'http://localhost/my-store/wp-content/uploads/2025/03/sh-logo-1-300x300.png', store_name: 'SH للبخور' }],
   };
 
-  const STORAGE_KEY = 'sh_bakhoor_content';
-
-  const loadFromStorage = (): ContentData | null => {
-    if (typeof window === 'undefined') return null;
-    const stored = localStorage.getItem(STORAGE_KEY);
-    return stored ? JSON.parse(stored) : null;
-  };
-
-  const saveToStorage = (contentData: ContentData) => {
-    if (typeof window === 'undefined') return;
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(contentData));
-  };
-
   const [data, setData] = useState<ContentData>(initialData);
   const [dataLoaded, setDataLoaded] = useState(false);
 
   useEffect(() => {
     async function fetchData() {
-      const stored = loadFromStorage();
-      if (stored) {
-        // Always start with empty footer_links — Supabase is source of truth
-        setData({ ...stored, footer_links: [], footer_settings: stored.footer_settings });
-      }
-      
       try {
-        const dbNavLinks = await getNavigationLinks();
-        const dbHeroSlides = await getHeroSlides();
-        
-        const res = await fetch('http://localhost/sh-bakhoor-scripts/content.php?action=getAll');
-        const result = await res.json();
-        
-        const hasSupabaseData = result.hero_slides && result.hero_slides.length > 0 ||
-                                result.news_ticker && result.news_ticker.length > 0;
+        const [dbNavLinks, dbHeroSlides, dbPartners, dbFooterLinks, dbFooterSettings, dbSiteLogo, dbPartnersSettings] = await Promise.all([
+          getNavigationLinks(),
+          getHeroSlides(),
+          getPartners(),
+          getFooterLinks(),
+          getFooterSettings(),
+          getSiteLogo(),
+          getPartnersSettings()
+        ]);
         
         const navLinksFromDb = dbNavLinks.map((link: any) => {
           let dropdownArray: any[] = [];
@@ -242,56 +225,20 @@ export default function ContentManagement() {
           };
         });
         
-      // Load from Supabase (source of truth)
-        const dbPartners = await getPartners();
-        const dbFooterLinks = await getFooterLinks();
-        const dbFooterSettings = await getFooterSettings();
-        
         const newData = {
-          sections: result.sections && result.sections.length > 0 ? result.sections : initialData.sections,
-          hero_slides: dbHeroSlides.length > 0 ? dbHeroSlides : (result.hero_slides && result.hero_slides.length > 0 ? result.hero_slides : initialData.hero_slides),
-          hero_info: result.hero_info ? result.hero_info : initialData.hero_info,
-          category_cards: result.category_cards && result.category_cards.length > 0 ? result.category_cards : initialData.category_cards,
-          products_settings: result.products_settings && result.products_settings.length > 0 
-            ? (Array.isArray(result.products_settings[0]) ? result.products_settings[0] : result.products_settings)
-            : initialData.products_settings,
-          partners_settings: result.partners_settings && result.partners_settings.length > 0 
-            ? (Array.isArray(result.partners_settings[0]) ? result.partners_settings[0] : result.partners_settings)
-            : initialData.partners_settings,
-          testimonials: result.testimonials && result.testimonials.length > 0 ? result.testimonials : initialData.testimonials,
-          // Partners: prefer Supabase over PHP fallback
-          partners: dbPartners.length > 0 ? dbPartners : (result.partners && result.partners.length > 0 ? result.partners : initialData.partners),
-          // Footer links: Supabase is source of truth
-          footer_links: dbFooterLinks.length > 0 ? dbFooterLinks : (result.footer_links && result.footer_links.length > 0 ? result.footer_links : initialData.footer_links),
-          // Footer settings: Supabase first
-          footer_settings: (dbFooterSettings as any) ?? (result.footer_settings && result.footer_settings.length > 0
-            ? (Array.isArray(result.footer_settings[0]) ? result.footer_settings[0] : result.footer_settings)
-            : initialData.footer_settings),
-          news_ticker: result.news_ticker && result.news_ticker.length > 0 ? result.news_ticker : initialData.news_ticker,
+          ...initialData,
+          hero_slides: dbHeroSlides.length > 0 ? dbHeroSlides : initialData.hero_slides,
+          partners: dbPartners.length > 0 ? dbPartners : initialData.partners,
+          partners_settings: dbPartnersSettings || initialData.partners_settings,
+          footer_links: dbFooterLinks.length > 0 ? dbFooterLinks : initialData.footer_links,
+          footer_settings: (dbFooterSettings as any) ?? initialData.footer_settings,
           navigation: navLinksFromDb.length > 0 ? navLinksFromDb : initialData.navigation,
-          site_logo: result.site_logo && result.site_logo.length > 0 ? result.site_logo : initialData.site_logo,
+          site_logo: dbSiteLogo ? [dbSiteLogo] : initialData.site_logo,
         };
         
         setData(newData);
-        saveToStorage(newData);
       } catch (error) {
-        // If PHP server is down, still load from Supabase
-        try {
-          const [dbPartners, dbFooterLinks, dbFooterSettings] = await Promise.all([
-            getPartners(),
-            getFooterLinks(),
-            getFooterSettings(),
-          ]);
-          setData(prev => ({
-            ...prev,
-            ...(dbPartners.length > 0 ? { partners: dbPartners } : {}),
-            ...(dbFooterLinks.length > 0 ? { footer_links: dbFooterLinks } : {}),
-            ...(dbFooterSettings ? { footer_settings: dbFooterSettings } : {}),
-          }));
-        } catch {}
-        if (!stored) {
-          saveToStorage(initialData);
-        }
+        console.error("Failed to load content from Supabase", error);
       } finally {
         setDataLoaded(true);
         setLoading(false);
@@ -303,8 +250,6 @@ export default function ContentManagement() {
 
   async function handleSave() {
     setSaving(true);
-    
-    saveToStorage(data);
     
     try {
       // Save navigation links
@@ -333,12 +278,12 @@ export default function ContentManagement() {
         };
       });
       
-      const navResult = await saveNavigationLinks(navLinksForDb);
+      await saveNavigationLinks(navLinksForDb);
       
       // Save partners to Supabase
-      const partnersResult = await savePartners((data.partners || []) as any);
+      await savePartners((data.partners || []) as any);
 
-      // Save partners settings to Supabase
+      // Save partners settings
       if (data.partners_settings) {
         const ps = data.partners_settings as any;
         await savePartnersSettings({
@@ -360,16 +305,16 @@ export default function ContentManagement() {
         sort_order: slide.sort_order || index + 1,
         is_active: slide.is_active !== false
       }));
-      const heroSlidesResult = await saveHeroSlides(heroSlidesForDb);
+      await saveHeroSlides(heroSlidesForDb);
       
       // Save footer links
       const formattedFooterLinks = (data.footer_links || []).map((link: any) => ({
         ...link,
         id: link.id || 0
       }));
-      const footerLinksResult = await saveFooterLinks(formattedFooterLinks);
+      await saveFooterLinks(formattedFooterLinks);
 
-      // Save footer settings (about text, phone, whatsapp, copyright)
+      // Save footer settings
       if (data.footer_settings) {
         const fs = data.footer_settings as any;
         await saveFooterSettings({
@@ -381,22 +326,20 @@ export default function ContentManagement() {
           is_active: fs.is_active !== false,
         });
       }
-      
-      // Try WordPress fallback
-      const res = await fetch('http://localhost/sh-bakhoor-scripts/content.php?action=saveAll', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
-      });
-      const result = await res.json();
-      
-      if (result.success || navResult.success || heroSlidesResult.success || footerLinksResult.success) {
-        showToast('تم حفظ جميع التغييرات بنجاح', 'success');
-      } else {
-        showToast('تم الحفظ محلياً', 'success');
+
+      // Save Site Logo
+      if (data.site_logo && data.site_logo.length > 0) {
+        const logo = data.site_logo[0] as any;
+        await saveSiteLogo({
+          logo_url: logo.logo_url,
+          store_name: logo.store_name || 'SH للبخور'
+        });
       }
+      
+      showToast('تم حفظ جميع التغييرات بنجاح', 'success');
     } catch (error) {
-      showToast('تم الحفظ محلياً', 'success');
+      console.error(error);
+      showToast('حدث خطأ أثناء الحفظ. تأكد من اتصالك بالسيرفر', 'error');
     } finally {
       setSaving(false);
     }
@@ -425,20 +368,20 @@ export default function ContentManagement() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="flex flex-col md:flex-row md:items-center md:justify-between gap-4"
+        className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4"
       >
         <div>
-          <h1 className="text-3xl font-bold text-white mb-2">إدارة المحتوى</h1>
-          <p className="text-gray-400">تحكم في جميع محتويات الموقع</p>
+          <h1 className="text-xl sm:text-3xl font-bold text-white mb-1 sm:mb-2">إدارة المحتوى</h1>
+          <p className="text-gray-400 text-sm">تحكم في جميع محتويات الموقع</p>
         </div>
         <button
           onClick={handleSave}
           disabled={saving}
-          className="px-8 py-3 bg-luxury-gold text-luxury-black font-bold rounded-sm hover:bg-luxury-gold-light transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-full sm:w-auto px-6 sm:px-8 py-2.5 sm:py-3 bg-luxury-gold text-luxury-black font-bold rounded-sm hover:bg-luxury-gold-light transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base"
         >
           {saving ? 'جاري الحفظ...' : 'حفظ كل التغييرات'}
         </button>
@@ -455,11 +398,11 @@ export default function ContentManagement() {
           >
             <button
               onClick={() => toggleSection(accordion.id)}
-              className="w-full px-6 py-4 flex items-center justify-between text-white hover:bg-luxury-gold/5 transition-colors"
+              className="w-full px-4 sm:px-6 py-3 sm:py-4 flex items-center justify-between text-white hover:bg-luxury-gold/5 transition-colors"
             >
-              <div className="flex items-center gap-3">
-                <span className="text-2xl">{accordion.icon}</span>
-                <span className="font-bold">{accordion.title}</span>
+              <div className="flex items-center gap-2 sm:gap-3">
+                <span className="text-xl sm:text-2xl">{accordion.icon}</span>
+                <span className="font-bold text-sm sm:text-base">{accordion.title}</span>
               </div>
               <svg
                 className={`w-6 h-6 text-luxury-gold transition-transform ${openSection === accordion.id ? 'rotate-180' : ''}`}
@@ -479,7 +422,7 @@ export default function ContentManagement() {
                   exit={{ height: 0, opacity: 0 }}
                   className="border-t border-luxury-gold/20"
                 >
-                  <div className="p-6 space-y-6">
+                  <div className="p-4 sm:p-6 space-y-4 sm:space-y-6">
                     {accordion.id === 'logo' && (
                       <LogoSection
                         data={data}
@@ -575,21 +518,17 @@ function LogoSection({ data, updateData }: { data: ContentData; updateData: any 
 
     setUploading(true);
     try {
-      const formData = new FormData();
-      formData.append('file', file);
-      formData.append('bucket', 'images');
-      formData.append('folder', 'logos');
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${Math.random().toString(36).substring(2, 15)}_${Date.now()}.${fileExt}`;
+      const filePath = `logos/${fileName}`;
 
-      const res = await fetch('http://localhost/sh-bakhoor-scripts/upload.php?action=upload', {
-        method: 'POST',
-        body: formData,
-      });
-      const result = await res.json();
+      const { error: uploadError } = await supabase.storage.from('media').upload(filePath, file, { upsert: true });
+      if (uploadError) throw uploadError;
 
-      if (result.success) {
-        updateData('site_logo', [{ logo_url: result.url, store_name: storeName }]);
-      } else {
-        console.error('Upload failed:', result);
+      const { data: publicUrlData } = supabase.storage.from('media').getPublicUrl(filePath);
+      
+      if (publicUrlData.publicUrl) {
+        updateData('site_logo', [{ logo_url: publicUrlData.publicUrl, store_name: storeName }]);
       }
     } catch (error) {
       console.error('Error uploading logo:', error);
@@ -849,19 +788,17 @@ function HeroSection({ data, updateData }: { data: ContentData; updateData: any 
 
     setUploading(index);
     try {
-      const formData = new FormData();
-      formData.append('file', file);
-      formData.append('bucket', 'images');
-      formData.append('folder', 'hero');
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${Math.random().toString(36).substring(2, 15)}_${Date.now()}.${fileExt}`;
+      const filePath = `hero_slides/${fileName}`;
 
-      const res = await fetch('http://localhost/sh-bakhoor-scripts/upload.php?action=upload', {
-        method: 'POST',
-        body: formData,
-      });
-      const result = await res.json();
+      const { error: uploadError } = await supabase.storage.from('media').upload(filePath, file, { upsert: true });
+      if (uploadError) throw uploadError;
 
-      if (result.success) {
-        updateSlide(index, 'image_url', result.url);
+      const { data: publicUrlData } = supabase.storage.from('media').getPublicUrl(filePath);
+
+      if (publicUrlData.publicUrl) {
+        updateSlide(index, 'image_url', publicUrlData.publicUrl);
       }
     } catch (error) {
       console.error('Error uploading image:', error);
@@ -1266,21 +1203,17 @@ function PartnersSection({ data, updateData }: { data: ContentData; updateData: 
 
     setUploadingIndex(index);
     try {
-      const formData = new FormData();
-      formData.append('file', file);
-      formData.append('bucket', 'images');
-      formData.append('folder', 'partners');
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${Math.random().toString(36).substring(2, 15)}_${Date.now()}.${fileExt}`;
+      const filePath = `partners/${fileName}`;
 
-      const res = await fetch('http://localhost/sh-bakhoor-scripts/upload.php?action=upload', {
-        method: 'POST',
-        body: formData,
-      });
-      const result = await res.json();
+      const { error: uploadError } = await supabase.storage.from('media').upload(filePath, file, { upsert: true });
+      if (uploadError) throw uploadError;
 
-      if (result.success) {
-        updatePartner(index, 'logo_url', result.url);
-      } else {
-        console.error('Upload failed:', result);
+      const { data: publicUrlData } = supabase.storage.from('media').getPublicUrl(filePath);
+
+      if (publicUrlData.publicUrl) {
+        updatePartner(index, 'logo_url', publicUrlData.publicUrl);
       }
     } catch (error) {
       console.error('Error uploading partner logo:', error);

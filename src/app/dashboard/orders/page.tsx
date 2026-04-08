@@ -13,12 +13,12 @@ const supabase = createClient(
 );
 
 const STATUS_LABELS: Record<string, { label: string; color: string; bg: string }> = {
-  pending:    { label: 'قيد الانتظار', color: 'text-yellow-400',  bg: 'bg-yellow-400/10 border-yellow-400/30' },
-  confirmed:  { label: 'مؤكد',         color: 'text-blue-400',    bg: 'bg-blue-400/10 border-blue-400/30' },
-  processing: { label: 'قيد التجهيز',  color: 'text-purple-400',  bg: 'bg-purple-400/10 border-purple-400/30' },
-  shipped:    { label: 'تم الشحن',     color: 'text-cyan-400',    bg: 'bg-cyan-400/10 border-cyan-400/30' },
-  delivered:  { label: 'تم التوصيل',  color: 'text-green-400',   bg: 'bg-green-400/10 border-green-400/30' },
-  cancelled:  { label: 'ملغي',         color: 'text-red-400',     bg: 'bg-red-400/10 border-red-400/30' },
+  pending: { label: 'قيد الانتظار', color: 'text-yellow-400', bg: 'bg-yellow-400/10 border-yellow-400/30' },
+  confirmed: { label: 'مؤكد', color: 'text-blue-400', bg: 'bg-blue-400/10 border-blue-400/30' },
+  processing: { label: 'قيد التجهيز', color: 'text-purple-400', bg: 'bg-purple-400/10 border-purple-400/30' },
+  shipped: { label: 'تم الشحن', color: 'text-cyan-400', bg: 'bg-cyan-400/10 border-cyan-400/30' },
+  delivered: { label: 'تم التوصيل', color: 'text-green-400', bg: 'bg-green-400/10 border-green-400/30' },
+  cancelled: { label: 'ملغي', color: 'text-red-400', bg: 'bg-red-400/10 border-red-400/30' },
 };
 
 interface Order {
@@ -30,7 +30,11 @@ interface Order {
   total_amount: number;
   notes: string | null;
   created_at: string;
-  customers: { name: string; phone: string; city?: string | null; address?: string | null } | null;
+  transfer_receipt_url?: string | null;
+  sender_name?: string | null;
+  sender_bank?: string | null;
+  sender_account?: string | null;
+  customers: { name: string; phone: string; additional_phone?: string | null; city?: string | null; address?: string | null } | null;
   order_items: { id: string; product_name: string | null; quantity: number; unit_price: number; total_price: number }[];
 }
 
@@ -51,8 +55,8 @@ export default function OrdersPage() {
       let query = supabase
         .from('orders')
         .select(`
-          id, order_number, status, subtotal, discount_amount, total_amount, notes, created_at,
-          customers(name, phone, city, address),
+          id, order_number, status, subtotal, discount_amount, total_amount, notes, created_at, transfer_receipt_url, sender_name, sender_bank, sender_account,
+          customers(name, phone, additional_phone, city, address),
           order_items(id, product_name, quantity, unit_price, total_price)
         `)
         .order('created_at', { ascending: false });
@@ -130,15 +134,15 @@ export default function OrdersPage() {
   };
 
   return (
-    <div className="space-y-6" dir="rtl">
+    <div className="space-y-4 sm:space-y-6" dir="rtl">
       <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }}
-        className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
-          <h1 className="text-3xl font-bold text-white mb-1">الطلبات</h1>
-          <p className="text-gray-400">إدارة طلبات المتجر ({orders.length} طلب)</p>
+          <h1 className="text-xl sm:text-3xl font-bold text-white mb-1">الطلبات</h1>
+          <p className="text-gray-400 text-sm">إدارة طلبات المتجر ({orders.length} طلب)</p>
         </div>
         <Link href="/dashboard/orders/new"
-          className="px-6 py-3 bg-luxury-gold text-luxury-black font-bold rounded-sm hover:bg-luxury-gold/80 transition-colors inline-flex items-center gap-2">
+          className="w-full sm:w-auto px-5 sm:px-6 py-2.5 sm:py-3 bg-luxury-gold text-luxury-black font-bold rounded-sm hover:bg-luxury-gold/80 transition-colors inline-flex items-center justify-center gap-2 text-sm">
           <span>+</span> إضافة طلب يدوي
         </Link>
       </motion.div>
@@ -198,29 +202,18 @@ export default function OrdersPage() {
             {search || statusFilter ? 'لا توجد نتائج' : 'لا توجد طلبات بعد'}
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-luxury-gold/20">
-                  <th className="p-4 w-12 text-center">
-                    <input type="checkbox"
-                      checked={filtered.length > 0 && selectedIds.length === filtered.length}
-                      onChange={e => setSelectedIds(e.target.checked ? filtered.map(o => o.id) : [])}
-                      className="accent-luxury-gold w-4 h-4 cursor-pointer" />
-                  </th>
-                  {['رقم الطلب', 'العميل', 'المنتجات', 'المبلغ', 'الحالة', 'التاريخ', 'إجراءات'].map(h => (
-                    <th key={h} className="text-right text-gray-400 font-medium p-4 whitespace-nowrap">{h}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {filtered.map((order, i) => {
-                  const st = STATUS_LABELS[order.status] || STATUS_LABELS.pending;
-                  return (
-                    <motion.tr key={order.id} initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-                      transition={{ delay: i * 0.03 }}
-                      className={`border-b border-luxury-gold/10 hover:bg-luxury-gold/5 transition-colors ${selectedIds.includes(order.id) ? 'bg-luxury-gold/5' : ''}`}>
-                      <td className="p-4 text-center">
+          <>
+            {/* ── Mobile Cards (hidden on md+) ── */}
+            <div className="md:hidden divide-y divide-luxury-gold/10">
+              {filtered.map((order, i) => {
+                const st = STATUS_LABELS[order.status] || STATUS_LABELS.pending;
+                return (
+                  <motion.div key={order.id} initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+                    transition={{ delay: i * 0.03 }}
+                    className={`p-4 ${selectedIds.includes(order.id) ? 'bg-luxury-gold/5' : ''}`}>
+                    {/* Row 1: checkbox + order number + status badge */}
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center gap-2">
                         <input type="checkbox"
                           checked={selectedIds.includes(order.id)}
                           onChange={e => {
@@ -228,53 +221,133 @@ export default function OrdersPage() {
                             setSelectedIds(prev => checked ? [...prev, order.id] : prev.filter(id => id !== order.id));
                           }}
                           className="accent-luxury-gold w-4 h-4 cursor-pointer" />
-                      </td>
-                      <td className="p-4 font-mono text-luxury-gold text-sm">{order.order_number}</td>
-                      <td className="p-4">
-                        <div className="text-white font-medium">{order.customers?.name || '—'}</div>
-                        <div className="text-gray-500 text-sm">{order.customers?.phone}</div>
-                      </td>
-                      <td className="p-4 text-gray-300 text-sm">
-                        {order.order_items.slice(0, 2).map(item => (
-                          <div key={item.id}>{item.product_name || 'منتج'} × {item.quantity}</div>
-                        ))}
-                        {order.order_items.length > 2 && (
-                          <div className="text-gray-500">+{order.order_items.length - 2} أخرى</div>
-                        )}
-                      </td>
-                      <td className="p-4 text-luxury-gold font-bold">{order.total_amount.toFixed(0)} ر.س</td>
-                      <td className="p-4">
-                        <span className={`px-2 py-1 rounded-sm text-xs border ${st.bg} ${st.color}`}>
-                          {st.label}
-                        </span>
-                      </td>
-                      <td className="p-4 text-gray-400 text-sm whitespace-nowrap">
-                        {new Date(order.created_at).toLocaleDateString('ar-SA')}
-                      </td>
-                      <td className="p-4">
-                        <div className="flex items-center gap-2">
-                          <button onClick={() => setSelectedOrder(order)} title="تفاصيل"
-                            className="p-2 bg-luxury-gold/10 text-luxury-gold border border-luxury-gold/30 rounded-sm hover:bg-luxury-gold/20 transition-colors">
-                            <Eye size={16} />
-                          </button>
-                          <Link href={`/dashboard/orders/${order.id}/edit`} title="تعديل"
-                            className="p-2 bg-blue-500/10 text-blue-400 border border-blue-500/30 rounded-sm hover:bg-blue-500/20 transition-colors">
-                            <Edit size={16} />
-                          </Link>
-                          <button onClick={() => handleDeleteOrder(order.id)} title="حذف"
-                            className="p-2 bg-red-500/10 text-red-500 border border-red-500/30 rounded-sm hover:bg-red-500/20 transition-colors">
-                            <Trash2 size={16} />
-                          </button>
-                        </div>
-                      </td>
-                    </motion.tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
+                        <span className="font-mono text-luxury-gold text-sm">{order.order_number}</span>
+                      </div>
+                      <span className={`whitespace-nowrap px-2 py-0.5 rounded-sm text-xs border ${st.bg} ${st.color}`}>
+                        {st.label}
+                      </span>
+                    </div>
+
+                    {/* Row 2: customer name + phone */}
+                    <div className="mb-1.5">
+                      <div className="text-white font-medium text-sm">{order.customers?.name || '—'}</div>
+                      <div className="text-gray-500 text-xs">{order.customers?.phone}</div>
+                    </div>
+
+                    {/* Row 3: products summary */}
+                    <div className="text-gray-400 text-xs mb-2">
+                      {order.order_items.slice(0, 1).map(item => (
+                        <span key={item.id}>{item.product_name || 'منتج'} × {item.quantity}</span>
+                      ))}
+                      {order.order_items.length > 1 && <span className="text-gray-500"> +{order.order_items.length - 1} أخرى</span>}
+                    </div>
+
+                    {/* Row 4: amount + date + actions */}
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <span className="text-luxury-gold font-bold text-sm">{order.total_amount.toFixed(0)} ر.س</span>
+                        <span className="text-gray-500 text-xs mr-2">{new Date(order.created_at).toLocaleDateString('ar-SA')}</span>
+                      </div>
+                      <div className="flex items-center gap-1.5">
+                        <button onClick={() => setSelectedOrder(order)} title="تفاصيل"
+                          className="p-1.5 bg-luxury-gold/10 text-luxury-gold border border-luxury-gold/30 rounded-sm hover:bg-luxury-gold/20 transition-colors">
+                          <Eye size={14} />
+                        </button>
+                        <Link href={`/dashboard/orders/${order.id}/edit`} title="تعديل"
+                          className="p-1.5 bg-blue-500/10 text-blue-400 border border-blue-500/30 rounded-sm hover:bg-blue-500/20 transition-colors">
+                          <Edit size={14} />
+                        </Link>
+                        <button onClick={() => handleDeleteOrder(order.id)} title="حذف"
+                          className="p-1.5 bg-red-500/10 text-red-500 border border-red-500/30 rounded-sm hover:bg-red-500/20 transition-colors">
+                          <Trash2 size={14} />
+                        </button>
+                      </div>
+                    </div>
+                  </motion.div>
+                );
+              })}
+            </div>
+
+            {/* ── Desktop Table (hidden on mobile) ── */}
+            <div className="hidden md:block overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b border-luxury-gold/20">
+                    <th className="p-4 w-12 text-center">
+                      <input type="checkbox"
+                        checked={filtered.length > 0 && selectedIds.length === filtered.length}
+                        onChange={e => setSelectedIds(e.target.checked ? filtered.map(o => o.id) : [])}
+                        className="accent-luxury-gold w-4 h-4 cursor-pointer" />
+                    </th>
+                    {['رقم الطلب', 'العميل', 'المنتجات', 'المبلغ', 'الحالة', 'التاريخ', 'إجراءات'].map(h => (
+                      <th key={h} className="text-right text-gray-400 font-medium p-4 whitespace-nowrap">{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {filtered.map((order, i) => {
+                    const st = STATUS_LABELS[order.status] || STATUS_LABELS.pending;
+                    return (
+                      <motion.tr key={order.id} initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+                        transition={{ delay: i * 0.03 }}
+                        className={`border-b border-luxury-gold/10 hover:bg-luxury-gold/5 transition-colors ${selectedIds.includes(order.id) ? 'bg-luxury-gold/5' : ''}`}>
+                        <td className="p-4 text-center">
+                          <input type="checkbox"
+                            checked={selectedIds.includes(order.id)}
+                            onChange={e => {
+                              const checked = e.target.checked;
+                              setSelectedIds(prev => checked ? [...prev, order.id] : prev.filter(id => id !== order.id));
+                            }}
+                            className="accent-luxury-gold w-4 h-4 cursor-pointer" />
+                        </td>
+                        <td className="p-4 font-mono text-luxury-gold text-sm">{order.order_number}</td>
+                        <td className="p-4">
+                          <div className="text-white font-medium">{order.customers?.name || '—'}</div>
+                          <div className="text-gray-500 text-sm">{order.customers?.phone}</div>
+                        </td>
+                        <td className="p-4 text-gray-300 text-sm">
+                          {order.order_items.slice(0, 2).map(item => (
+                            <div key={item.id}>{item.product_name || 'منتج'} × {item.quantity}</div>
+                          ))}
+                          {order.order_items.length > 2 && (
+                            <div className="text-gray-500">+{order.order_items.length - 2} أخرى</div>
+                          )}
+                        </td>
+                        <td className="p-4 text-luxury-gold font-bold">{order.total_amount.toFixed(0)} ر.س</td>
+                        <td className="p-4">
+                          <span className={`inline-flex items-center justify-center whitespace-nowrap px-2 py-1 rounded-sm text-xs border ${st.bg} ${st.color}`}>
+                            {st.label}
+                          </span>
+                        </td>
+                        <td className="p-4 text-gray-400 text-sm whitespace-nowrap">
+                          {new Date(order.created_at).toLocaleDateString('ar-SA')}
+                        </td>
+                        <td className="p-4">
+                          <div className="flex items-center gap-2">
+                            <button onClick={() => setSelectedOrder(order)} title="تفاصيل"
+                              className="p-2 bg-luxury-gold/10 text-luxury-gold border border-luxury-gold/30 rounded-sm hover:bg-luxury-gold/20 transition-colors">
+                              <Eye size={16} />
+                            </button>
+                            <Link href={`/dashboard/orders/${order.id}/edit`} title="تعديل"
+                              className="p-2 bg-blue-500/10 text-blue-400 border border-blue-500/30 rounded-sm hover:bg-blue-500/20 transition-colors">
+                              <Edit size={16} />
+                            </Link>
+                            <button onClick={() => handleDeleteOrder(order.id)} title="حذف"
+                              className="p-2 bg-red-500/10 text-red-500 border border-red-500/30 rounded-sm hover:bg-red-500/20 transition-colors">
+                              <Trash2 size={16} />
+                            </button>
+                          </div>
+                        </td>
+                      </motion.tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </>
         )}
       </motion.div>
+
 
       {/* Order Detail Drawer */}
       <AnimatePresence>
@@ -300,31 +373,70 @@ export default function OrdersPage() {
                 {/* Customer */}
                 <div>
                   <h3 className="text-gray-400 text-sm mb-2 font-medium">معلومات العميل</h3>
-                  <div className="bg-luxury-black/50 rounded-sm p-4 space-y-2">
+                  <div className="bg-luxury-black/50 rounded-sm p-4 space-y-3">
                     <div className="flex flex-col">
-                      <span className="text-white font-medium">{selectedOrder.customers?.name || '—'}</span>
-                      <span className="text-gray-400 text-sm mt-1">{selectedOrder.customers?.phone}</span>
+                      <span className="text-white font-medium text-lg">{selectedOrder.customers?.name || '—'}</span>
+                      <span className="text-gray-400 text-sm mt-1 text-right w-full" dir="ltr">{selectedOrder.customers?.phone}</span>
                     </div>
-                    
-                    {/* Conditionally render address */}
-                    {(selectedOrder.customers?.city || selectedOrder.customers?.address) && (
-                      <div className="pt-2 border-t border-luxury-gold/10 mt-2">
-                        <span className="text-gray-400 text-sm block mb-1">العنوان:</span>
-                        <span className="text-white text-sm">
-                          {[selectedOrder.customers?.city, selectedOrder.customers?.address].filter(Boolean).join(' - ')}
-                        </span>
+
+                    <div className="pt-3 border-t border-luxury-gold/10">
+                      <span className="text-gray-400 text-sm block mb-1">العنوان:</span>
+                      <span className="text-white text-sm">
+                        {[selectedOrder.customers?.city || '', selectedOrder.customers?.address || ''].filter(Boolean).join(' - ') || '—'}
+                      </span>
+                    </div>
+
+                    {selectedOrder.customers?.additional_phone && (
+                      <div className="pt-3 border-t border-luxury-gold/10">
+                        <span className="text-gray-400 text-sm block mb-1">رقم الجوال الاضافي:</span>
+                        <div className="text-white text-sm text-right w-full" dir="ltr">{selectedOrder.customers.additional_phone}</div>
                       </div>
                     )}
 
-                    {/* Conditionally render notes */}
                     {selectedOrder.notes && (
-                      <div className="pt-2 border-t border-luxury-gold/10 mt-2">
-                        <span className="text-gray-400 text-sm block mb-1">ملاحظات الطلب / الجوال الإضافي:</span>
+                      <div className="pt-3 border-t border-luxury-gold/10">
+                        <span className="text-gray-400 text-sm block mb-1">الملاحظات:</span>
                         <span className="text-white text-sm whitespace-pre-line">{selectedOrder.notes}</span>
                       </div>
                     )}
                   </div>
                 </div>
+
+                {/* Transfer/Payment Details */}
+                {(selectedOrder.transfer_receipt_url || selectedOrder.sender_name) && (
+                  <div>
+                    <h3 className="text-gray-400 text-sm mb-2 font-medium">بيانات التحويل البنكي</h3>
+                    <div className="bg-luxury-black/50 border border-luxury-gold/20 rounded-sm p-4 text-sm">
+                      <div className="grid grid-cols-2 gap-4 mb-3">
+                        <div>
+                          <span className="text-gray-500 block mb-1">اسم صاحب الحساب</span>
+                          <span className="text-white">{selectedOrder.sender_name || '—'}</span>
+                        </div>
+                        <div>
+                          <span className="text-gray-500 block mb-1">البنك</span>
+                          <span className="text-white">{selectedOrder.sender_bank || '—'}</span>
+                        </div>
+                        <div className="col-span-2">
+                          <span className="text-gray-500 block mb-1">رقم الحساب</span>
+                          <span className="text-luxury-gold font-mono" dir="ltr">{selectedOrder.sender_account || '—'}</span>
+                        </div>
+                      </div>
+
+                      {selectedOrder.transfer_receipt_url && (
+                        <div className="pt-3 border-t border-luxury-gold/10">
+                          <a href={selectedOrder.transfer_receipt_url} target="_blank" rel="noopener noreferrer"
+                            className="flex items-center justify-center gap-2 w-full py-2 bg-luxury-gold/10 hover:bg-luxury-gold text-luxury-gold hover:text-luxury-black border border-luxury-gold/30 rounded transition-colors font-medium">
+                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                            </svg>
+                            عرض الإيصال المرفق
+                          </a>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
 
                 {/* Status Changer */}
                 <div>
@@ -333,11 +445,10 @@ export default function OrdersPage() {
                     {Object.entries(STATUS_LABELS).map(([k, v]) => (
                       <button key={k} disabled={updatingStatus || selectedOrder.status === k}
                         onClick={() => handleStatusChange(selectedOrder.id, k)}
-                        className={`px-3 py-1.5 rounded-sm text-sm border transition-all ${
-                          selectedOrder.status === k
-                            ? `${v.bg} ${v.color} border-current`
-                            : 'border-gray-700 text-gray-400 hover:border-luxury-gold/30 hover:text-white'
-                        } disabled:opacity-50`}>
+                        className={`px-3 py-1.5 rounded-sm text-sm border transition-all ${selectedOrder.status === k
+                          ? `${v.bg} ${v.color} border-current`
+                          : 'border-gray-700 text-gray-400 hover:border-luxury-gold/30 hover:text-white'
+                          } disabled:opacity-50`}>
                         {v.label}
                       </button>
                     ))}
@@ -377,13 +488,6 @@ export default function OrdersPage() {
                     <span className="text-luxury-gold">{selectedOrder.total_amount.toFixed(0)} ر.س</span>
                   </div>
                 </div>
-
-                {selectedOrder.notes && (
-                  <div>
-                    <h3 className="text-gray-400 text-sm mb-2 font-medium">ملاحظات</h3>
-                    <p className="text-gray-300 bg-luxury-black/50 rounded-sm p-3">{selectedOrder.notes}</p>
-                  </div>
-                )}
               </div>
             </motion.div>
           </motion.div>

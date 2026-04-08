@@ -8,6 +8,7 @@ import { useToast } from '@/context/ToastContext';
 import { createOrder } from '@/lib/database';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
+import { useRouter } from 'next/navigation';
 
 interface FormData {
   name: string;
@@ -20,6 +21,7 @@ interface FormData {
 }
 
 export default function CheckoutPage() {
+  const router = useRouter();
   const { items, totalPrice, clearCart, appliedDiscount } = useCart();
   const { showToast } = useToast();
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -89,11 +91,10 @@ export default function CheckoutPage() {
         items: orderItems
       });
 
-      if (result.success) {
-        setOrderNumber(result.order_number || null);
-        clearCart();
+      if (result.success && result.order_id) {
         setIsModalOpen(false);
-        showToast('تم تقديم طلبك بنجاح!', 'success');
+        clearCart();
+        router.push(`/checkout/payment/${result.order_id}`);
       } else {
         showToast('حدث خطأ في تقديم الطلب', 'error');
       }
@@ -111,34 +112,9 @@ export default function CheckoutPage() {
         <Header />
         <div className="pt-32">
           <section className="py-20 text-center">
-            <div className="w-24 h-24 bg-luxury-gold/20 rounded-full flex items-center justify-center mx-auto mb-8 border border-luxury-gold">
-              <svg className="w-12 h-12 text-luxury-gold" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-              </svg>
-            </div>
-            <h2 className="text-4xl font-bold text-luxury-gold mb-6">تم استلام طلبك بنجاح!</h2>
-            <p className="text-gray-300 text-lg mb-4">شكرًا لتسوقك من SH للبخور. سنقوم بالتواصل معك قريباً لتأكيد الطلب.</p>
-            <div className="inline-block bg-luxury-dark border border-luxury-gold/30 rounded-sm px-8 py-4 mb-6">
-              <p className="text-gray-400 mb-1">رقم الطلب الخاص بك</p>
-              <p className="text-3xl font-bold text-white tracking-wider">{orderNumber}</p>
-            </div>
-            
-            <div className="max-w-md mx-auto mb-8 bg-[#1a1a1a] border-r-4 border-green-500 rounded-sm p-4 text-right">
-              <div className="flex items-start gap-3">
-                <svg className="w-6 h-6 text-green-500 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                <div>
-                  <h4 className="text-white font-bold mb-1">تنبيه هام</h4>
-                  <p className="text-gray-400 text-sm leading-relaxed">لأي استفسار عن الطلبية أو تعديلها، يرجى التواصل معنا عبر الواتساب مع كتابة (رقم الطلب) لخدمتكم بشكل أسرع.</p>
-                </div>
-              </div>
-            </div>
-
-            <div>
-              <Link href="/products" className="inline-block px-8 py-3 bg-luxury-gold text-luxury-black font-bold rounded-sm hover:bg-luxury-gold-light transition-colors">
-                متابعة التسوق
-              </Link>
+            <div className="p-4 inline-block">
+              <div className="animate-spin h-10 w-10 border-b-2 border-luxury-gold rounded-full mx-auto mb-4"></div>
+              <p className="text-luxury-gold text-lg">جاري تحويلك لصفحة الدفع...</p>
             </div>
           </section>
         </div>
@@ -169,9 +145,9 @@ export default function CheckoutPage() {
     <main className="min-h-screen bg-luxury-black">
       <Header />
       
-      <div className="pt-32 pb-16">
+      <div className="pt-24 sm:pt-28 lg:pt-32 pb-12 sm:pb-16">
         {/* Checkout Content */}
-        <section className="py-12 relative z-10">
+        <section className="py-8 sm:py-12 relative z-10">
           <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8">
             {/* Warning */}
             <div className="bg-luxury-gold/10 border border-luxury-gold/30 rounded-sm p-4 mb-8 flex items-center gap-3">
@@ -185,7 +161,7 @@ export default function CheckoutPage() {
             </div>
 
             {/* Form */}
-            <form onSubmit={handleSubmit} className="bg-luxury-dark border border-luxury-gold/20 rounded-sm p-6 space-y-6">
+            <form onSubmit={handleSubmit} className="bg-luxury-dark border border-luxury-gold/20 rounded-sm p-4 sm:p-6 space-y-4 sm:space-y-6">
               <div>
                 <label className="block text-white font-medium mb-2">الاسم الكامل *</label>
                 <input
@@ -281,8 +257,8 @@ export default function CheckoutPage() {
                 )}
                 
                 <div className="flex items-center justify-between mb-6 pt-4 border-t border-luxury-gold/10">
-                  <span className="text-gray-300 font-bold">المجموع النهائي</span>
-                  <span className="text-luxury-gold font-bold text-2xl">{calculateTotalAfterDiscount().toFixed(0)} ر.س</span>
+                  <span className="text-gray-300 font-bold text-sm sm:text-base">المجموع النهائي</span>
+                  <span className="text-luxury-gold font-bold text-xl sm:text-2xl">{calculateTotalAfterDiscount().toFixed(0)} ر.س</span>
                 </div>
 
                 <button
@@ -312,7 +288,7 @@ export default function CheckoutPage() {
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
               onClick={(e) => e.stopPropagation()}
-              className="bg-luxury-dark border border-luxury-gold/30 rounded-sm p-8 max-w-md w-full text-center"
+              className="bg-luxury-dark border border-luxury-gold/30 rounded-sm p-5 sm:p-8 max-w-md w-full text-center mx-2"
             >
               <div className="w-16 h-16 bg-luxury-gold/20 rounded-full flex items-center justify-center mx-auto mb-6">
                 <svg className="w-8 h-8 text-luxury-gold" fill="none" viewBox="0 0 24 24" stroke="currentColor">

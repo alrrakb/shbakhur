@@ -31,6 +31,8 @@ export default function DiscountsPage() {
   const [saving, setSaving] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState<{ open: boolean; id: string }>({ open: false, id: '' });
   const [search, setSearch] = useState('');
+  const [statusFilter, setStatusFilter] = useState('');
+  const [typeFilter, setTypeFilter] = useState('');
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const { showToast } = useToast();
 
@@ -106,25 +108,46 @@ export default function DiscountsPage() {
 
   function closeForm() { setShowForm(false); setEditId(null); setForm(emptyForm); }
 
+  const filtered = discounts.filter(d => {
+    const matchesSearch = !search ||
+      d.code?.toLowerCase().includes(search.toLowerCase()) ||
+      d.description?.toLowerCase().includes(search.toLowerCase());
+    const matchesStatus = statusFilter === '' ? true : (statusFilter === 'active' ? d.is_active : !d.is_active);
+    const matchesType = typeFilter === '' ? true : d.type === typeFilter;
+    return matchesSearch && matchesStatus && matchesType;
+  });
+
   return (
-    <div className="space-y-6" dir="rtl">
+    <div className="space-y-4 sm:space-y-6" dir="rtl">
       <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }}
-        className="flex items-center justify-between">
+        className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
-          <h1 className="text-3xl font-bold text-white mb-1">الخصومات</h1>
-          <p className="text-gray-400">{discounts.length} كود خصم</p>
+          <h1 className="text-xl sm:text-3xl font-bold text-white mb-1">الخصومات</h1>
+          <p className="text-gray-400 text-sm">{discounts.length} كود خصم</p>
         </div>
         <button onClick={() => { closeForm(); setShowForm(true); }}
-          className="px-6 py-3 bg-luxury-gold text-luxury-black font-bold rounded-sm hover:bg-luxury-gold/80 transition-colors">
+          className="w-full sm:w-auto px-5 sm:px-6 py-2.5 sm:py-3 bg-luxury-gold text-luxury-black font-bold rounded-sm hover:bg-luxury-gold/80 transition-colors text-sm">
           + إضافة خصم
         </button>
       </motion.div>
 
-      {/* Search + Bulk Toolbar */}
-      <div className="flex flex-col sm:flex-row gap-3">
+      {/* Search + Filters Toolbar */}
+      <div className="flex flex-col md:flex-row gap-3">
         <input type="text" placeholder="بحث بكود الخصم أو الوصف..." value={search}
           onChange={e => setSearch(e.target.value)}
-          className="flex-1 px-4 py-3 bg-[#1a1a1a] border border-luxury-gold/20 rounded-sm text-white focus:border-luxury-gold focus:outline-none" />
+          className="flex-1 px-4 py-3 bg-[#1a1a1a] border border-luxury-gold/20 rounded-sm text-white focus:border-luxury-gold focus:outline-none transition-colors" />
+        <select value={statusFilter} onChange={e => setStatusFilter(e.target.value)}
+          className="w-full md:w-48 px-4 py-3 bg-[#1a1a1a] border border-luxury-gold/20 rounded-sm text-white focus:border-luxury-gold focus:outline-none transition-colors">
+          <option value="">كل الحالات</option>
+          <option value="active">مفعّل</option>
+          <option value="inactive">معطّل</option>
+        </select>
+        <select value={typeFilter} onChange={e => setTypeFilter(e.target.value)}
+          className="w-full md:w-48 px-4 py-3 bg-[#1a1a1a] border border-luxury-gold/20 rounded-sm text-white focus:border-luxury-gold focus:outline-none transition-colors">
+          <option value="">كل الأنواع</option>
+          <option value="percentage">نسبة مئوية</option>
+          <option value="fixed">مبلغ ثابت</option>
+        </select>
       </div>
 
       {selectedIds.length > 0 && (
@@ -232,67 +255,123 @@ export default function DiscountsPage() {
         ) : discounts.length === 0 ? (
           <div className="text-center py-16 text-gray-500">لا توجد كودات خصم</div>
         ) : (
-          <table className="w-full">
-            <thead>
-              <tr className="border-b border-luxury-gold/20">
-                <th className="p-4 w-12 text-center">
-                  <input type="checkbox"
-                    checked={discounts.filter(d => d.code?.toLowerCase().includes(search.toLowerCase()) || d.description?.toLowerCase().includes(search.toLowerCase()) || !search).length > 0 &&
-                      selectedIds.length === discounts.filter(d => !search || d.code?.toLowerCase().includes(search.toLowerCase()) || d.description?.toLowerCase().includes(search.toLowerCase())).length}
-                    onChange={e => {
-                      const visible = discounts.filter(d => !search || d.code?.toLowerCase().includes(search.toLowerCase()) || d.description?.toLowerCase().includes(search.toLowerCase()));
-                      setSelectedIds(e.target.checked ? visible.map(d => d.id) : []);
-                    }}
-                    className="accent-luxury-gold w-4 h-4 cursor-pointer" />
-                </th>
-                {['الكود', 'النوع', 'القيمة', 'الوصف', 'الحالة', 'إجراءات'].map(h => (
-                  <th key={h} className="text-right text-gray-400 font-medium p-4">{h}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {discounts.filter(d => !search || d.code?.toLowerCase().includes(search.toLowerCase()) || (d.description || '').toLowerCase().includes(search.toLowerCase())
-              ).map((d, i) => (
-                <motion.tr key={d.id} initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-                  transition={{ delay: i * 0.03 }}
-                  className={`border-b border-luxury-gold/10 hover:bg-luxury-gold/5 transition-colors ${selectedIds.includes(d.id) ? 'bg-luxury-gold/5' : ''}`}>
-                  <td className="p-4 text-center">
-                    <input type="checkbox"
-                      checked={selectedIds.includes(d.id)}
-                      onChange={e => {
-                        const checked = e.target.checked;
-                        setSelectedIds(prev => checked ? [...prev, d.id] : prev.filter(id => id !== d.id));
-                      }}
-                      className="accent-luxury-gold w-4 h-4 cursor-pointer" />
-                  </td>
-                  <td className="p-4 font-mono text-luxury-gold font-bold">{d.code || '—'}</td>
-                  <td className="p-4 text-gray-300">{d.type === 'percentage' ? 'نسبة مئوية' : 'مبلغ ثابت'}</td>
-                  <td className="p-4 text-white font-bold">{d.value}{d.type === 'percentage' ? '%' : ' ر.س'}</td>
-                  <td className="p-4 text-gray-400 max-w-xs truncate">{d.description || '—'}</td>
-                  <td className="p-4">
+          <>
+            {/* ── Mobile Cards (hidden on md+) ── */}
+            <div className="md:hidden divide-y divide-luxury-gold/10">
+              {filtered.map((d, i) => (
+                <motion.div key={d.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.03 }}
+                  className={`p-4 ${selectedIds.includes(d.id) ? 'bg-luxury-gold/5' : ''}`}>
+                  
+                  <div className="flex items-start justify-between mb-3">
+                    <div className="flex items-center gap-3">
+                      <input type="checkbox"
+                        checked={selectedIds.includes(d.id)}
+                        onChange={e => {
+                          const checked = e.target.checked;
+                          setSelectedIds(prev => checked ? [...prev, d.id] : prev.filter(id => id !== d.id));
+                        }}
+                        className="accent-luxury-gold w-4 h-4 cursor-pointer" />
+                      <div className="font-mono text-luxury-gold font-bold text-lg">{d.code || '—'}</div>
+                    </div>
+                    
                     <button onClick={() => toggleActive(d)}
                       className={`px-2 py-1 rounded-sm text-xs border transition-all ${
                         d.is_active ? 'bg-green-400/10 text-green-400 border-green-400/30' : 'bg-gray-500/10 text-gray-400 border-gray-500/30'
                       }`}>
                       {d.is_active ? 'مفعّل' : 'معطّل'}
                     </button>
-                  </td>
-                  <td className="p-4">
-                    <div className="flex gap-2">
-                      <button onClick={() => openEdit(d)}
-                        className="px-3 py-1 bg-luxury-gold/10 text-luxury-gold border border-luxury-gold/30 rounded-sm hover:bg-luxury-gold/20 text-sm">
-                        تعديل
-                      </button>
-                      <button onClick={() => handleDelete(d.id)}
-                        className="px-3 py-1 bg-red-500/10 text-red-400 border border-red-500/30 rounded-sm hover:bg-red-500/20 text-sm">
-                        حذف
-                      </button>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2 text-sm mb-3">
+                    <div>
+                      <div className="text-gray-500 text-xs mb-0.5">القيمة</div>
+                      <div className="text-white font-bold">{d.value}{d.type === 'percentage' ? '%' : ' ر.س'}</div>
                     </div>
-                  </td>
-                </motion.tr>
+                    <div>
+                      <div className="text-gray-500 text-xs mb-0.5">النوع</div>
+                      <div className="text-gray-300">{d.type === 'percentage' ? 'نسبة مئوية' : 'مبلغ ثابت'}</div>
+                    </div>
+                  </div>
+                  
+                  <div className="mb-4">
+                    <div className="text-gray-500 text-xs mb-0.5">الوصف</div>
+                    <div className="text-gray-400 text-sm">{d.description || '—'}</div>
+                  </div>
+
+                  <div className="flex gap-2">
+                    <button onClick={() => openEdit(d)}
+                      className="px-3 py-1.5 bg-luxury-gold/10 text-luxury-gold border border-luxury-gold/30 rounded-sm hover:bg-luxury-gold/20 transition-colors text-xs flex-1 text-center">
+                      تعديل
+                    </button>
+                    <button onClick={() => handleDelete(d.id)}
+                      className="px-3 py-1.5 bg-red-500/10 text-red-400 border border-red-500/30 rounded-sm hover:bg-red-500/20 transition-colors text-xs flex-1 text-center">
+                      حذف
+                    </button>
+                  </div>
+                </motion.div>
               ))}
-            </tbody>
-          </table>
+            </div>
+
+            {/* ── Desktop Table (hidden on mobile) ── */}
+            <div className="hidden md:block overflow-x-auto">
+              <table className="w-full min-w-[800px]">
+                <thead>
+                  <tr className="border-b border-luxury-gold/20">
+                    <th className="p-4 w-12 text-center">
+                      <input type="checkbox"
+                        checked={filtered.length > 0 && selectedIds.length === filtered.length}
+                        onChange={e => setSelectedIds(e.target.checked ? filtered.map(d => d.id) : [])}
+                        className="accent-luxury-gold w-4 h-4 cursor-pointer" />
+                    </th>
+                    {['الكود', 'النوع', 'القيمة', 'الوصف', 'الحالة', 'إجراءات'].map(h => (
+                      <th key={h} className="text-right text-gray-400 font-medium p-4">{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {filtered.map((d, i) => (
+                  <motion.tr key={d.id} initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+                    transition={{ delay: i * 0.03 }}
+                    className={`border-b border-luxury-gold/10 hover:bg-luxury-gold/5 transition-colors ${selectedIds.includes(d.id) ? 'bg-luxury-gold/5' : ''}`}>
+                    <td className="p-4 text-center">
+                      <input type="checkbox"
+                        checked={selectedIds.includes(d.id)}
+                        onChange={e => {
+                          const checked = e.target.checked;
+                          setSelectedIds(prev => checked ? [...prev, d.id] : prev.filter(id => id !== d.id));
+                        }}
+                        className="accent-luxury-gold w-4 h-4 cursor-pointer" />
+                    </td>
+                    <td className="p-4 font-mono text-luxury-gold font-bold">{d.code || '—'}</td>
+                    <td className="p-4 text-gray-300">{d.type === 'percentage' ? 'نسبة مئوية' : 'مبلغ ثابت'}</td>
+                    <td className="p-4 text-white font-bold">{d.value}{d.type === 'percentage' ? '%' : ' ر.س'}</td>
+                    <td className="p-4 text-gray-400 max-w-xs truncate">{d.description || '—'}</td>
+                    <td className="p-4">
+                      <button onClick={() => toggleActive(d)}
+                        className={`px-2 py-1 rounded-sm text-xs border transition-all whitespace-nowrap ${
+                          d.is_active ? 'bg-green-400/10 text-green-400 border-green-400/30' : 'bg-gray-500/10 text-gray-400 border-gray-500/30'
+                        }`}>
+                        {d.is_active ? 'مفعّل' : 'معطّل'}
+                      </button>
+                    </td>
+                    <td className="p-4">
+                      <div className="flex gap-2">
+                        <button onClick={() => openEdit(d)}
+                          className="px-3 py-1 bg-luxury-gold/10 text-luxury-gold border border-luxury-gold/30 rounded-sm hover:bg-luxury-gold/20 text-sm">
+                          تعديل
+                        </button>
+                        <button onClick={() => handleDelete(d.id)}
+                          className="px-3 py-1 bg-red-500/10 text-red-400 border border-red-500/30 rounded-sm hover:bg-red-500/20 text-sm">
+                          حذف
+                        </button>
+                      </div>
+                    </td>
+                  </motion.tr>
+                ))}
+              </tbody>
+            </table>
+            </div>
+          </>
         )}
       </motion.div>
     </div>

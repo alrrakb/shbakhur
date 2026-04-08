@@ -86,7 +86,7 @@ export default function Partners() {
                     alt={partner.name}
                     fill
                     unoptimized
-                    className="object-contain opacity-80 group-hover:opacity-100 transition-opacity"
+                    className="object-contain opacity-80 group-hover:opacity-100 transition-all duration-300 filter brightness-0 invert"
                   />
                 </div>
               ) : (

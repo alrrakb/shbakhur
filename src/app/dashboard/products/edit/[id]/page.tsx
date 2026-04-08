@@ -1,11 +1,12 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { supabase } from '@/lib/supabase';
 import { useToast } from '@/context/ToastContext';
 import RichTextEditor from '@/components/RichTextEditor';
+import { sanitizeFilename } from '@/lib/storage';
 
 interface Product {
   id: number;
@@ -35,6 +36,7 @@ export default function EditProduct() {
   const [initialLoading, setInitialLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
   const [allCategories, setAllCategories] = useState<{id: string; name: string; parent_id?: string | null}[]>([]);
+  const initialLoadDone = useRef(false);
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const featuredInputRef = useRef<HTMLInputElement>(null);
   const galleryInputRef = useRef<HTMLInputElement>(null);
@@ -57,7 +59,27 @@ export default function EditProduct() {
     is_active: true,
   });
 
+  // DEBUG: Track formData changes
   useEffect(() => {
+    console.log('📝 formData changed - featured_image:', formData.featured_image || '(empty)');
+    if (!formData.featured_image) {
+      console.log('⚠️⚠️⚠️ featured_image RESET detected! Stack:', new Error().stack);
+    }
+  }, [formData.featured_image]);
+
+  // DEBUG: Track component mount/unmount
+  useEffect(() => {
+    console.log('🚀 Component MOUNTED');
+    return () => console.log('💥 Component UNMOUNTED');
+  }, []);
+
+  useEffect(() => {
+    // Prevent re-fetching and overwriting user changes after initial load
+    if (initialLoadDone.current) {
+      console.log('⏭️ Skipping fetch - initial load already done');
+      return;
+    }
+
     async function fetchData() {
       try {
         const [productRes, categoriesRes, productCatsRes] = await Promise.all([
@@ -69,6 +91,7 @@ export default function EditProduct() {
         if (productRes.error) throw productRes.error;
 
         if (productRes.data) {
+          console.log('📥 Initial load - setting form data from DB');
           setFormData({
             id: productRes.data.id,
             wp_id: productRes.data.wp_id || '',
@@ -96,6 +119,7 @@ export default function EditProduct() {
             setSelectedCategories(productCatsRes.data.map((c: any) => c.category_id));
           }
         }
+        initialLoadDone.current = true;
       } catch (error) {
         console.error('Error fetching product:', error);
         showToast('فشل تحميل بيانات المنتج', 'error');
@@ -105,31 +129,62 @@ export default function EditProduct() {
     }
 
     fetchData();
-  }, [productId, showToast]);
+  }, [productId]); // Removed showToast to prevent re-fetching
 
   const uploadToSupabaseStorage = async (file: File, bucket: string, folder: string): Promise<string> => {
-    const fileName = `${folder}/${Date.now()}-${file.name.replace(/\s+/g, '-')}`;
+    // Use storage-safe filename sanitizer to handle Arabic and special characters
+    const fileName = sanitizeFilename(file.name, folder);
+    console.log('Uploading file:', file.name, '→', fileName, 'to bucket:', bucket);
+    
     const { data, error } = await supabase.storage
       .from(bucket)
-      .upload(fileName, file);
+      .upload(fileName, file, {
+        cacheControl: '3600',
+        upsert: false
+      });
 
-    if (error) throw error;
+    if (error) {
+      console.error('Storage upload error:', error);
+      throw new Error(`فشل رفع الملف: ${error.message}`);
+    }
+
+    if (!data || !data.path) {
+      console.error('Upload succeeded but no path returned:', data);
+      throw new Error('فشل رفع الملف: لم يتم استلام مسار الملف');
+    }
+
+    console.log('Upload successful, path:', data.path);
 
     const { data: urlData } = supabase.storage
       .from(bucket)
-      .getPublicUrl(fileName);
+      .getPublicUrl(data.path);
 
+    console.log('Public URL:', urlData.publicUrl);
     return urlData.publicUrl;
   };
 
   const handleUploadFeaturedImage = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
+    console.log('🔥 handleUploadFeaturedImage called, file:', file ? file.name : 'NO FILE');
     if (!file) return;
 
     setUploading(true);
     try {
       const imageUrl = await uploadToSupabaseStorage(file, 'products', 'featured');
-      setFormData(prev => ({ ...prev, featured_image: imageUrl }));
+      console.log('Uploaded image URL:', imageUrl);
+      
+      setFormData(prev => {
+        const newState = { ...prev, featured_image: imageUrl };
+        console.log('Updated formData:', newState);
+        return newState;
+      });
+      
+      // CRITICAL: Reset file input to prevent stray change events
+      if (featuredInputRef.current) {
+        featuredInputRef.current.value = '';
+        console.log('✅ File input reset');
+      }
+      
       showToast('تم رفع الصورة بنجاح', 'success');
     } catch (error) {
       console.error('Upload error:', error);
@@ -223,6 +278,10 @@ export default function EditProduct() {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
+    console.log(`🎯 handleChange called: name="${name}", value="${value?.substring(0, 50)}..."`);
+    if (name === 'featured_image') {
+      console.log('⚠️ featured_image changed via handleChange! Stack:', new Error().stack);
+    }
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
@@ -421,6 +480,7 @@ export default function EditProduct() {
             {formData.featured_image ? (
               <div className="relative inline-block">
                 <img
+                  key={formData.featured_image}
                   src={formData.featured_image}
                   alt="Featured"
                   className="w-32 h-32 object-cover rounded-sm border border-luxury-gold/30"

@@ -6,6 +6,7 @@ import { motion } from 'framer-motion';
 import { supabase } from '@/lib/supabase';
 import { useToast } from '@/context/ToastContext';
 import RichTextEditor from '@/components/RichTextEditor';
+import { sanitizeFilename } from '@/lib/storage';
 
 export default function AddProduct() {
   const router = useRouter();
@@ -40,6 +41,17 @@ export default function AddProduct() {
     fetchCategories();
   }, []);
 
+  // DEBUG: Track formData changes
+  useEffect(() => {
+    console.log('📝 formData changed - featured_image:', formData.featured_image || '(empty)');
+  }, [formData.featured_image]);
+
+  // DEBUG: Track component mount/unmount
+  useEffect(() => {
+    console.log('🚀 Component MOUNTED');
+    return () => console.log('💥 Component UNMOUNTED');
+  }, []);
+
   const handleCategoryChange = (categoryId: string, checked: boolean) => {
     setFormData(prev => ({
       ...prev,
@@ -50,28 +62,63 @@ export default function AddProduct() {
   };
 
   const uploadToSupabaseStorage = async (file: File, bucket: string, folder: string): Promise<string> => {
-    const fileName = `${folder}/${Date.now()}-${file.name.replace(/\s+/g, '-')}`;
+    // Use storage-safe filename sanitizer to handle Arabic and special characters
+    const fileName = sanitizeFilename(file.name, folder);
+    console.log('Uploading file:', file.name, '→', fileName, 'to bucket:', bucket);
+    
     const { data, error } = await supabase.storage
       .from(bucket)
-      .upload(fileName, file);
+      .upload(fileName, file, {
+        cacheControl: '3600',
+        upsert: false
+      });
 
-    if (error) throw error;
+    if (error) {
+      console.error('Storage upload error:', error);
+      throw new Error(`فشل رفع الملف: ${error.message}`);
+    }
+
+    if (!data || !data.path) {
+      console.error('Upload succeeded but no path returned:', data);
+      throw new Error('فشل رفع الملف: لم يتم استلام مسار الملف');
+    }
+
+    console.log('Upload successful, path:', data.path);
 
     const { data: urlData } = supabase.storage
       .from(bucket)
-      .getPublicUrl(fileName);
+      .getPublicUrl(data.path);
 
+    console.log('Public URL:', urlData.publicUrl);
     return urlData.publicUrl;
   };
 
   const handleUploadFeaturedImage = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
+    console.log('🔥 handleUploadFeaturedImage called, file:', file ? file.name : 'NO FILE');
     if (!file) return;
 
     setUploading(true);
     try {
       const imageUrl = await uploadToSupabaseStorage(file, 'products', 'featured');
-      setFormData(prev => ({ ...prev, featured_image: imageUrl }));
+      console.log('Uploaded image URL:', imageUrl);
+      
+      // Update form state with new image URL
+      console.log('Setting featured_image to:', imageUrl);
+      setFormData(prev => {
+        const newState = { ...prev, featured_image: imageUrl };
+        console.log('Old state featured_image:', prev.featured_image);
+        console.log('New state featured_image:', newState.featured_image);
+        console.log('State update successful:', newState.featured_image === imageUrl ? 'YES' : 'NO');
+        return newState;
+      });
+      
+      // CRITICAL: Reset file input to prevent stray change events
+      if (featuredInputRef.current) {
+        featuredInputRef.current.value = '';
+        console.log('✅ File input reset');
+      }
+      
       showToast('تم رفع الصورة بنجاح', 'success');
     } catch (error) {
       console.error('Upload error:', error);
@@ -135,13 +182,21 @@ export default function AddProduct() {
         is_active: formData.is_active,
       };
 
+      console.log('Submitting product with image:', formData.featured_image);
+      console.log('Product data:', productData);
+
       const { data: newProduct, error } = await supabase
         .from('products')
         .insert(productData)
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Product insert error:', error);
+        throw error;
+      }
+
+      console.log('Product created successfully:', newProduct);
 
       if (formData.categories.length > 0) {
         const catInserts = formData.categories.map(categoryId => ({
@@ -163,6 +218,10 @@ export default function AddProduct() {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
+    console.log(`🎯 handleChange called: name="${name}", value="${value?.substring(0, 50)}..."`);
+    if (name === 'featured_image') {
+      console.log('⚠️ featured_image changed via handleChange! Stack:', new Error().stack);
+    }
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
@@ -306,6 +365,7 @@ export default function AddProduct() {
             {formData.featured_image ? (
               <div className="relative inline-block">
                 <img
+                  key={formData.featured_image}
                   src={formData.featured_image}
                   alt="Featured"
                   className="w-32 h-32 object-cover rounded-sm border border-luxury-gold/30"

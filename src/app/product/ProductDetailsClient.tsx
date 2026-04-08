@@ -112,7 +112,7 @@ export default function ProductDetailsClient({
     <main className="min-h-screen bg-luxury-black font-cairo">
       <Header />
       
-      <div className="pt-32 pb-20">
+      <div className="pt-24 sm:pt-28 lg:pt-32 pb-12 sm:pb-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <Breadcrumb
             items={[
@@ -122,7 +122,7 @@ export default function ProductDetailsClient({
             ]}
           />
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 mt-12">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-10 lg:gap-16 mt-6 sm:mt-10 lg:mt-12">
             {/* Gallery Section */}
             <motion.div
               initial={{ opacity: 0, x: -20 }}
@@ -187,7 +187,7 @@ export default function ProductDetailsClient({
                 {product.categoryName && (
                   <p className="text-luxury-gold font-medium mb-3 tracking-wide">{product.categoryName}</p>
                 )}
-                <h1 className="text-4xl md:text-5xl font-bold text-white mb-4 leading-tight">
+                <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-3 leading-tight">
                   {product.title || product.name}
                 </h1>
                 {product.sku && (
@@ -198,18 +198,18 @@ export default function ProductDetailsClient({
               </div>
 
               {/* Price Block */}
-              <div className="flex items-center gap-4 py-2 border-b border-luxury-gold/10 pb-6">
+              <div className="flex flex-wrap items-center gap-3 sm:gap-4 py-2 border-b border-luxury-gold/10 pb-5 sm:pb-6">
                 {hasDiscount ? (
                   <>
-                    <span className="text-4xl font-bold text-luxury-gold">
+                    <span className="text-2xl sm:text-3xl lg:text-4xl font-bold text-luxury-gold">
                       {formatPrice(productPrice)}
                     </span>
-                    <span className="text-2xl text-zinc-500 line-through">
+                    <span className="text-lg sm:text-xl lg:text-2xl text-zinc-500 line-through">
                       {formatPrice(originalPrice as string)}
                     </span>
                   </>
                 ) : (
-                  <span className="text-4xl font-bold text-luxury-gold">
+                  <span className="text-2xl sm:text-3xl lg:text-4xl font-bold text-luxury-gold">
                     {formatPrice(productPrice)}
                   </span>
                 )}
@@ -222,22 +222,22 @@ export default function ProductDetailsClient({
               )}
 
               {/* Action Area */}
-              <div className="bg-[#111111] border border-luxury-gold/10 p-6 rounded-sm mt-6 space-y-6">
-                <div className="flex items-center gap-6">
-                  <span className="text-zinc-300 font-medium whitespace-nowrap">الكمية:</span>
+              <div className="bg-[#111111] border border-luxury-gold/10 p-4 sm:p-6 rounded-sm mt-4 sm:mt-6 space-y-4 sm:space-y-6">
+                <div className="flex items-center gap-4 sm:gap-6">
+                  <span className="text-zinc-300 font-medium whitespace-nowrap text-sm sm:text-base">الكمية:</span>
                   <div className="flex items-center bg-luxury-black border border-luxury-gold/20 rounded-sm">
                     <button
                       onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                      className="px-5 py-3 text-white hover:text-luxury-gold transition-colors"
+                      className="px-4 sm:px-5 py-2.5 sm:py-3 text-white hover:text-luxury-gold transition-colors text-lg"
                     >
                       -
                     </button>
-                    <span className="px-6 py-3 text-white font-bold text-lg min-w-[60px] text-center border-x border-luxury-gold/20">
+                    <span className="px-4 sm:px-6 py-2.5 sm:py-3 text-white font-bold text-base sm:text-lg min-w-[50px] sm:min-w-[60px] text-center border-x border-luxury-gold/20">
                       {quantity}
                     </span>
                     <button
                       onClick={() => setQuantity(quantity + 1)}
-                      className="px-5 py-3 text-white hover:text-luxury-gold transition-colors"
+                      className="px-4 sm:px-5 py-2.5 sm:py-3 text-white hover:text-luxury-gold transition-colors text-lg"
                     >
                       +
                     </button>
@@ -278,8 +278,8 @@ export default function ProductDetailsClient({
               </div>
 
               {product.description && (
-                <div className="mt-12 pt-8 border-t border-luxury-gold/20">
-                  <h3 className="text-2xl font-bold text-white mb-6">تفاصيل المنتج</h3>
+                <div className="mt-8 sm:mt-12 pt-6 sm:pt-8 border-t border-luxury-gold/20">
+                  <h3 className="text-xl sm:text-2xl font-bold text-white mb-4 sm:mb-6">تفاصيل المنتج</h3>
                   <div
                     className="text-zinc-300 leading-relaxed prose prose-invert prose-gold max-w-none prose-p:mb-4 prose-a:text-luxury-gold"
                     dangerouslySetInnerHTML={{ __html: product.description }}
@@ -317,20 +317,20 @@ function RelatedProductsSection({ products }: { products: RelatedProduct[] }) {
   }));
 
   return (
-    <section className="py-20 bg-[#0d0d0d] border-t border-luxury-gold/10">
+    <section className="py-12 sm:py-20 bg-[#0d0d0d] border-t border-luxury-gold/10">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="flex items-center mb-12"
+          className="flex items-center mb-8 sm:mb-12"
         >
           <div>
-            <p className="text-luxury-gold text-sm font-medium tracking-widest uppercase mb-2">
+            <p className="text-luxury-gold text-xs sm:text-sm font-medium tracking-widest uppercase mb-1 sm:mb-2">
               اكتشف المزيد
             </p>
-            <h2 className="text-3xl md:text-4xl font-bold text-white">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white">
               منتجات موصى بها
             </h2>
           </div>

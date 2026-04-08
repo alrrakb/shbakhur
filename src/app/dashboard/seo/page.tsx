@@ -19,29 +19,61 @@ export default function SeoPage() {
     fetchSeoSettings();
   }, []);
 
+const ALL_STORE_PAGES = [
+  { path: '/', name: 'الرئيسية' },
+  { path: '/products', name: 'جميع المنتجات' },
+  { path: '/best-sellers', name: 'الاكثر مبيعا' },
+  { path: '/special-offers', name: 'عروضنا المميزة' },
+  { path: '/oud', name: 'البخور والعود' },
+  { path: '/natural-oud', name: 'عود طبيعي' },
+  { path: '/enhanced-oud', name: 'عود محسن' },
+  { path: '/scented-oud', name: 'عود معطر' },
+  { path: '/oil-oud', name: 'دهن العود' },
+  { path: '/bakhur-accessories', name: 'اكسسوارات البخور' },
+  { path: '/tomford', name: 'عطور توم فورد' },
+  { path: '/dior', name: 'عطور ديور' },
+  { path: '/gucci', name: 'عطور جوتشي' },
+  { path: '/ysl', name: 'عطون ايف سان لوران' },
+  { path: '/cart', name: 'سلة المشتريات' },
+  { path: '/checkout', name: 'اتمام الدفع' }
+];
+
   async function fetchSeoSettings() {
     try {
-      const data = await getAllSeoSettings();
-      setSeoSettings(data.length > 0 ? data : getDefaultPages());
+      const dbData = await getAllSeoSettings();
+      
+      const merged: SeoData[] = ALL_STORE_PAGES.map(page => {
+        const existing = dbData.find(d => d.page_path === page.path);
+        if (existing) return existing;
+        return {
+          page_path: page.path,
+          title: page.path === '/' ? 'SH للبخور - أجود البخور والعطور' : `${page.name} | SH للبخور`,
+          description: '',
+          keywords: '',
+          og_image: ''
+        };
+      });
+
+      const predefinedPaths = new Set(ALL_STORE_PAGES.map(p => p.path));
+      dbData.forEach(d => {
+        if (!predefinedPaths.has(d.page_path)) {
+          merged.push(d);
+        }
+      });
+
+      setSeoSettings(merged);
     } catch (error) {
       console.error('Error fetching SEO settings:', error);
-      setSeoSettings(getDefaultPages());
+      setSeoSettings(ALL_STORE_PAGES.map(page => ({
+        page_path: page.path,
+        title: page.path === '/' ? 'SH للبخور - أجود البخور والعطور' : `${page.name} | SH للبخور`,
+        description: '',
+        keywords: '',
+        og_image: ''
+      })));
     } finally {
       setLoading(false);
     }
-  }
-
-  function getDefaultPages(): SeoData[] {
-    return [
-      { page_path: '/', title: 'SH للبخور - أجود البخور والعطور', description: '', keywords: '', og_image: '' },
-      { page_path: '/products', title: 'جميع المنتجات | SH للبخور', description: '', keywords: '', og_image: '' },
-      { page_path: '/products/best-sellers', title: 'الأكثر مبيعا | SH للبخور', description: '', keywords: '', og_image: '' },
-      { page_path: '/products/best-offers', title: 'عروضنا | SH للبخور', description: '', keywords: '', og_image: '' },
-      { page_path: '/products/perfumes', title: 'العطور | SH للبخور', description: '', keywords: '', og_image: '' },
-      { page_path: '/products/oud', title: 'البخور والعود | SH للبخور', description: '', keywords: '', og_image: '' },
-      { page_path: '/cart', title: 'السلة | SH للبخور', description: '', keywords: '', og_image: '' },
-      { page_path: '/checkout', title: 'الدفع | SH للبخور', description: '', keywords: '', og_image: '' },
-    ];
   }
 
   async function handleSave() {
@@ -77,17 +109,17 @@ export default function SeoPage() {
   };
 
   const getPageDisplayName = (path: string): string => {
-    const names: Record<string, string> = {
-      '/': 'الرئيسية',
-      '/products': 'جميع المنتجات',
-      '/products/best-sellers': 'الأكثر مبيعا',
-      '/products/best-offers': 'عروضنا',
-      '/products/perfumes': 'العطور',
-      '/products/oud': 'البخور والعود',
-      '/cart': 'السلة',
-      '/checkout': 'الدفع',
+    const defaultPage = ALL_STORE_PAGES.find(p => p.path === path);
+    if (defaultPage) return defaultPage.name;
+    
+    // Fallbacks for generic or old paths
+    const legacyNames: Record<string, string> = {
+      '/products/best-sellers': 'الأكثر مبيعا (قديم)',
+      '/products/best-offers': 'عروضنا (قديم)',
+      '/products/oud': 'البخور والعود (قديم)'
     };
-    return names[path] || path;
+    
+    return legacyNames[path] || path;
   };
 
   const getTitleColor = (length: number) => {
@@ -109,16 +141,16 @@ export default function SeoPage() {
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="flex flex-col md:flex-row md:items-center md:justify-between gap-4"
+        className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3"
       >
         <div>
-          <h1 className="text-3xl font-bold text-white mb-2">تحسين محركات البحث (SEO)</h1>
-          <p className="text-gray-400">إدارة إعدادات SEO لكل صفحة ({seoSettings.length} صفحة)</p>
+          <h1 className="text-xl sm:text-3xl font-bold text-white mb-1">تحسين محركات البحث (SEO)</h1>
+          <p className="text-gray-400 text-sm">إدارة إعدادات SEO لكل صفحة ({seoSettings.length} صفحة)</p>
         </div>
         <button
           onClick={handleSave}
           disabled={saving}
-          className="px-8 py-3 bg-luxury-gold text-luxury-black font-bold rounded-sm hover:bg-luxury-gold-light transition-colors disabled:opacity-50"
+          className="w-full sm:w-auto px-5 sm:px-6 py-2.5 sm:py-3 bg-luxury-gold text-luxury-black font-bold rounded-sm hover:bg-luxury-gold/80 transition-colors disabled:opacity-50 text-sm"
         >
           {saving ? 'جاري الحفظ...' : 'حفظ جميع التغييرات'}
         </button>
@@ -129,10 +161,29 @@ export default function SeoPage() {
         <motion.div
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
-          className="lg:col-span-1 bg-[#1a1a1a] rounded-sm border border-luxury-gold/20 p-4"
+          className="lg:col-span-1 bg-[#1a1a1a] rounded-sm border border-luxury-gold/20 p-4 sm:p-6"
         >
-          <h3 className="text-white font-bold mb-4">صفحات الموقع</h3>
-          <div className="space-y-2 max-h-[60vh] overflow-y-auto">
+          <h3 className="text-white font-bold mb-4 hidden lg:block">صفحات الموقع</h3>
+          
+          {/* Mobile Select (hidden on lg+) */}
+          <div className="lg:hidden">
+            <label className="block text-gray-400 text-sm mb-2">اختر الصفحة للتعديل:</label>
+            <select 
+              value={selectedPage}
+              onChange={(e) => setSelectedPage(e.target.value)}
+              className="w-full px-4 py-3 bg-luxury-black border border-luxury-gold/20 rounded-sm text-white focus:border-luxury-gold focus:outline-none focus:ring-1 focus:ring-luxury-gold transition-colors"
+              dir="ltr"
+            >
+              {seoSettings.map(page => (
+                <option key={page.page_path} value={page.page_path}>
+                  {getPageDisplayName(page.page_path)} ({page.page_path})
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Desktop List (hidden on mobile) */}
+          <div className="hidden lg:block space-y-2 max-h-[60vh] overflow-y-auto pr-1 custom-scrollbar">
             {seoSettings.map(page => (
               <button
                 key={page.page_path}
@@ -144,7 +195,7 @@ export default function SeoPage() {
                 }`}
               >
                 <div className="font-medium">{getPageDisplayName(page.page_path)}</div>
-                <div className="text-xs text-gray-500">{page.page_path}</div>
+                <div className="text-xs text-gray-500 mt-1" dir="ltr">{page.page_path}</div>
               </button>
             ))}
           </div>
@@ -154,7 +205,7 @@ export default function SeoPage() {
         <motion.div
           initial={{ opacity: 0, x: 20 }}
           animate={{ opacity: 1, x: 0 }}
-          className="lg:col-span-3 bg-[#1a1a1a] rounded-sm border border-luxury-gold/20 p-6"
+          className="lg:col-span-3 bg-[#1a1a1a] rounded-sm border border-luxury-gold/20 p-4 sm:p-6"
         >
           {loading ? (
             <div className="flex items-center justify-center h-64">

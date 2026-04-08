@@ -280,17 +280,17 @@ export default function ProductsList() {
   });
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="flex flex-col md:flex-row md:items-center md:justify-between gap-4"
+        className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3"
       >
         <div>
-          <h1 className="text-3xl font-bold text-white mb-2">المنتجات</h1>
-          <p className="text-gray-400">إدارة منتجات المتجر ({products.length} منتج)</p>
+          <h1 className="text-xl sm:text-3xl font-bold text-white mb-1 sm:mb-2">المنتجات</h1>
+          <p className="text-gray-400 text-sm">إدارة منتجات المتجر ({products.length} منتج)</p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-2">
           <input
             ref={fileInputRef}
             type="file"
@@ -298,111 +298,49 @@ export default function ProductsList() {
             onChange={handleImport}
             className="hidden"
           />
+          {/* Temporarily hidden: WordPress gallery import
           <button
             onClick={handleImportGallery}
             disabled={importingGallery}
             title="استيراد معرض صور المنتجات من WordPress"
-            className="px-4 py-3 bg-purple-500/10 text-purple-400 border border-purple-500/30 rounded-sm hover:bg-purple-500/20 transition-colors inline-flex items-center gap-2 disabled:opacity-50"
+            className="px-3 py-2 bg-purple-500/10 text-purple-400 border border-purple-500/30 rounded-sm hover:bg-purple-500/20 transition-colors inline-flex items-center gap-1.5 disabled:opacity-50 text-xs sm:text-sm"
           >
-            {importingGallery ? (
-              <>
-                <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                </svg>
-                جاري استيراد المعرض...
-              </>
-            ) : (
-              <>
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                </svg>
-                استيراد معرض الصور
-              </>
-            )}
+            ...
           </button>
-          <button
-            onClick={handleImportFromWordPress}
-            disabled={importingWP}
-            className="px-4 py-3 bg-luxury-gold/10 text-luxury-gold border border-luxury-gold/30 rounded-sm hover:bg-luxury-gold/20 transition-colors inline-flex items-center gap-2 disabled:opacity-50"
-          >
-            {importingWP ? (
-              <>
-                <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                </svg>
-                جاري الاستيراد من WordPress...
-              </>
-            ) : (
-              <>
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
-                </svg>
-                استيراد من WordPress
-              </>
-            )}
+          */}
+          {/* Temporarily hidden: WordPress import
+          <button onClick={handleImportFromWordPress} disabled={importingWP} ...>
+            ...
           </button>
+          */}
           <button
             onClick={() => fileInputRef.current?.click()}
             disabled={importing}
-            className="px-4 py-3 bg-luxury-gold/10 text-luxury-gold border border-luxury-gold/30 rounded-sm hover:bg-luxury-gold/20 transition-colors inline-flex items-center gap-2 disabled:opacity-50"
+            className="px-3 py-2 bg-luxury-gold/10 text-luxury-gold border border-luxury-gold/30 rounded-sm hover:bg-luxury-gold/20 transition-colors inline-flex items-center gap-1.5 disabled:opacity-50 text-xs sm:text-sm"
           >
-            {importing ? (
-              <>
-                <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                </svg>
-                جاري الاستيراد...
-              </>
-            ) : (
-              <>
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
-                </svg>
-                استيراد
-              </>
-            )}
+            {importing ? 'جاري...' : <><svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg>استيراد</>}
           </button>
           <button
             onClick={handleExport}
             disabled={exporting}
-            className="px-4 py-3 bg-luxury-gold/10 text-luxury-gold border border-luxury-gold/30 rounded-sm hover:bg-luxury-gold/20 transition-colors inline-flex items-center gap-2 disabled:opacity-50"
+            className="px-3 py-2 bg-luxury-gold/10 text-luxury-gold border border-luxury-gold/30 rounded-sm hover:bg-luxury-gold/20 transition-colors inline-flex items-center gap-1.5 disabled:opacity-50 text-xs sm:text-sm"
           >
-            {exporting ? (
-              <>
-                <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                </svg>
-                جاري التصدير...
-              </>
-            ) : (
-              <>
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                </svg>
-                تصدير
-              </>
-            )}
+            {exporting ? 'جاري...' : <><svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>تصدير</>}
           </button>
           {selectedProducts.size > 0 && (
             <button
               onClick={() => setMultiDeleteModal(true)}
-              className="px-4 py-3 bg-red-500/10 text-red-500 border border-red-500/30 rounded-sm hover:bg-red-500/20 transition-colors inline-flex items-center gap-2"
+              className="px-3 py-2 bg-red-500/10 text-red-500 border border-red-500/30 rounded-sm hover:bg-red-500/20 transition-colors inline-flex items-center gap-1.5 text-xs sm:text-sm"
             >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-              </svg>
+              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
               حذف ({selectedProducts.size})
             </button>
           )}
           <Link
             href="/dashboard/products/add"
-            className="px-6 py-3 bg-luxury-gold text-luxury-black font-bold rounded-sm hover:bg-luxury-gold-light transition-colors inline-flex items-center gap-2"
+            className="px-4 py-2 bg-luxury-gold text-luxury-black font-bold rounded-sm hover:bg-luxury-gold-light transition-colors inline-flex items-center gap-1.5 text-xs sm:text-sm"
           >
-            <span>+</span> إضافة منتج جديد
+            <span>+</span> إضافة
           </Link>
         </div>
       </motion.div>
@@ -454,101 +392,170 @@ export default function ProductsList() {
             <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-luxury-gold"></div>
           </div>
         ) : filteredProducts.length > 0 ? (
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-luxury-gold/20">
-                  <th className="p-4 w-12">
+          <>
+            {/* ── Mobile Cards (hidden on md+) ── */}
+            <div className="md:hidden divide-y divide-luxury-gold/10">
+              {filteredProducts.map((product, index) => (
+                <motion.div
+                  key={product.id}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.05 }}
+                  className={`p-4 flex gap-4 ${selectedProducts.has(product.id) ? 'bg-luxury-gold/5' : ''}`}
+                >
+                  <div className="flex flex-col gap-2 pt-1">
                     <button
-                      onClick={toggleSelectAll}
-                      className="w-5 h-5 flex items-center justify-center text-luxury-gold hover:bg-luxury-gold/20 rounded transition-colors"
-                      title={selectedProducts.size === filteredProducts.length ? 'إلغاء تحديد الكل' : 'تحديد الكل'}
+                      onClick={() => toggleSelectProduct(product.id)}
+                      className={`w-5 h-5 flex flex-shrink-0 items-center justify-center rounded border transition-colors ${
+                        selectedProducts.has(product.id)
+                          ? 'bg-luxury-gold border-luxury-gold text-luxury-black'
+                          : 'border-gray-600 text-transparent hover:border-luxury-gold'
+                      }`}
                     >
-                      {selectedProducts.size === filteredProducts.length && filteredProducts.length > 0 ? (
-                        <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                        </svg>
-                      ) : (
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-                        </svg>
-                      )}
+                      <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                      </svg>
                     </button>
-                  </th>
-                  <th className="text-right text-gray-400 font-medium p-4">الصورة</th>
-                  <th className="text-right text-gray-400 font-medium p-4">المنتج</th>
-                  <th className="text-right text-gray-400 font-medium p-4">السعر</th>
-                  <th className="text-right text-gray-400 font-medium p-4">الإجراءات</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredProducts.map((product, index) => (
-                  <motion.tr
-                    key={product.id}
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: index * 0.05 }}
-                    className={`border-b border-luxury-gold/10 hover:bg-luxury-gold/5 transition-colors ${selectedProducts.has(product.id) ? 'bg-luxury-gold/10' : ''}`}
-                  >
-                    <td className="p-4">
-                      <button
-                        onClick={() => toggleSelectProduct(product.id)}
-                        className={`w-5 h-5 flex items-center justify-center rounded border transition-colors ${
-                          selectedProducts.has(product.id)
-                            ? 'bg-luxury-gold border-luxury-gold text-luxury-black'
-                            : 'border-gray-600 text-transparent hover:border-luxury-gold'
-                        }`}
+                  </div>
+                  
+                  <div className="w-20 h-20 flex-shrink-0 rounded-sm overflow-hidden bg-luxury-black border border-luxury-gold/20">
+                    <img
+                      src={product.featured_image || '/placeholder.svg'}
+                      alt={product.title}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+
+                  <div className="flex-1 flex flex-col justify-between">
+                    <p className="text-white font-medium text-sm line-clamp-2 leading-snug">{product.title}</p>
+                    
+                    <div className="flex flex-col mt-2">
+                       {product.sale_price && product.sale_price !== product.regular_price && product.sale_price !== '0' && (
+                         <span className="text-gray-500 line-through text-xs font-mono">{product.regular_price} ر.س</span>
+                       )}
+                       <span className="text-luxury-gold font-bold text-sm font-mono">
+                         {product.sale_price && product.sale_price !== product.regular_price && product.sale_price !== '0' 
+                           ? product.sale_price 
+                           : product.regular_price} ر.س
+                       </span>
+                    </div>
+
+                    <div className="flex gap-2 mt-3">
+                      <Link
+                        href={`/dashboard/products/edit/${product.id}`}
+                        className="px-3 py-1.5 bg-luxury-gold/10 text-luxury-gold border border-luxury-gold/30 rounded-sm hover:bg-luxury-gold/20 transition-colors text-xs flex-1 text-center"
                       >
-                        <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                        </svg>
+                        تعديل
+                      </Link>
+                      <button
+                        onClick={() => setDeleteModal({ open: true, product })}
+                        className="px-3 py-1.5 bg-red-500/10 text-red-500 border border-red-500/30 rounded-sm hover:bg-red-500/20 transition-colors text-xs flex-1 text-center"
+                      >
+                        حذف
                       </button>
-                    </td>
-                    <td className="p-4">
-                      <div className="w-16 h-16 rounded-sm overflow-hidden bg-luxury-black">
-                        <img
-                          src={product.featured_image || '/placeholder.svg'}
-                          alt={product.title}
-                          className="w-full h-full object-cover"
-                        />
-                      </div>
-                    </td>
-                    <td className="p-4">
-                      <p className="text-white font-medium truncate max-w-xs">{product.title}</p>
-                    </td>
-                    <td className="p-4">
-                      <div className="flex flex-col">
-                        {product.sale_price && product.sale_price !== product.regular_price && product.sale_price !== '0' && (
-                          <span className="text-gray-500 line-through text-sm">{product.regular_price} ر.س</span>
+                    </div>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+
+            {/* ── Desktop Table (hidden on mobile) ── */}
+            <div className="hidden md:block overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b border-luxury-gold/20">
+                    <th className="p-4 w-12">
+                      <button
+                        onClick={toggleSelectAll}
+                        className="w-5 h-5 flex items-center justify-center text-luxury-gold hover:bg-luxury-gold/20 rounded transition-colors"
+                        title={selectedProducts.size === filteredProducts.length ? 'إلغاء تحديد الكل' : 'تحديد الكل'}
+                      >
+                        {selectedProducts.size === filteredProducts.length && filteredProducts.length > 0 ? (
+                          <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                          </svg>
+                        ) : (
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                          </svg>
                         )}
-                        <span className="text-luxury-gold font-bold">
-                          {product.sale_price && product.sale_price !== product.regular_price && product.sale_price !== '0' 
-                            ? product.sale_price 
-                            : product.regular_price} ر.س
-                        </span>
-                      </div>
-                    </td>
-                    <td className="p-4">
-                      <div className="flex gap-2">
-                        <Link
-                          href={`/dashboard/products/edit/${product.id}`}
-                          className="px-3 py-2 bg-luxury-gold/10 text-luxury-gold rounded-sm hover:bg-luxury-gold/20 transition-colors text-sm"
-                        >
-                          تعديل
-                        </Link>
+                      </button>
+                    </th>
+                    <th className="text-right text-gray-400 font-medium p-4">الصورة</th>
+                    <th className="text-right text-gray-400 font-medium p-4">المنتج</th>
+                    <th className="text-right text-gray-400 font-medium p-4">السعر</th>
+                    <th className="text-right text-gray-400 font-medium p-4">الإجراءات</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredProducts.map((product, index) => (
+                    <motion.tr
+                      key={product.id}
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: index * 0.05 }}
+                      className={`border-b border-luxury-gold/10 hover:bg-luxury-gold/5 transition-colors ${selectedProducts.has(product.id) ? 'bg-luxury-gold/10' : ''}`}
+                    >
+                      <td className="p-4">
                         <button
-                          onClick={() => setDeleteModal({ open: true, product })}
-                          className="px-3 py-2 bg-red-500/10 text-red-500 rounded-sm hover:bg-red-500/20 transition-colors text-sm"
+                          onClick={() => toggleSelectProduct(product.id)}
+                          className={`w-5 h-5 flex items-center justify-center rounded border transition-colors ${
+                            selectedProducts.has(product.id)
+                              ? 'bg-luxury-gold border-luxury-gold text-luxury-black'
+                              : 'border-gray-600 text-transparent hover:border-luxury-gold'
+                          }`}
                         >
-                          حذف
+                          <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                          </svg>
                         </button>
-                      </div>
-                    </td>
-                  </motion.tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                      </td>
+                      <td className="p-4">
+                        <div className="w-16 h-16 rounded-sm overflow-hidden bg-luxury-black">
+                          <img
+                            src={product.featured_image || '/placeholder.svg'}
+                            alt={product.title}
+                            className="w-full h-full object-cover"
+                          />
+                        </div>
+                      </td>
+                      <td className="p-4">
+                        <p className="text-white font-medium truncate max-w-xs">{product.title}</p>
+                      </td>
+                      <td className="p-4">
+                        <div className="flex flex-col">
+                          {product.sale_price && product.sale_price !== product.regular_price && product.sale_price !== '0' && (
+                            <span className="text-gray-500 line-through text-sm">{product.regular_price} ر.س</span>
+                          )}
+                          <span className="text-luxury-gold font-bold">
+                            {product.sale_price && product.sale_price !== product.regular_price && product.sale_price !== '0' 
+                              ? product.sale_price 
+                              : product.regular_price} ر.س
+                          </span>
+                        </div>
+                      </td>
+                      <td className="p-4">
+                        <div className="flex gap-2">
+                          <Link
+                            href={`/dashboard/products/edit/${product.id}`}
+                            className="px-3 py-2 bg-luxury-gold/10 text-luxury-gold border border-luxury-gold/30 rounded-sm hover:bg-luxury-gold/20 transition-colors text-sm"
+                          >
+                            تعديل
+                          </Link>
+                          <button
+                            onClick={() => setDeleteModal({ open: true, product })}
+                            className="px-3 py-2 bg-red-500/10 text-red-500 border border-red-500/30 rounded-sm hover:bg-red-500/20 transition-colors text-sm"
+                          >
+                            حذف
+                          </button>
+                        </div>
+                      </td>
+                    </motion.tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </>
         ) : (
           <div className="text-center py-12 text-gray-500">
             {searchQuery ? 'لا توجد نتائج للبحث' : 'لا توجد منتجات'}

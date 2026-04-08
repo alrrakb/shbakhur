@@ -44,7 +44,8 @@ const defaultSlides: HeroSlide[] = [
 
 export default function Hero() {
   const [currentSlide, setCurrentSlide] = useState(0);
-  const [slides, setSlides] = useState<HeroSlide[]>(defaultSlides);
+  const [slides, setSlides] = useState<HeroSlide[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [heroInfo, setHeroInfo] = useState<{ title: string; description: string; icon: string; is_active: boolean }>({
     title: 'شحن سريع ومضمون',
     description: 'خلال 2-4 أيام عمل',
@@ -53,38 +54,84 @@ export default function Hero() {
   });
 
   useEffect(() => {
-    const stored = localStorage.getItem('sh_bakhoor_content');
-    if (stored) {
+    async function loadSlides() {
+      // 1. Check localStorage first for instant display
+      let cachedSlides: HeroSlide[] = [];
+      let cachedHeroInfo = null;
       try {
-        const data = JSON.parse(stored);
-        if (data.hero_slides && data.hero_slides.length > 0) {
-          setSlides(data.hero_slides.filter((s: HeroSlide) => s.is_active !== false));
+        const stored = localStorage.getItem('sh_bakhoor_content');
+        if (stored) {
+          const data = JSON.parse(stored);
+          if (data.hero_slides && data.hero_slides.length > 0) {
+            cachedSlides = data.hero_slides.filter((s: HeroSlide) => s.is_active !== false);
+          }
+          if (data.hero_info) {
+            cachedHeroInfo = data.hero_info;
+          }
         }
-        if (data.hero_info) {
-          setHeroInfo(data.hero_info);
+      } catch (e) {}
+
+      // If we have cached slides, show them immediately (no flash)
+      if (cachedSlides.length > 0) {
+        setSlides(cachedSlides);
+        if (cachedHeroInfo) setHeroInfo(cachedHeroInfo);
+        setIsLoading(false);
+      }
+
+      // 2. Always fetch fresh from DB
+      try {
+        const fetchedSlides = await getHeroSlides();
+        if (fetchedSlides.length > 0) {
+          const activeSlides = fetchedSlides.filter((s: HeroSlide) => s.is_active !== false);
+          setSlides(activeSlides);
+          setIsLoading(false);
+          // Update cache
+          try {
+            const stored = localStorage.getItem('sh_bakhoor_content');
+            const data = stored ? JSON.parse(stored) : {};
+            data.hero_slides = activeSlides;
+            localStorage.setItem('sh_bakhoor_content', JSON.stringify(data));
+          } catch (e) {}
+        } else if (cachedSlides.length === 0) {
+          // Nothing in cache AND nothing in DB → show defaults
+          setSlides(defaultSlides);
+          setIsLoading(false);
         }
       } catch (e) {
-        console.log('Error reading from localStorage');
+        if (cachedSlides.length === 0) {
+          setSlides(defaultSlides);
+        }
+        setIsLoading(false);
       }
     }
+
+    loadSlides();
   }, []);
 
   useEffect(() => {
-    async function fetchSlides() {
-      const fetchedSlides = await getHeroSlides();
-      if (fetchedSlides.length > 0) {
-        setSlides(fetchedSlides.filter((s: HeroSlide) => s.is_active !== false));
-      }
-    }
-    fetchSlides();
-  }, []);
-
-  useEffect(() => {
+    if (slides.length === 0) return;
     const timer = setInterval(() => {
       setCurrentSlide((prev) => (prev + 1) % slides.length);
     }, 5000);
     return () => clearInterval(timer);
   }, [slides.length]);
+
+  // Loading skeleton
+  if (isLoading) {
+    return (
+      <section className="relative h-screen min-h-[600px] flex items-center justify-center overflow-hidden pt-10 bg-luxury-black">
+        <div className="absolute inset-0 bg-luxury-black animate-pulse" />
+        <div className="relative z-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
+          <div className="max-w-3xl space-y-4">
+            <div className="h-6 w-48 bg-luxury-gold/20 rounded animate-pulse" />
+            <div className="h-16 w-3/4 bg-white/10 rounded animate-pulse" />
+            <div className="h-4 w-1/2 bg-white/5 rounded animate-pulse" />
+            <div className="h-12 w-36 bg-luxury-gold/30 rounded animate-pulse mt-4" />
+          </div>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section className="relative h-screen min-h-[600px] flex items-center justify-center overflow-hidden pt-10">
@@ -105,7 +152,7 @@ export default function Hero() {
               transition={{ duration: 0.8 }}
               className="absolute inset-0"
             >
-              <Container {...(containerProps as any)} className="block w-full h-full">
+              <Container {...(containerProps as any)} className="block w-full h-full relative">
                 {(() => {
                   const slide = slides[currentSlide];
                   const hasContent = slide.title || slide.subtitle || slide.description || slide.button_text;

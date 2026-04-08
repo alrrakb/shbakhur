@@ -236,6 +236,50 @@ export default function EditOrderPage() {
           </div>
         </motion.div>
 
+        {/* Transfer/Payment Details */}
+        {(order?.transfer_receipt_url || order?.sender_name) && (
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
+            className="bg-[#1a1a1a] border border-luxury-gold/20 rounded-sm p-6 overflow-hidden">
+            <h2 className="text-luxury-gold font-bold text-lg mb-4 flex justify-between items-center">
+              <span>بيانات التحويل البنكي للمشتري</span>
+              {order.transfer_receipt_url && (
+                <a href={order.transfer_receipt_url} target="_blank" rel="noopener noreferrer" className="text-sm border border-luxury-gold px-3 py-1 bg-luxury-gold/10 hover:bg-luxury-gold hover:text-black transition-colors rounded">فتح الصورة كاملة</a>
+              )}
+            </h2>
+            <div className="flex flex-col md:flex-row gap-6">
+              {order.transfer_receipt_url && (
+                <div className="w-full md:w-1/3 aspect-[3/4] md:aspect-auto bg-black rounded-sm border border-gray-700 overflow-hidden relative group">
+                  <a href={order.transfer_receipt_url} target="_blank" rel="noopener noreferrer">
+                    <img src={order.transfer_receipt_url} alt="إيصال التحويل" className="w-full h-full object-contain absolute inset-0" />
+                    <div className="absolute inset-0 bg-black/60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                      <span className="text-white border border-white px-4 py-2 rounded">تكبير الصورة</span>
+                    </div>
+                  </a>
+                </div>
+              )}
+              <div className="w-full md:w-2/3 space-y-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-gray-500 text-sm mb-1">اسم اسم صاحب الحساب</p>
+                    <p className="text-white bg-black/50 p-2 rounded border border-gray-800 font-medium">{order.sender_name || 'غير متوفر'}</p>
+                  </div>
+                  <div>
+                    <p className="text-gray-500 text-sm mb-1">اسم البنك</p>
+                    <p className="text-white bg-black/50 p-2 rounded border border-gray-800 font-medium">{order.sender_bank || 'غير متوفر'}</p>
+                  </div>
+                  <div className="sm:col-span-2">
+                    <p className="text-gray-500 text-sm mb-1">رقم الحساب / الإيبان</p>
+                    <p className="text-luxury-gold font-mono tracking-widest text-left bg-black/50 p-2 rounded border border-gray-800" dir="ltr">{order.sender_account || 'غير متوفر'}</p>
+                  </div>
+                </div>
+                <div className="bg-yellow-500/10 border border-yellow-500/20 rounded p-4 mt-4 text-yellow-500 text-sm">
+                  <strong>ملاحظة:</strong> يرجى التأكد من مطابقة الإيصال ومبلغ الحوالة مع كشف الحساب البنكي الخاص بالمؤسسة قبل اعتماد وشحن الطلب.
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        )}
+
         {/* Products */}
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
           className="bg-[#1a1a1a] border border-luxury-gold/20 rounded-sm p-6">

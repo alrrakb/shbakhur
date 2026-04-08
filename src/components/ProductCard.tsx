@@ -114,46 +114,47 @@ export default function ProductCard({ product, index }: ProductCardProps) {
       </div>
 
       {/* Content Section - takes remaining space */}
-      <div className="p-4 flex flex-col flex-1">
+      <div className="p-2.5 sm:p-4 flex flex-col flex-1">
         <Link 
           href={`/product/${productSlug}`} 
           className="block cursor-pointer flex-1"
         >
           {/* Category */}
           {categoryName && (
-            <p className="text-luxury-gold text-sm mb-1">{categoryName}</p>
+            <p className="text-luxury-gold text-xs sm:text-sm mb-1 truncate">{categoryName}</p>
           )}
           
           {/* Title - Fixed Height for 2 lines */}
-          <h3 className="text-white font-semibold text-lg lg:text-base xl:text-lg mb-2 line-clamp-2 min-h-[3.5rem] group-hover:text-luxury-gold transition-colors">
+          <h3 className="text-white font-semibold text-sm sm:text-base lg:text-base xl:text-lg mb-1 sm:mb-2 line-clamp-2 min-h-[2.5rem] sm:min-h-[3.5rem] group-hover:text-luxury-gold transition-colors leading-snug">
             {productName}
           </h3>
           
-          {/* Short Description - Always rendered to lock grid height */}
-          <p className="text-zinc-400 text-sm line-clamp-2 min-h-[2.5rem] mt-2">
+          {/* Short Description - 1 line on mobile, 2 lines on sm+ */}
+          <p className="text-zinc-400 text-xs sm:text-sm overflow-hidden mt-1 sm:mt-2 leading-relaxed"
+             style={{
+               display: '-webkit-box',
+               WebkitLineClamp: 2,
+               WebkitBoxOrient: 'vertical',
+               overflow: 'hidden'
+             }}>
             {product.short_description || ''}
           </p>
         </Link>
 
         {/* Price and Rating - pushed to bottom with mt-auto */}
-        <div className="mt-auto pt-3 flex flex-col">
-          {/* Top row: Original price (invisible space if none) */}
-          <div className="h-5 flex items-center mb-1">
-            <span className={`text-gray-500 text-sm line-through ${originalPrice ? '' : 'invisible'}`}>
+        <div className="mt-auto pt-2 sm:pt-3 flex flex-col">
+          {/* Top row: Original price */}
+          <div className="h-4 sm:h-5 flex items-center mb-0.5 sm:mb-1">
+            <span className={`text-gray-500 text-xs sm:text-sm line-through ${originalPrice ? '' : 'invisible'}`}>
               {originalPrice ? `${originalPrice} ر.س` : '0'}
             </span>
           </div>
           {/* Bottom row: Current Price and Stars */}
-          <div className="flex items-center justify-between">
-            <span className="text-luxury-gold font-bold text-xl">{productPrice} ر.س</span>
-            <div className="flex gap-1">
+          <div className="flex items-center justify-between gap-1">
+            <span className="text-luxury-gold font-bold text-base sm:text-lg xl:text-xl">{productPrice} ر.س</span>
+            <div className="hidden sm:flex gap-0.5">
               {[1, 2, 3, 4, 5].map((star) => (
-                <svg
-                  key={star}
-                  className="w-4 h-4 text-luxury-gold"
-                  fill="currentColor"
-                  viewBox="0 0 20 20"
-                >
+                <svg key={star} className="w-3 h-3 sm:w-4 sm:h-4 text-luxury-gold" fill="currentColor" viewBox="0 0 20 20">
                   <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
                 </svg>
               ))}
@@ -163,10 +164,10 @@ export default function ProductCard({ product, index }: ProductCardProps) {
       </div>
 
       {/* Mobile: Button always visible */}
-      <div className="lg:hidden px-4 pb-4">
+      <div className="lg:hidden px-2.5 sm:px-4 pb-2.5 sm:pb-4">
         <button
           onClick={handleAddToCart}
-          className="w-full py-2 bg-luxury-gold text-luxury-black font-bold rounded-sm hover:bg-luxury-gold-light transition-colors text-sm"
+          className="w-full py-1.5 sm:py-2 bg-luxury-gold text-luxury-black font-bold rounded-sm hover:bg-luxury-gold-light transition-colors text-xs sm:text-sm"
         >
           إضافة للسلة
         </button>

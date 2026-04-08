@@ -33,6 +33,81 @@ const defaultAnnouncements = [
   'للطلب يرجى التواصل واتساب',
 ];
 
+function SearchResultsList({ query, onClose }: { query: string, onClose: () => void }) {
+  const [results, setResults] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchResults = async () => {
+      if (!query.trim()) return;
+      setLoading(true);
+      try {
+        const res = await fetch('/api/products');
+        const data = await res.json();
+        if (data.products) {
+          const q = query.toLowerCase();
+          const matches = data.products.filter((p: any) => 
+            p.title.toLowerCase().includes(q) || 
+            (p.short_description || '').toLowerCase().includes(q) ||
+            (p.categories || []).some((c: any) => c.name.toLowerCase().includes(q))
+          ).slice(0, 5); // Return top 5
+          setResults(matches);
+        }
+      } catch (e) {
+        console.error(e);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    // Add small delay to avoid fetching on every keystroke
+    const timer = setTimeout(fetchResults, 300);
+    return () => clearTimeout(timer);
+  }, [query]);
+
+  if (loading) {
+    return <div className="p-4 text-center text-luxury-gold pt-6"><div className="animate-spin h-6 w-6 border-b-2 border-luxury-gold rounded-full mx-auto"></div></div>;
+  }
+
+  if (results.length === 0) {
+    return <div className="p-4 text-center text-gray-400">لا توجد منتجات مطابقة لبحثك</div>;
+  }
+
+  return (
+    <div className="flex flex-col gap-2 p-2">
+      {results.map(product => (
+        <Link 
+          key={product.id} 
+          href={`/product/${product.slug}`}
+          onClick={onClose}
+          className="flex items-center gap-4 p-2 rounded hover:bg-luxury-gold/10 transition-colors"
+        >
+          <div className="w-16 h-16 bg-black rounded shadow overflow-hidden flex-shrink-0 flex items-center justify-center">
+            {product.image ? (
+              <img src={product.image} alt={product.title} className="w-full h-full object-cover" />
+            ) : (
+              <span className="text-gray-600 text-xs text-center">لا توجد صورة</span>
+            )}
+          </div>
+          <div className="flex-1 min-w-0">
+            <h4 className="text-white text-sm font-bold truncate">{product.title}</h4>
+            <div className="flex items-center gap-2 mt-1">
+              {product.sale_price && Number(product.sale_price) < Number(product.price) ? (
+                <>
+                  <span className="text-luxury-gold font-bold">{product.sale_price} ر.س</span>
+                  <span className="text-gray-500 line-through text-xs">{product.price} ر.س</span>
+                </>
+              ) : (
+                <span className="text-luxury-gold font-bold">{product.price} ر.س</span>
+              )}
+            </div>
+          </div>
+        </Link>
+      ))}
+    </div>
+  );
+}
+
 export default function Header() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -302,24 +377,29 @@ export default function Header() {
                     >
                       {link.name}
                     </Link>
-                    {link.has_dropdown && link.dropdown_items && link.dropdown_items.map((item: any, idx: number) => (
-                      <div key={idx} className="pr-4 space-y-1 border-r-2 border-luxury-gold/30">
-                        {item.category ? (
-                          <>
-                            <span className="text-luxury-gold text-sm block py-2">{item.category}</span>
-                            {item.items?.map((subItem: string, subIdx: number) => (
-                              <Link key={subIdx} href="#" className="text-gray-500 text-sm block py-1 hover:text-luxury-gold">
-                                {subItem}
-                              </Link>
-                            ))}
-                          </>
-                        ) : (
-                          <Link href={item.href || '#'} className="text-gray-500 text-sm block py-2 hover:text-luxury-gold">
-                            {item.name}
-                          </Link>
-                        )}
-                      </div>
-                    ))}
+                    {link.has_dropdown && link.dropdown_items && (() => {
+                      const items = typeof link.dropdown_items === 'string' 
+                        ? JSON.parse(link.dropdown_items || '[]') 
+                        : (link.dropdown_items || []);
+                      return items.map((item: any, idx: number) => (
+                        <div key={idx} className="pr-4 space-y-1 border-r-2 border-luxury-gold/30">
+                          {item.category ? (
+                            <>
+                              <span className="text-luxury-gold text-sm block py-2">{item.category}</span>
+                              {item.items?.map((subItem: string, subIdx: number) => (
+                                <Link key={subIdx} href="#" className="text-gray-500 text-sm block py-1 hover:text-luxury-gold">
+                                  {subItem}
+                                </Link>
+                              ))}
+                            </>
+                          ) : (
+                            <Link href={item.href || '#'} className="text-gray-500 text-sm block py-2 hover:text-luxury-gold">
+                              {item.name}
+                            </Link>
+                          )}
+                        </div>
+                      ));
+                    })()}
                   </div>
                 ))}
               </nav>
@@ -342,10 +422,10 @@ export default function Header() {
               initial={{ scale: 0.9, y: -20 }}
               animate={{ scale: 1, y: 0 }}
               exit={{ scale: 0.9, y: -20 }}
-              className="w-full max-w-2xl bg-luxury-dark border border-luxury-gold/30 rounded-sm overflow-hidden"
+              className="w-full max-w-2xl bg-luxury-dark border border-luxury-gold/30 rounded-sm overflow-hidden flex flex-col max-h-[80vh]"
               onClick={(e) => e.stopPropagation()}
             >
-              <div className="relative">
+              <div className="relative border-b border-luxury-gold/20 flex-shrink-0">
                 <form onSubmit={handleSearchSubmit}>
                   <input
                     type="text"
@@ -366,11 +446,18 @@ export default function Header() {
                   </svg>
                 </button>
               </div>
-              {searchQuery && (
-                <div className="border-t border-luxury-gold/20 p-4 flex justify-between items-center cursor-pointer hover:bg-luxury-gold/5 transition-colors"
-                     onClick={() => handleSearchSubmit()}>
-                  <p className="text-gray-500 text-sm">عرض النتائج عن: "{searchQuery}"</p>
-                  <span className="text-luxury-gold text-sm font-bold">بحث &larr;</span>
+
+              {/* Live Search Results */}
+              {searchQuery.trim() && (
+                <div className="overflow-y-auto overflow-x-hidden p-2">
+                  <SearchResultsList query={searchQuery} onClose={() => setIsSearchOpen(false)} />
+                  <div 
+                    className="border-t border-luxury-gold/10 p-4 mt-2 flex justify-between items-center cursor-pointer hover:bg-luxury-gold/5 transition-colors"
+                    onClick={() => handleSearchSubmit()}
+                  >
+                    <p className="text-gray-500 text-sm">عرض جميع النتائج عن: "{searchQuery}"</p>
+                    <span className="text-luxury-gold text-sm font-bold">بحث &larr;</span>
+                  </div>
                 </div>
               )}
             </motion.div>

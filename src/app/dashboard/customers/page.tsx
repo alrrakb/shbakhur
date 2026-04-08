@@ -29,6 +29,8 @@ export default function CustomersPage() {
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
+  const [cityFilter, setCityFilter] = useState('');
+  const [sortBy, setSortBy] = useState('newest');
   const [selected, setSelected] = useState<Customer | null>(null);
   const [deleteModal, setDeleteModal] = useState<Customer | null>(null);
   const [showForm, setShowForm] = useState(false);
@@ -181,32 +183,42 @@ export default function CustomersPage() {
     }
   }
 
-  const filtered = customers.filter(c =>
-    c.name.toLowerCase().includes(search.toLowerCase()) ||
-    c.phone.includes(search) ||
-    (c.city || '').toLowerCase().includes(search.toLowerCase())
-  );
+  const uniqueCities = Array.from(new Set(customers.map(c => c.city).filter(Boolean)));
+
+  const filtered = customers
+    .filter(c => {
+      const matchesSearch = c.name.toLowerCase().includes(search.toLowerCase()) ||
+        c.phone.includes(search) ||
+        (c.city || '').toLowerCase().includes(search.toLowerCase());
+      const matchesCity = cityFilter ? c.city === cityFilter : true;
+      return matchesSearch && matchesCity;
+    })
+    .sort((a, b) => {
+      if (sortBy === 'highest_spent') return b.total_spent - a.total_spent;
+      if (sortBy === 'most_orders') return b.order_count - a.order_count;
+      return new Date(b.created_at).getTime() - new Date(a.created_at).getTime(); // newest
+    });
 
   const totalRevenue = customers.reduce((s, c) => s + c.total_spent, 0);
   const totalOrders = customers.reduce((s, c) => s + c.order_count, 0);
 
   return (
-    <div className="space-y-6" dir="rtl">
+    <div className="space-y-4 sm:space-y-6" dir="rtl">
       {/* Header */}
       <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }}
-        className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
-          <h1 className="text-3xl font-bold text-white mb-1">العملاء</h1>
-          <p className="text-gray-400">{customers.length} عميل مسجل</p>
+          <h1 className="text-xl sm:text-3xl font-bold text-white mb-1">العملاء</h1>
+          <p className="text-gray-400 text-sm">{customers.length} عميل مسجل</p>
         </div>
         <button onClick={openAdd}
-          className="px-6 py-3 bg-luxury-gold text-luxury-black font-bold rounded-sm hover:bg-luxury-gold/80 transition-colors inline-flex items-center gap-2">
+          className="w-full sm:w-auto px-5 sm:px-6 py-2.5 sm:py-3 bg-luxury-gold text-luxury-black font-bold rounded-sm hover:bg-luxury-gold/80 transition-colors inline-flex items-center justify-center gap-2 text-sm">
           <span>+</span> إضافة عميل جديد
         </button>
       </motion.div>
 
       {/* Stats */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
         {[
           { label: 'إجمالي العملاء', value: customers.length, icon: '👥', color: 'text-white' },
           { label: 'إجمالي الطلبات', value: totalOrders, icon: '📦', color: 'text-luxury-gold' },
@@ -234,10 +246,25 @@ export default function CustomersPage() {
         </motion.div>
       )}
 
-      {/* Search */}
-      <input type="text" placeholder="بحث بالاسم أو الجوال أو المنطقة..." value={search}
-        onChange={e => setSearch(e.target.value)}
-        className="w-full px-4 py-3 bg-[#1a1a1a] border border-luxury-gold/20 rounded-sm text-white focus:border-luxury-gold focus:outline-none transition-colors mb-6" />
+      {/* Search & Filters */}
+      <div className="flex flex-col md:flex-row gap-3 mb-6">
+        <input type="text" placeholder="بحث بالاسم أو الجوال أو المنطقة..." value={search}
+          onChange={e => setSearch(e.target.value)}
+          className="flex-1 px-4 py-3 bg-[#1a1a1a] border border-luxury-gold/20 rounded-sm text-white focus:border-luxury-gold focus:outline-none transition-colors" />
+        <select value={cityFilter} onChange={e => setCityFilter(e.target.value)}
+          className="w-full md:w-48 px-4 py-3 bg-[#1a1a1a] border border-luxury-gold/20 rounded-sm text-white focus:border-luxury-gold focus:outline-none transition-colors">
+          <option value="">كل المناطق</option>
+          {uniqueCities.map(city => (
+            <option key={city} value={city}>{city}</option>
+          ))}
+        </select>
+        <select value={sortBy} onChange={e => setSortBy(e.target.value)}
+          className="w-full md:w-48 px-4 py-3 bg-[#1a1a1a] border border-luxury-gold/20 rounded-sm text-white focus:border-luxury-gold focus:outline-none transition-colors">
+          <option value="newest">الأحدث</option>
+          <option value="highest_spent">الأكثر إنفاقاً</option>
+          <option value="most_orders">الأكثر طلبات</option>
+        </select>
+      </div>
 
       {/* Table */}
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}
@@ -251,76 +278,144 @@ export default function CustomersPage() {
             {search ? 'لا توجد نتائج للبحث' : 'لا يوجد عملاء مسجلون بعد'}
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-luxury-gold/20">
-                  <th className="p-4 w-12 text-center">
-                    <input type="checkbox"
-                      checked={filtered.length > 0 && selectedIds.length === filtered.length}
-                      onChange={e => setSelectedIds(e.target.checked ? filtered.map(c => c.id) : [])}
-                      className="accent-luxury-gold w-4 h-4 cursor-pointer" />
-                  </th>
-                  {['الاسم', 'الجوال', 'المنطقة/الحي', 'الطلبات', 'الإنفاق الكلي', 'التاريخ', 'إجراءات'].map(h => (
-                    <th key={h} className="text-right text-gray-400 font-medium p-4 whitespace-nowrap">{h}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {filtered.map((c, i) => (
-                  <motion.tr key={c.id}
-                    initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: i * 0.03 }}
-                    className={`border-b border-luxury-gold/10 hover:bg-luxury-gold/5 transition-colors ${selectedIds.includes(c.id) ? 'bg-luxury-gold/5' : ''}`}>
-                    <td className="p-4 text-center">
+          <>
+            {/* ── Mobile Cards (hidden on md+) ── */}
+            <div className="md:hidden divide-y divide-luxury-gold/10">
+              {filtered.map((c, i) => (
+                <motion.div key={c.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.03 }}
+                  className={`p-4 ${selectedIds.includes(c.id) ? 'bg-luxury-gold/5' : ''}`}>
+                  <div className="flex items-start justify-between mb-2">
+                    <div className="flex items-start gap-3">
                       <input type="checkbox"
                         checked={selectedIds.includes(c.id)}
                         onChange={e => {
                           const checked = e.target.checked;
                           setSelectedIds(prev => checked ? [...prev, c.id] : prev.filter(id => id !== c.id));
                         }}
-                        className="accent-luxury-gold w-4 h-4 cursor-pointer" />
-                    </td>
-                    <td className="p-4">
-                      <div className="text-white font-medium">{c.name}</div>
-                      {c.email && <div className="text-gray-500 text-xs mt-0.5">{c.email}</div>}
-                    </td>
-                    <td className="p-4 text-gray-300 font-mono">{c.phone}</td>
-                    <td className="p-4 text-gray-400">{c.city || '—'}</td>
-                    <td className="p-4 text-center">
-                      <span className={`px-2.5 py-0.5 rounded-sm text-sm border ${
+                        className="accent-luxury-gold w-4 h-4 cursor-pointer mt-1" />
+                      <div>
+                        <div className="text-white font-medium text-sm">{c.name}</div>
+                        {c.email && <div className="text-gray-500 text-xs mt-0.5">{c.email}</div>}
+                      </div>
+                    </div>
+                    <span className={`px-2 py-0.5 rounded-sm text-xs border whitespace-nowrap ${
                         c.order_count > 0
                           ? 'bg-luxury-gold/10 text-luxury-gold border-luxury-gold/30'
                           : 'bg-gray-700/30 text-gray-500 border-gray-700/30'
                       }`}>
-                        {c.order_count}
-                      </span>
-                    </td>
-                    <td className="p-4 text-luxury-gold font-bold">{c.total_spent.toFixed(0)} ر.س</td>
-                    <td className="p-4 text-gray-400 text-sm whitespace-nowrap">
-                      {new Date(c.created_at).toLocaleDateString('ar-SA')}
-                    </td>
-                    <td className="p-4">
-                      <div className="flex gap-2">
-                        <button onClick={() => setSelected(c)}
-                          className="px-3 py-1.5 bg-luxury-gold/10 text-luxury-gold border border-luxury-gold/30 rounded-sm hover:bg-luxury-gold/20 transition-colors text-sm">
-                          تفاصيل
-                        </button>
-                        <button onClick={() => openEdit(c)}
-                          className="px-3 py-1.5 bg-blue-500/10 text-blue-400 border border-blue-500/30 rounded-sm hover:bg-blue-500/20 transition-colors text-sm">
-                          تعديل
-                        </button>
-                        <button onClick={() => setDeleteModal(c)}
-                          className="px-3 py-1.5 bg-red-500/10 text-red-400 border border-red-500/30 rounded-sm hover:bg-red-500/20 transition-colors text-sm">
-                          حذف
-                        </button>
-                      </div>
-                    </td>
-                  </motion.tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                        {c.order_count} طلب
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3 text-xs mb-3 pr-7 mt-3">
+                    <div>
+                      <div className="text-gray-500 mb-0.5">الجوال</div>
+                      <div className="text-gray-300 font-mono" dir="ltr">{c.phone}</div>
+                    </div>
+                    <div>
+                      <div className="text-gray-500 mb-0.5">المدينة</div>
+                      <div className="text-gray-300 truncate">{c.city || '—'}</div>
+                    </div>
+                    <div>
+                      <div className="text-gray-500 mb-0.5">التسجيل</div>
+                      <div className="text-gray-300 whitespace-nowrap">{new Date(c.created_at).toLocaleDateString('ar-SA')}</div>
+                    </div>
+                    <div>
+                      <div className="text-gray-500 mb-0.5">الإنفاق الكلي</div>
+                      <div className="text-luxury-gold font-bold">{c.total_spent.toFixed(0)} ر.س</div>
+                    </div>
+                  </div>
+
+                  <div className="flex gap-2 pr-7">
+                    <button onClick={() => setSelected(c)}
+                      className="px-2 py-1.5 bg-luxury-gold/10 text-luxury-gold border border-luxury-gold/30 rounded-sm hover:bg-luxury-gold/20 transition-colors text-xs flex-1 text-center">
+                      تفاصيل
+                    </button>
+                    <button onClick={() => openEdit(c)}
+                      className="px-2 py-1.5 bg-blue-500/10 text-blue-400 border border-blue-500/30 rounded-sm hover:bg-blue-500/20 transition-colors text-xs flex-1 text-center">
+                      تعديل
+                    </button>
+                    <button onClick={() => setDeleteModal(c)}
+                      className="px-2 py-1.5 bg-red-500/10 text-red-400 border border-red-500/30 rounded-sm hover:bg-red-500/20 transition-colors text-xs flex-1 text-center">
+                      حذف
+                    </button>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+
+            {/* ── Desktop Table (hidden on mobile) ── */}
+            <div className="hidden md:block overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b border-luxury-gold/20">
+                    <th className="p-4 w-12 text-center">
+                      <input type="checkbox"
+                        checked={filtered.length > 0 && selectedIds.length === filtered.length}
+                        onChange={e => setSelectedIds(e.target.checked ? filtered.map(c => c.id) : [])}
+                        className="accent-luxury-gold w-4 h-4 cursor-pointer" />
+                    </th>
+                    {['الاسم', 'الجوال', 'المنطقة/الحي', 'الطلبات', 'الإنفاق الكلي', 'التاريخ', 'إجراءات'].map(h => (
+                      <th key={h} className="text-right text-gray-400 font-medium p-4 whitespace-nowrap">{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {filtered.map((c, i) => (
+                    <motion.tr key={c.id}
+                      initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: i * 0.03 }}
+                      className={`border-b border-luxury-gold/10 hover:bg-luxury-gold/5 transition-colors ${selectedIds.includes(c.id) ? 'bg-luxury-gold/5' : ''}`}>
+                      <td className="p-4 text-center">
+                        <input type="checkbox"
+                          checked={selectedIds.includes(c.id)}
+                          onChange={e => {
+                            const checked = e.target.checked;
+                            setSelectedIds(prev => checked ? [...prev, c.id] : prev.filter(id => id !== c.id));
+                          }}
+                          className="accent-luxury-gold w-4 h-4 cursor-pointer" />
+                      </td>
+                      <td className="p-4">
+                        <div className="text-white font-medium">{c.name}</div>
+                        {c.email && <div className="text-gray-500 text-xs mt-0.5">{c.email}</div>}
+                      </td>
+                      <td className="p-4 text-gray-300 font-mono">{c.phone}</td>
+                      <td className="p-4 text-gray-400">{c.city || '—'}</td>
+                      <td className="p-4 text-center">
+                        <span className={`px-2.5 py-0.5 rounded-sm text-sm border ${
+                          c.order_count > 0
+                            ? 'bg-luxury-gold/10 text-luxury-gold border-luxury-gold/30'
+                            : 'bg-gray-700/30 text-gray-500 border-gray-700/30'
+                        }`}>
+                          {c.order_count}
+                        </span>
+                      </td>
+                      <td className="p-4 text-luxury-gold font-bold">{c.total_spent.toFixed(0)} ر.س</td>
+                      <td className="p-4 text-gray-400 text-sm whitespace-nowrap">
+                        {new Date(c.created_at).toLocaleDateString('ar-SA')}
+                      </td>
+                      <td className="p-4">
+                        <div className="flex gap-2">
+                          <button onClick={() => setSelected(c)}
+                            className="px-3 py-1.5 bg-luxury-gold/10 text-luxury-gold border border-luxury-gold/30 rounded-sm hover:bg-luxury-gold/20 transition-colors text-sm">
+                            تفاصيل
+                          </button>
+                          <button onClick={() => openEdit(c)}
+                            className="px-3 py-1.5 bg-blue-500/10 text-blue-400 border border-blue-500/30 rounded-sm hover:bg-blue-500/20 transition-colors text-sm">
+                            تعديل
+                          </button>
+                          <button onClick={() => setDeleteModal(c)}
+                            className="px-3 py-1.5 bg-red-500/10 text-red-400 border border-red-500/30 rounded-sm hover:bg-red-500/20 transition-colors text-sm">
+                            حذف
+                          </button>
+                        </div>
+                      </td>
+                    </motion.tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </>
         )}
       </motion.div>
 

@@ -22,14 +22,16 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 
     const title = product.title || product.name || 'Product';
     const description = product.short_description || product.description?.slice(0, 160) || 'تسوق أجود أنواع البخور والعطور من متجر SH للبخور';
+    const keywords = product.seo_keywords || 'بخور, عود, عطور, متجر SH للبخور';
 
     return {
-      title: `${title} | SH للبخور`,
+      title: `${title} - متجر SH للبخور`,
       description,
-      openGraph: { title, description },
+      keywords,
+      openGraph: { title: `${title} - متجر SH للبخور`, description },
     };
   } catch {
-    return { title: 'Product | SH للبخور' };
+    return { title: 'Product - متجر SH للبخور' };
   }
 }
 
