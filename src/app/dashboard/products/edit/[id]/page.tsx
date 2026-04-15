@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { motion } from 'framer-motion';
+import { Infinity } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { useToast } from '@/context/ToastContext';
 import RichTextEditor from '@/components/RichTextEditor';
@@ -19,6 +20,7 @@ interface Product {
   regular_price: string;
   sale_price: string;
   stock: string;
+  stock_quantity?: number | null;
   stock_status: string;
   manage_stock: string;
   featured_image: string;
@@ -40,6 +42,7 @@ export default function EditProduct() {
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const featuredInputRef = useRef<HTMLInputElement>(null);
   const galleryInputRef = useRef<HTMLInputElement>(null);
+  const [isInfiniteStock, setIsInfiniteStock] = useState(false);
   const [formData, setFormData] = useState<Product>({
     id: 0,
     wp_id: '',
@@ -92,6 +95,10 @@ export default function EditProduct() {
 
         if (productRes.data) {
           console.log('📥 Initial load - setting form data from DB');
+          // Check if stock is null/undefined (infinite stock)
+          const hasInfiniteStock = productRes.data.stock === null || productRes.data.stock === undefined;
+          setIsInfiniteStock(hasInfiniteStock);
+
           setFormData({
             id: productRes.data.id,
             wp_id: productRes.data.wp_id || '',
@@ -102,7 +109,8 @@ export default function EditProduct() {
             sku: productRes.data.sku || '',
             regular_price: productRes.data.regular_price || productRes.data.price || '',
             sale_price: productRes.data.sale_price || '',
-            stock: productRes.data.stock || '0',
+            stock: hasInfiniteStock ? '∞' : (productRes.data.stock || '0'),
+            stock_quantity: productRes.data.stock, // Keep original for reference
             stock_status: productRes.data.stock_status || 'instock',
             manage_stock: productRes.data.manage_stock || 'no',
             featured_image: productRes.data.image || productRes.data.featured_image || '',
@@ -241,7 +249,7 @@ export default function EditProduct() {
         regular_price: formData.regular_price ? parseFloat(formData.regular_price) : null,
         sale_price: formData.sale_price ? parseFloat(formData.sale_price) : null,
         price: (formData.regular_price || formData.sale_price) ? parseFloat(formData.regular_price || formData.sale_price) : null,
-        stock: formData.stock ? parseInt(formData.stock) : 0,
+        stock: isInfiniteStock ? null : (formData.stock ? parseInt(formData.stock) : 0),
         stock_status: formData.stock_status,
         image: formData.featured_image,
         gallery_images: formData.gallery_images,
@@ -426,15 +434,51 @@ export default function EditProduct() {
             <label className="block text-white font-medium mb-2">
               كمية المخزون
             </label>
-            <input
-              type="number"
-              name="stock"
-              value={formData.stock}
-              onChange={handleChange}
-              min="0"
-              className="w-full px-4 py-3 bg-luxury-black border border-luxury-gold/20 rounded-sm text-white focus:border-luxury-gold focus:outline-none transition-colors"
-              placeholder="0"
-            />
+            <div className="relative">
+              <button
+                type="button"
+                onClick={() => {
+                  setIsInfiniteStock(!isInfiniteStock);
+                  if (!isInfiniteStock) {
+                    setFormData(prev => ({ ...prev, stock: '∞' }));
+                  } else {
+                    setFormData(prev => ({ ...prev, stock: '0' }));
+                  }
+                }}
+                className={`absolute left-3 top-1/2 -translate-y-1/2 z-10 p-1.5 rounded-sm transition-all duration-200 ${
+                  isInfiniteStock
+                    ? 'text-luxury-gold bg-luxury-gold/20'
+                    : 'text-gray-500 hover:text-luxury-gold hover:bg-luxury-gold/10'
+                }`}
+                title={isInfiniteStock ? 'تعطيل المخزون اللانهائي' : 'تفعيل المخزون اللانهائي'}
+              >
+                <Infinity className="w-5 h-5" />
+              </button>
+              <input
+                type={isInfiniteStock ? 'text' : 'number'}
+                name="stock"
+                value={formData.stock}
+                onChange={handleChange}
+                min="0"
+                disabled={isInfiniteStock}
+                className={`w-full px-4 py-3 bg-luxury-black border rounded-sm text-white focus:border-luxury-gold focus:outline-none transition-colors ${
+                  isInfiniteStock
+                    ? 'border-luxury-gold/50 pl-12 text-luxury-gold font-medium'
+                    : 'border-luxury-gold/20 pl-12'
+                }`}
+                placeholder="0"
+              />
+              {isInfiniteStock && (
+                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-luxury-gold/70 text-sm">
+                  مخزون لانهائي
+                </span>
+              )}
+            </div>
+            <p className="text-gray-500 text-xs mt-1">
+              {isInfiniteStock
+                ? 'المنتج متاح دائماً (مخزون غير محدود)'
+                : 'انقر على أيقونة اللا نهاية لتفعيل المخزون اللانهائي'}
+            </p>
           </div>
 
           {/* Regular Price */}
