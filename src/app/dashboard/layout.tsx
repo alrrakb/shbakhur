@@ -2,11 +2,12 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { CartProvider } from '@/context/CartContext';
 import { ToastProvider } from '@/context/ToastContext';
 import { supabase } from '@/lib/supabase';
+import { signOut } from '@/lib/auth';
 
 const navItems = [
   { name: 'لوحة التحكم', href: '/dashboard', icon: '📊' },
@@ -30,6 +31,7 @@ function HamburgerIcon({ className = 'w-5 h-5' }: { className?: string }) {
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const router = useRouter();
 
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [isMobile, setIsMobile] = useState(false);
@@ -163,13 +165,13 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       </nav>
 
       {/* Footer Links */}
-      <div className="p-2 border-t border-luxury-gold/20 flex-shrink-0">
+      <div className="p-2 border-t border-luxury-gold/20 flex-shrink-0 space-y-0.5">
         <Link
           href="/"
           className="flex items-center gap-3 px-3 py-2.5 text-gray-400 hover:text-luxury-gold transition-colors rounded-sm hover:bg-luxury-gold/5"
         >
           <span className="text-lg flex-shrink-0">🌐</span>
-          <AnimatePresence initial={false}>
+          <AnimatePresence>
             {(sidebarOpen || isMobile) && (
               <motion.span
                 initial={{ opacity: 0, width: 0 }}
@@ -183,6 +185,31 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             )}
           </AnimatePresence>
         </Link>
+
+        {/* Logout Button */}
+        <button
+          onClick={async () => {
+            await signOut();
+            router.push('/login');
+            router.refresh();
+          }}
+          className="w-full flex items-center gap-3 px-3 py-2.5 text-red-400 hover:text-red-300 hover:bg-red-500/10 transition-colors rounded-sm"
+        >
+          <span className="text-lg flex-shrink-0">🚪</span>
+          <AnimatePresence>
+            {(sidebarOpen || isMobile) && (
+              <motion.span
+                initial={{ opacity: 0, width: 0 }}
+                animate={{ opacity: 1, width: 'auto' }}
+                exit={{ opacity: 0, width: 0 }}
+                transition={{ duration: 0.15 }}
+                className="whitespace-nowrap text-sm overflow-hidden"
+              >
+                تسجيل الخروج
+              </motion.span>
+            )}
+          </AnimatePresence>
+        </button>
       </div>
     </>
   );

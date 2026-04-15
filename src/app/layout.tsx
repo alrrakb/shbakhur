@@ -4,29 +4,19 @@ import { CartProvider } from "@/context/CartContext";
 import { ToastProvider } from "@/context/ToastContext";
 import NextTopLoader from 'nextjs-toploader';
 
-import { getSiteLogo } from "@/lib/database";
-
 export async function generateMetadata(): Promise<Metadata> {
-  let logoUrl = '/favicon.ico';
-  try {
-    const siteData = await getSiteLogo();
-    if (siteData && siteData.logo_url) {
-      logoUrl = siteData.logo_url;
-    }
-  } catch (error) {
-    // ignore
-  }
+  const faviconUrl = '/favicon.png';
 
   return {
     title: "SH للبخور | متجر العطور والبخور الفاخرة",
     description: "متخصص في أجود أنواع البخور والعطور والعود الطبيعي والفاخر",
     icons: {
-      icon: logoUrl,
-      shortcut: logoUrl,
-      apple: logoUrl,
+      icon: faviconUrl,
+      shortcut: faviconUrl,
+      apple: faviconUrl,
       other: {
         rel: 'apple-touch-icon-precomposed',
-        url: logoUrl,
+        url: faviconUrl,
       },
     }
   };
