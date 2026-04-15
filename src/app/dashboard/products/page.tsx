@@ -25,6 +25,9 @@ export default function ProductsList() {
   const [searchQuery, setSearchQuery] = useState('');
   const [stockFilter, setStockFilter] = useState('');
   const [discountFilter, setDiscountFilter] = useState('');
+  const [categoryFilter, setCategoryFilter] = useState('');
+  const [categories, setCategories] = useState<{id: string, name: string}[]>([]);
+  const [productCategories, setProductCategories] = useState<Record<number, string[]>>({});
   const [deleteModal, setDeleteModal] = useState<{ open: boolean; product: Product | null }>({ open: false, product: null });
   const [multiDeleteModal, setMultiDeleteModal] = useState(false);
   const [selectedProducts, setSelectedProducts] = useState<Set<number>>(new Set());
@@ -40,14 +43,15 @@ export default function ProductsList() {
   async function fetchProducts() {
     setLoading(true);
     try {
-      const { data, error } = await supabase
-        .from('products')
-        .select('*')
-        .order('id', { ascending: false });
+      const [productsRes, categoriesRes, productCatsRes] = await Promise.all([
+        supabase.from('products').select('*').order('id', { ascending: false }),
+        supabase.from('categories').select('id, name').order('name'),
+        supabase.from('product_categories').select('product_id, category_id')
+      ]);
 
-      if (error) throw error;
+      if (productsRes.error) throw productsRes.error;
       
-      setProducts((data || []).map((p: any) => ({
+      setProducts((productsRes.data || []).map((p: any) => ({
         id: p.id,
         title: p.title || '',
         regular_price: p.regular_price || p.price || '',
@@ -59,6 +63,15 @@ export default function ProductsList() {
         stock_status: p.stock_status,
         short_description: p.short_description
       })));
+
+      setCategories(categoriesRes.data || []);
+
+      const pcMap: Record<number, string[]> = {};
+      (productCatsRes.data || []).forEach((pc: any) => {
+        if (!pcMap[pc.product_id]) pcMap[pc.product_id] = [];
+        pcMap[pc.product_id].push(pc.category_id);
+      });
+      setProductCategories(pcMap);
     } catch (error) {
       console.error('Error fetching products:', error);
       showToast('فشل تحميل المنتجات', 'error');
@@ -275,8 +288,10 @@ export default function ProductsList() {
     const matchesStock = !stockFilter || p.stock_status === stockFilter;
     const isDiscounted = p.sale_price && p.regular_price && Number(p.sale_price) < Number(p.regular_price) && Number(p.sale_price) > 0;
     const matchesDiscount = !discountFilter || (discountFilter === 'discounted' ? isDiscounted : true);
+    const productCatIds = productCategories[p.id] || [];
+    const matchesCategory = !categoryFilter || productCatIds.includes(categoryFilter);
     
-    return matchesSearch && matchesStock && matchesDiscount;
+    return matchesSearch && matchesStock && matchesDiscount && matchesCategory;
   });
 
   return (
@@ -376,6 +391,16 @@ export default function ProductsList() {
           >
             <option value="">الخصومات (الكل)</option>
             <option value="discounted">مخفضة فقط</option>
+          </select>
+          <select
+            value={categoryFilter}
+            onChange={e => setCategoryFilter(e.target.value)}
+            className="w-full md:w-56 px-4 py-3 bg-luxury-black border border-luxury-gold/20 rounded-sm text-white focus:border-luxury-gold focus:outline-none transition-colors"
+          >
+            <option value="">التصنيف (الكل)</option>
+            {categories.map(cat => (
+              <option key={cat.id} value={cat.id}>{cat.name}</option>
+            ))}
           </select>
         </div>
       </motion.div>
