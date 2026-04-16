@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
+import { Infinity } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { useToast } from '@/context/ToastContext';
 import RichTextEditor from '@/components/RichTextEditor';
@@ -15,6 +16,7 @@ export default function AddProduct() {
   const [uploading, setUploading] = useState(false);
   const featuredInputRef = useRef<HTMLInputElement>(null);
   const galleryInputRef = useRef<HTMLInputElement>(null);
+  const [isInfiniteStock, setIsInfiniteStock] = useState(false);
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -175,7 +177,7 @@ export default function AddProduct() {
         regular_price: formData.regular_price || formData.sale_price || '',
         sale_price: formData.sale_price,
         price: formData.regular_price || formData.sale_price || '',
-        stock: formData.stock,
+        stock: isInfiniteStock ? null : (formData.stock ? parseInt(formData.stock) : 0),
         stock_status: formData.stock_status,
         image: formData.featured_image,
         gallery_images: formData.gallery_images,
@@ -289,6 +291,47 @@ export default function AddProduct() {
             />
           </div>
 
+          {/* Categories */}
+          <div className="md:col-span-2">
+            <label className="block text-white font-medium mb-4">التصنيفات</label>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-luxury-black border border-luxury-gold/20 p-6 rounded-sm">
+              {availableCategories.filter(c => !c.parent_id).map(parent => {
+                const children = availableCategories.filter(c => c.parent_id === parent.id);
+                return (
+                  <div key={parent.id} className="space-y-3">
+                    <label className="flex items-center gap-3 font-bold text-luxury-gold cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={formData.categories.includes(parent.id)}
+                        onChange={(e) => handleCategoryChange(parent.id, e.target.checked)}
+                        className="w-5 h-5 rounded border-luxury-gold/50"
+                      />
+                      {parent.name}
+                    </label>
+                    {children.length > 0 && (
+                      <div className="mr-8 space-y-3 border-r-2 border-luxury-gold/20 pr-4 mt-2">
+                        {children.map(child => (
+                          <label key={child.id} className="flex items-center gap-3 text-white text-sm cursor-pointer">
+                            <input
+                              type="checkbox"
+                              checked={formData.categories.includes(child.id)}
+                              onChange={(e) => handleCategoryChange(child.id, e.target.checked)}
+                              className="w-4 h-4 rounded border-gray-600"
+                            />
+                            {child.name}
+                          </label>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+              {availableCategories.length === 0 && (
+                <p className="text-gray-500 text-sm">لا توجد تصنيفات</p>
+              )}
+            </div>
+          </div>
+
           {/* Stock Status */}
           <div>
             <label className="block text-white font-medium mb-2">
@@ -311,15 +354,51 @@ export default function AddProduct() {
             <label className="block text-white font-medium mb-2">
               كمية المخزون
             </label>
-            <input
-              type="number"
-              name="stock"
-              value={formData.stock}
-              onChange={handleChange}
-              min="0"
-              className="w-full px-4 py-3 bg-luxury-black border border-luxury-gold/20 rounded-sm text-white focus:border-luxury-gold focus:outline-none transition-colors"
-              placeholder="0"
-            />
+            <div className="relative">
+              <button
+                type="button"
+                onClick={() => {
+                  setIsInfiniteStock(!isInfiniteStock);
+                  if (!isInfiniteStock) {
+                    setFormData(prev => ({ ...prev, stock: '∞' }));
+                  } else {
+                    setFormData(prev => ({ ...prev, stock: '0' }));
+                  }
+                }}
+                className={`absolute left-3 top-1/2 -translate-y-1/2 z-10 p-1.5 rounded-sm transition-all duration-200 ${
+                  isInfiniteStock
+                    ? 'text-luxury-gold bg-luxury-gold/20'
+                    : 'text-gray-500 hover:text-luxury-gold hover:bg-luxury-gold/10'
+                }`}
+                title={isInfiniteStock ? 'تعطيل المخزون اللانهائي' : 'تفعيل المخزون اللانهائي'}
+              >
+                <Infinity className="w-5 h-5" />
+              </button>
+              <input
+                type={isInfiniteStock ? 'text' : 'number'}
+                name="stock"
+                value={formData.stock}
+                onChange={handleChange}
+                min="0"
+                disabled={isInfiniteStock}
+                className={`w-full px-4 py-3 bg-luxury-black border rounded-sm text-white focus:border-luxury-gold focus:outline-none transition-colors ${
+                  isInfiniteStock
+                    ? 'border-luxury-gold/50 pl-12 text-luxury-gold font-medium'
+                    : 'border-luxury-gold/20 pl-12'
+                }`}
+                placeholder="0"
+              />
+              {isInfiniteStock && (
+                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-luxury-gold/70 text-sm">
+                  مخزون لانهائي
+                </span>
+              )}
+            </div>
+            <p className="text-gray-500 text-xs mt-1">
+              {isInfiniteStock
+                ? 'المنتج متاح دائماً (مخزون غير محدود)'
+                : 'انقر على أيقونة اللانهاية لتفعيل المخزون اللانهائي'}
+            </p>
           </div>
 
           {/* Regular Price */}
@@ -488,44 +567,6 @@ export default function AddProduct() {
               rows={8}
             />
           </div>
-
-          {/* Categories */}
-          <div className="md:col-span-2">
-            <label className="block text-white font-medium mb-4">التصنيفات</label>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-luxury-black border border-luxury-gold/20 p-6 rounded-sm">
-              {availableCategories.filter(c => !c.parent_id).map(parent => {
-                const children = availableCategories.filter(c => c.parent_id === parent.id);
-                return (
-                  <div key={parent.id} className="space-y-3">
-                    <label className="flex items-center gap-3 font-bold text-luxury-gold cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={formData.categories.includes(parent.id)}
-                        onChange={(e) => handleCategoryChange(parent.id, e.target.checked)}
-                        className="w-5 h-5 rounded border-luxury-gold/50"
-                      />
-                      {parent.name}
-                    </label>
-                    {children.length > 0 && (
-                      <div className="mr-8 space-y-3 border-r-2 border-luxury-gold/20 pr-4 mt-2">
-                        {children.map(child => (
-                          <label key={child.id} className="flex items-center gap-3 text-white text-sm cursor-pointer">
-                            <input
-                              type="checkbox"
-                              checked={formData.categories.includes(child.id)}
-                              onChange={(e) => handleCategoryChange(child.id, e.target.checked)}
-                              className="w-4 h-4 rounded border-gray-600"
-                            />
-                            {child.name}
-                          </label>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          </div>
         </div>
 
         {/* Submit Buttons */}
@@ -535,7 +576,7 @@ export default function AddProduct() {
             disabled={loading}
             className="px-8 py-3 bg-luxury-gold text-luxury-black font-bold rounded-sm hover:bg-luxury-gold-light transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {loading ? 'جاري الحفظ...' : 'إضافة المنتج'}
+            {loading ? 'جاري الحفظ...' : 'حفظ التغييرات'}
           </button>
           <button
             type="button"
