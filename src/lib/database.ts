@@ -706,6 +706,7 @@ export async function saveFooterSettings(settings: FooterSettings): Promise<{ su
 export interface SiteLogo {
   logo_url: string;
   store_name: string;
+  favicon_url?: string;
 }
 
 export async function getSiteLogo(): Promise<SiteLogo | null> {

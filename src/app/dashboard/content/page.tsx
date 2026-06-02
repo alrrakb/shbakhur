@@ -98,7 +98,7 @@ interface ContentData {
   footer_links: FooterLink[];
   news_ticker: NewsMessage[];
   navigation: NavItem[];
-  site_logo: { logo_url: string; store_name: string }[];
+  site_logo: { logo_url: string; store_name: string; favicon_url?: string }[];
 }
 
 interface AccordionSection {
@@ -186,7 +186,7 @@ export default function ContentManagement() {
       { id: 5, name: 'العطور', link: '/products/perfumes', has_dropdown: true, dropdown_items: '[{"name":"توم فورد","link":"/products/perfumes"},{"name":"جوتشي","link":"/products/perfumes"},{"name":"ديور","link":"/products/perfumes"}]', sort_order: 5, is_active: true },
       { id: 6, name: 'عروضنا', link: '/products/best-offers', has_dropdown: false, dropdown_items: '[]', sort_order: 6, is_active: true },
     ],
-    site_logo: [{ logo_url: 'http://localhost/my-store/wp-content/uploads/2025/03/sh-logo-1-300x300.png', store_name: 'SH للبخور' }],
+    site_logo: [{ logo_url: 'http://localhost/my-store/wp-content/uploads/2025/03/sh-logo-1-300x300.png', store_name: 'SH للبخور', favicon_url: '' }],
   };
 
   const [data, setData] = useState<ContentData>(initialData);
@@ -332,7 +332,8 @@ export default function ContentManagement() {
         const logo = data.site_logo[0] as any;
         await saveSiteLogo({
           logo_url: logo.logo_url,
-          store_name: logo.store_name || 'SH للبخور'
+          store_name: logo.store_name || 'SH للبخور',
+          favicon_url: logo.favicon_url || ''
         });
       }
       
@@ -510,7 +511,9 @@ export default function ContentManagement() {
 function LogoSection({ data, updateData }: { data: ContentData; updateData: any }) {
   const logo = data.site_logo?.[0]?.logo_url || '';
   const storeName = data.site_logo?.[0]?.store_name || 'SH للبخور';
+  const favicon = data.site_logo?.[0]?.favicon_url || '';
   const [uploading, setUploading] = useState(false);
+  const [uploadingFavicon, setUploadingFavicon] = useState(false);
 
   const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -528,7 +531,7 @@ function LogoSection({ data, updateData }: { data: ContentData; updateData: any 
       const { data: publicUrlData } = supabase.storage.from('media').getPublicUrl(filePath);
       
       if (publicUrlData.publicUrl) {
-        updateData('site_logo', [{ logo_url: publicUrlData.publicUrl, store_name: storeName }]);
+        updateData('site_logo', [{ logo_url: publicUrlData.publicUrl, store_name: storeName, favicon_url: favicon }]);
       }
     } catch (error) {
       console.error('Error uploading logo:', error);
@@ -537,12 +540,37 @@ function LogoSection({ data, updateData }: { data: ContentData; updateData: any 
     }
   };
 
+  const handleFaviconUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploadingFavicon(true);
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `favicon_${Math.random().toString(36).substring(2, 15)}_${Date.now()}.${fileExt}`;
+      const filePath = `logos/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage.from('media').upload(filePath, file, { upsert: true });
+      if (uploadError) throw uploadError;
+
+      const { data: publicUrlData } = supabase.storage.from('media').getPublicUrl(filePath);
+      
+      if (publicUrlData.publicUrl) {
+        updateData('site_logo', [{ logo_url: logo, store_name: storeName, favicon_url: publicUrlData.publicUrl }]);
+      }
+    } catch (error) {
+      console.error('Error uploading favicon:', error);
+    } finally {
+      setUploadingFavicon(false);
+    }
+  };
+
   const handleStoreNameChange = (value: string) => {
-    updateData('site_logo', [{ logo_url: logo, store_name: value }]);
+    updateData('site_logo', [{ logo_url: logo, store_name: value, favicon_url: favicon }]);
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       <div>
         <label className="block text-white font-medium mb-2">اسم المتجر</label>
         <input
@@ -553,28 +581,55 @@ function LogoSection({ data, updateData }: { data: ContentData; updateData: any 
           placeholder="اسم المتجر"
         />
       </div>
-      <div>
-        <label className="block text-white font-medium mb-2">شعار الموقع</label>
-        <div className="flex items-center gap-4">
-          <label className="px-4 py-2 bg-luxury-gold text-luxury-black font-medium rounded-sm cursor-pointer hover:bg-luxury-gold-light transition-colors">
-            {uploading ? 'جاري الرفع...' : 'اختر صورة'}
-            <input
-              type="file"
-              accept="image/*"
-              onChange={handleLogoUpload}
-              className="hidden"
-              disabled={uploading}
-            />
-          </label>
-          <span className="text-gray-400 text-sm">PNG, JPG - max 2MB</span>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Logo Upload */}
+        <div className="bg-[#1a1a1a] p-4 rounded-sm border border-luxury-gold/10">
+          <label className="block text-white font-medium mb-2">شعار الموقع (Logo)</label>
+          <div className="flex items-center gap-4">
+            <label className="px-4 py-2 bg-luxury-gold text-luxury-black font-medium rounded-sm cursor-pointer hover:bg-luxury-gold-light transition-colors text-sm">
+              {uploading ? 'جاري الرفع...' : 'اختر صورة'}
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleLogoUpload}
+                className="hidden"
+                disabled={uploading}
+              />
+            </label>
+            <span className="text-gray-400 text-xs">PNG, JPG - max 2MB</span>
+          </div>
+          {logo && (
+            <div className="mt-4 p-3 bg-black/30 rounded-sm inline-block">
+              <p className="text-gray-400 text-xs mb-2">معاينة الشعار:</p>
+              <img src={logo} alt="Logo" className="h-16 object-contain" />
+            </div>
+          )}
+        </div>
+
+        {/* Favicon Upload */}
+        <div className="bg-[#1a1a1a] p-4 rounded-sm border border-luxury-gold/10">
+          <label className="block text-white font-medium mb-2">الأيقونة المفضلة (Favicon)</label>
+          <div className="flex items-center gap-4">
+            <label className="px-4 py-2 bg-luxury-gold text-luxury-black font-medium rounded-sm cursor-pointer hover:bg-luxury-gold-light transition-colors text-sm">
+              {uploadingFavicon ? 'جاري الرفع...' : 'اختر صورة'}
+              <input
+                type="file"
+                accept="image/png, image/jpeg, image/ico, image/x-icon, image/svg+xml"
+                onChange={handleFaviconUpload}
+                className="hidden"
+                disabled={uploadingFavicon}
+              />
+            </label>
+            <span className="text-gray-400 text-xs">ICO, PNG, SVG - 32x32px</span>
+          </div>
+          {favicon && (
+            <div className="mt-4 p-3 bg-black/30 rounded-sm inline-block">
+              <p className="text-gray-400 text-xs mb-2">معاينة الأيقونة:</p>
+              <img src={favicon} alt="Favicon" className="h-8 w-8 object-contain bg-white rounded-sm" />
+            </div>
+          )}
         </div>
       </div>
-      {logo && (
-        <div className="mt-4">
-          <p className="text-gray-400 text-sm mb-2">معاينة:</p>
-          <img src={logo} alt="Logo" className="h-20 object-contain" />
-        </div>
-      )}
     </div>
   );
 }

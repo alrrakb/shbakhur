@@ -3,9 +3,11 @@ import "./globals.css";
 import { CartProvider } from "@/context/CartContext";
 import { ToastProvider } from "@/context/ToastContext";
 import NextTopLoader from 'nextjs-toploader';
+import { getSiteLogo } from '@/lib/database';
 
 export async function generateMetadata(): Promise<Metadata> {
-  const faviconUrl = '/favicon.png';
+  const siteLogo = await getSiteLogo();
+  const faviconUrl = siteLogo?.favicon_url || '/favicon.png';
 
   return {
     title: "SH للبخور | متجر العطور والبخور الفاخرة",
