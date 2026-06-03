@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { getNavigationLinks, saveNavigationLinks, getHeroSlides, saveHeroSlides, saveFooterLinks, getFooterLinks, getFooterSettings, getPartners, savePartners, savePartnersSettings, getPartnersSettings, saveFooterSettings, getSiteLogo, saveSiteLogo, type NavLink as DbNavLink } from '@/lib/database';
 import { supabase } from '@/lib/supabase';
 import { useToast } from '@/context/ToastContext';
+import { revalidateSite } from '@/app/actions/revalidate';
 
 interface Section {
   section_name: string;
@@ -337,6 +338,7 @@ export default function ContentManagement() {
         });
       }
       
+      await revalidateSite();
       showToast('تم حفظ جميع التغييرات بنجاح', 'success');
     } catch (error) {
       console.error(error);
