@@ -52,10 +52,37 @@ export default function OrdersPage() {
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [deletingTestOrders, setDeletingTestOrders] = useState(false);
   const [realtimeStatus, setRealtimeStatus] = useState<'connecting' | 'connected' | 'disconnected'>('connecting');
-  const [newOrderIds, setNewOrderIds] = useState<Set<string>>(new Set());
+  const [flashOrderIds, setFlashOrderIds] = useState<Set<string>>(new Set());   // وميض مؤقت 3 ثوانٍ
+  const [readOrderIds, setReadOrderIds] = useState<Set<string>>(new Set());     // مقروء من localStorage
+  const [unreadThreshold, setUnreadThreshold] = useState<string>('');          // آخر وقت زيارة
   const { showToast } = useToast();
 
   const isDev = process.env.NODE_ENV === 'development';
+
+  // ── تحميل وحفظ حالة القراءة ──────────────────────────────────────────────
+  useEffect(() => {
+    const lastVisit = localStorage.getItem('orders_last_visit') ?? '';
+    const storedRead = localStorage.getItem('orders_read_ids');
+    setUnreadThreshold(lastVisit);
+    if (storedRead) setReadOrderIds(new Set(JSON.parse(storedRead)));
+    // حدّث وقت الزيارة ليُستخدم عند الزيارة القادمة
+    localStorage.setItem('orders_last_visit', new Date().toISOString());
+  }, []);
+
+  /** هل الطلب غير مقروء؟ */
+  const isUnread = (order: Order) =>
+    !readOrderIds.has(order.id) &&
+    unreadThreshold !== '' &&
+    new Date(order.created_at) > new Date(unreadThreshold);
+
+  /** اضبط الطلب كمقروء */
+  const markAsRead = (orderId: string) => {
+    setReadOrderIds(prev => {
+      const next = new Set([...prev, orderId]);
+      localStorage.setItem('orders_read_ids', JSON.stringify([...next]));
+      return next;
+    });
+  };
 
   const handleDeleteAllTestOrders = async () => {
     const testOrders = orders.filter(o => o.is_test);
@@ -120,11 +147,11 @@ export default function OrdersPage() {
 
           if (data) {
             setOrders(prev => [data as any, ...prev]);
-            // إبراز الطلب الجديد بصرياً لمدة 8 ثوانٍ
-            setNewOrderIds(prev => new Set([...prev, (data as any).id]));
+            // وميض أخضر مؤقت 3 ثوانٍ للفت الانتباه
+            setFlashOrderIds(prev => new Set([...prev, (data as any).id]));
             setTimeout(() => {
-              setNewOrderIds(prev => { const s = new Set(prev); s.delete((data as any).id); return s; });
-            }, 8000);
+              setFlashOrderIds(prev => { const s = new Set(prev); s.delete((data as any).id); return s; });
+            }, 3000);
             showToast(`🔔 طلب جديد: ${(data as any).order_number}`, 'success');
           }
         }
@@ -242,7 +269,14 @@ export default function OrdersPage() {
                realtimeStatus === 'connecting' ? 'جاري الاتصال...' : 'غير متصل'}
             </div>
           </div>
-          <p className="text-gray-400 text-sm">إدارة طلبات المتجر ({orders.length} طلب)</p>
+          <p className="text-gray-400 text-sm">
+            إدارة طلبات المتجر ({orders.length} طلب)
+            {orders.filter(isUnread).length > 0 && (
+              <span className="mr-2 inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-bold bg-luxury-gold/15 text-luxury-gold border border-luxury-gold/30">
+                {orders.filter(isUnread).length} غير مقروء
+              </span>
+            )}
+          </p>
         </div>
         <div className="flex items-center gap-2 flex-wrap justify-end">
           {isDev && (
@@ -337,12 +371,17 @@ export default function OrdersPage() {
                 const st = STATUS_LABELS[order.status] || STATUS_LABELS.pending;
                 return (
                   <motion.div key={order.id}
-                    initial={{ opacity: 0, x: newOrderIds.has(order.id) ? -10 : 0 }}
+                    initial={{ opacity: 0, x: flashOrderIds.has(order.id) ? -10 : 0 }}
                     animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: newOrderIds.has(order.id) ? 0 : i * 0.03 }}
-                    className={`p-4 transition-colors duration-700 ${
-                      newOrderIds.has(order.id) ? 'bg-green-500/5 border-r-2 border-green-500/50' :
-                      selectedIds.includes(order.id) ? 'bg-luxury-gold/5' : ''
+                    transition={{ delay: flashOrderIds.has(order.id) ? 0 : i * 0.03 }}
+                    className={`p-4 transition-colors duration-500 ${
+                      flashOrderIds.has(order.id)
+                        ? 'bg-green-500/8 border-r-2 border-green-400/60'
+                        : isUnread(order)
+                        ? 'bg-white/[0.035] border-r-2 border-luxury-gold/50'
+                        : selectedIds.includes(order.id)
+                        ? 'bg-luxury-gold/5'
+                        : ''
                     }`}>
                     {/* Row 1: checkbox + order number + status badge */}
                     <div className="flex items-center justify-between mb-2">
@@ -354,8 +393,13 @@ export default function OrdersPage() {
                             setSelectedIds(prev => checked ? [...prev, order.id] : prev.filter(id => id !== order.id));
                           }}
                           className="accent-luxury-gold w-4 h-4 cursor-pointer" />
-                        <span className="font-mono text-luxury-gold text-sm">{order.order_number}</span>
-                        {newOrderIds.has(order.id) && (
+                        {isUnread(order) && (
+                          <span className="w-2 h-2 rounded-full bg-luxury-gold flex-shrink-0 mt-0.5" />
+                        )}
+                        <span className={`font-mono text-luxury-gold text-sm ${isUnread(order) ? 'font-bold' : ''}`}>
+                          {order.order_number}
+                        </span>
+                        {flashOrderIds.has(order.id) && (
                           <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-xs font-bold bg-green-500/20 text-green-300 border border-green-500/40 animate-pulse">
                             ● جديد
                           </span>
@@ -405,7 +449,7 @@ export default function OrdersPage() {
                         </div>
                       </div>
                       <div className="flex items-center gap-1.5">
-                        <button onClick={() => setSelectedOrder(order)} title="تفاصيل"
+                        <button onClick={() => { setSelectedOrder(order); markAsRead(order.id); }} title="تفاصيل"
                           className="p-1.5 bg-luxury-gold/10 text-luxury-gold border border-luxury-gold/30 rounded-sm hover:bg-luxury-gold/20 transition-colors">
                           <Eye size={14} />
                         </button>
@@ -445,13 +489,17 @@ export default function OrdersPage() {
                     const st = STATUS_LABELS[order.status] || STATUS_LABELS.pending;
                     return (
                       <motion.tr key={order.id}
-                        initial={{ opacity: 0, y: newOrderIds.has(order.id) ? -8 : 0 }}
+                        initial={{ opacity: 0, y: flashOrderIds.has(order.id) ? -8 : 0 }}
                         animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: newOrderIds.has(order.id) ? 0 : i * 0.03 }}
-                        className={`border-b border-luxury-gold/10 transition-colors duration-700 ${
-                          newOrderIds.has(order.id) ? 'bg-green-500/5 border-r-2 border-r-green-500/50' :
-                          selectedIds.includes(order.id) ? 'bg-luxury-gold/5' :
-                          'hover:bg-luxury-gold/5'
+                        transition={{ delay: flashOrderIds.has(order.id) ? 0 : i * 0.03 }}
+                        className={`border-b border-luxury-gold/10 transition-colors duration-500 ${
+                          flashOrderIds.has(order.id)
+                            ? 'bg-green-500/8 border-r-2 border-r-green-400/60'
+                            : isUnread(order)
+                            ? 'bg-white/[0.035] border-r-2 border-r-luxury-gold/50'
+                            : selectedIds.includes(order.id)
+                            ? 'bg-luxury-gold/5'
+                            : 'hover:bg-luxury-gold/5'
                         }`}>
                         <td className="p-4 text-center">
                           <input type="checkbox"
@@ -463,9 +511,16 @@ export default function OrdersPage() {
                             className="accent-luxury-gold w-4 h-4 cursor-pointer" />
                         </td>
                         <td className="p-4">
-                          <div className="font-mono text-luxury-gold text-sm">{order.order_number}</div>
+                          <div className="flex items-center gap-2">
+                            {isUnread(order) && (
+                              <span className="w-2 h-2 rounded-full bg-luxury-gold flex-shrink-0" />
+                            )}
+                            <span className={`font-mono text-luxury-gold text-sm ${isUnread(order) ? 'font-bold' : ''}`}>
+                              {order.order_number}
+                            </span>
+                          </div>
                           <div className="flex flex-wrap gap-1 mt-1">
-                            {newOrderIds.has(order.id) && (
+                            {flashOrderIds.has(order.id) && (
                               <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-xs font-bold bg-green-500/20 text-green-300 border border-green-500/40 animate-pulse">
                                 ● جديد
                               </span>
@@ -511,7 +566,7 @@ export default function OrdersPage() {
                         </td>
                         <td className="p-4">
                           <div className="flex items-center gap-2">
-                            <button onClick={() => setSelectedOrder(order)} title="تفاصيل"
+                            <button onClick={() => { setSelectedOrder(order); markAsRead(order.id); }} title="تفاصيل"
                               className="p-2 bg-luxury-gold/10 text-luxury-gold border border-luxury-gold/30 rounded-sm hover:bg-luxury-gold/20 transition-colors">
                               <Eye size={16} />
                             </button>
