@@ -288,6 +288,7 @@ export async function createOrder(orderData: {
   additional_phone?: string;
   notes?: string;
   discount_amount?: number;
+  payment_method?: 'cod' | 'bank_transfer';
   items: { product_id: number | string; product_name: string; quantity: number; price: number; image?: string }[];
 }): Promise<{ success: boolean; order_id?: string; order_number?: string; error?: string }> {
   try {
@@ -352,6 +353,7 @@ export async function createOrder(orderData: {
         discount_amount: discount,
         total_amount: totalAmount,
         notes: finalNotes || null,
+        payment_method: orderData.payment_method || 'bank_transfer',
       })
       .select('id, order_number')
       .single();

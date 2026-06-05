@@ -39,7 +39,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
               initial={{ opacity: 0, y: -20, scale: 0.9 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: -20, scale: 0.9 }}
-              className={`px-4 sm:px-6 py-2.5 sm:py-3 rounded-sm shadow-lg text-sm sm:text-base text-center w-full sm:w-auto sm:whitespace-nowrap max-w-full sm:max-w-sm break-words ${
+              className={`px-4 sm:px-6 py-2.5 sm:py-3 rounded-sm shadow-lg text-sm sm:text-base text-center w-full sm:w-auto max-w-full sm:max-w-sm break-words ${
                 toast.type === 'success'
                   ? 'bg-luxury-gold text-black'
                   : toast.type === 'error'

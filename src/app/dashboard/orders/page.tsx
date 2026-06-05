@@ -34,6 +34,7 @@ interface Order {
   sender_name?: string | null;
   sender_bank?: string | null;
   sender_account?: string | null;
+  payment_method?: string | null;
   customers: { name: string; phone: string; additional_phone?: string | null; city?: string | null; address?: string | null } | null;
   order_items: { id: string; product_name: string | null; quantity: number; unit_price: number; total_price: number }[];
 }
@@ -55,7 +56,7 @@ export default function OrdersPage() {
       let query = supabase
         .from('orders')
         .select(`
-          id, order_number, status, subtotal, discount_amount, total_amount, notes, created_at, transfer_receipt_url, sender_name, sender_bank, sender_account,
+          id, order_number, status, subtotal, discount_amount, total_amount, notes, created_at, transfer_receipt_url, sender_name, sender_bank, sender_account, payment_method,
           customers(name, phone, additional_phone, city, address),
           order_items(id, product_name, quantity, unit_price, total_price)
         `)
@@ -228,9 +229,19 @@ export default function OrdersPage() {
                       </span>
                     </div>
 
-                    {/* Row 2: customer name + phone */}
+                    {/* Row 2: customer name + phone + payment method */}
                     <div className="mb-1.5">
-                      <div className="text-white font-medium text-sm">{order.customers?.name || '—'}</div>
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <div className="text-white font-medium text-sm">{order.customers?.name || '—'}</div>
+                        {order.payment_method === 'cod' && (
+                          <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-xs font-medium bg-orange-500/15 text-orange-400 border border-orange-500/30">
+                            <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
+                            </svg>
+                            الدفع عند الاستلام
+                          </span>
+                        )}
+                      </div>
                       <div className="text-gray-500 text-xs">{order.customers?.phone}</div>
                     </div>
 
@@ -302,7 +313,17 @@ export default function OrdersPage() {
                         </td>
                         <td className="p-4 font-mono text-luxury-gold text-sm">{order.order_number}</td>
                         <td className="p-4">
-                          <div className="text-white font-medium">{order.customers?.name || '—'}</div>
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className="text-white font-medium">{order.customers?.name || '—'}</span>
+                            {order.payment_method === 'cod' && (
+                              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-xs font-medium bg-orange-500/15 text-orange-400 border border-orange-500/30 whitespace-nowrap">
+                                <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
+                                </svg>
+                                الدفع عند الاستلام
+                              </span>
+                            )}
+                          </div>
                           <div className="text-gray-500 text-sm">{order.customers?.phone}</div>
                         </td>
                         <td className="p-4 text-gray-300 text-sm">
@@ -398,6 +419,28 @@ export default function OrdersPage() {
                         <span className="text-gray-400 text-sm block mb-1">الملاحظات:</span>
                         <span className="text-white text-sm whitespace-pre-line">{selectedOrder.notes}</span>
                       </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Payment Method Badge */}
+                <div>
+                  <h3 className="text-gray-400 text-sm mb-2 font-medium">طريقة الدفع</h3>
+                  <div className="bg-luxury-black/50 rounded-sm p-3">
+                    {selectedOrder.payment_method === 'cod' ? (
+                      <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-sm text-sm font-bold bg-orange-500/15 text-orange-400 border border-orange-500/30">
+                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
+                        </svg>
+                        الدفع عند الاستلام
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-sm text-sm font-bold bg-luxury-gold/10 text-luxury-gold border border-luxury-gold/30">
+                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                        </svg>
+                        التحويل البنكي
+                      </span>
                     )}
                   </div>
                 </div>

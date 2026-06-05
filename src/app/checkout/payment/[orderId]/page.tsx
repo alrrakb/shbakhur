@@ -1,27 +1,44 @@
 'use client';
 
-import { use, useState, useRef } from 'react';
+import { use, useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { supabase } from '@/lib/supabase';
 import { useToast } from '@/context/ToastContext';
+import { createOrder } from '@/lib/database';
+
+interface PendingCheckout {
+  formData: {
+    name: string;
+    phone: string;
+    additionalPhone: string;
+    street: string;
+    area: string;
+    address: string;
+    notes: string;
+  };
+  orderItems: { product_id: string | number; product_name: string; quantity: number; price: number; image?: string }[];
+  discountValue: number;
+  totalAfterDiscount: number;
+}
 
 export default function BankTransferPage({ params }: { params: Promise<{ orderId: string }> }) {
   const resolvedParams = use(params);
   const router = useRouter();
   const { showToast } = useToast();
+  const isNewOrder = resolvedParams.orderId === 'new';
+
+  const [pendingCheckout, setPendingCheckout] = useState<PendingCheckout | null>(null);
+  const [checkoutError, setCheckoutError] = useState(false);
 
   const [formData, setFormData] = useState({
     senderName: '',
     senderBank: '',
     senderAccount: '',
   });
-  const [receiptImage, setReceiptImage] = useState<File | null>(null);
-  const [previewUrl, setPreviewUrl] = useState<string>('');
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const bankDetails = {
     bankName: "مصرف الراجحي",
@@ -30,68 +47,125 @@ export default function BankTransferPage({ params }: { params: Promise<{ orderId
     iban: "SA9280000215608010987718"
   };
 
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      const file = e.target.files[0];
-      if (file.size > 5 * 1024 * 1024) {
-        showToast('حجم الصورة كبير جداً. الحد الأقصى 5 ميجابايت', 'error');
+  useEffect(() => {
+    if (isNewOrder) {
+      const stored = sessionStorage.getItem('pendingCheckout');
+      if (!stored) {
+        setCheckoutError(true);
         return;
       }
-      setReceiptImage(file);
-      setPreviewUrl(URL.createObjectURL(file));
+      try {
+        setPendingCheckout(JSON.parse(stored));
+      } catch {
+        setCheckoutError(true);
+      }
     }
-  };
-
-  const uploadReceipt = async (file: File): Promise<string> => {
-    const fileExt = file.name.split('.').pop();
-    const fileName = `transfers/${resolvedParams.orderId}_${Date.now()}.${fileExt}`;
-
-    const { error: uploadError, data } = await supabase.storage
-      .from('media')
-      .upload(fileName, file);
-
-    if (uploadError) throw uploadError;
-
-    const { data: { publicUrl } } = supabase.storage
-      .from('media')
-      .getPublicUrl(fileName);
-
-    return publicUrl;
-  };
+  }, [isNewOrder]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.senderName || !formData.senderBank || !formData.senderAccount || !receiptImage) {
-      showToast('يرجى تعبئة جميع الحقول وإرفاق صورة الإيصال', 'error');
+    if (!formData.senderName || !formData.senderBank || !formData.senderAccount) {
+      showToast('يرجى تعبئة جميع الحقول', 'error');
       return;
     }
 
     setIsSubmitting(true);
     try {
-      // 1. Upload the receipt image
-      const receiptUrl = await uploadReceipt(receiptImage);
+      let finalOrderId = resolvedParams.orderId;
+      let finalOrderNumber = '';
 
-      // 2. Update the order with payment details
+      if (isNewOrder) {
+        if (!pendingCheckout) throw new Error('لا توجد بيانات الطلب');
+
+        const { formData: fd, orderItems, discountValue } = pendingCheckout;
+        const result = await createOrder({
+          customer_name: fd.name,
+          customer_phone: fd.phone,
+          customer_area: fd.area,
+          customer_street: fd.address ? `${fd.street || ''} (${fd.address})`.trim() : fd.street,
+          additional_phone: fd.additionalPhone,
+          notes: fd.notes,
+          discount_amount: discountValue,
+          payment_method: 'bank_transfer',
+          items: orderItems,
+        });
+
+        if (!result.success || !result.order_id) {
+          throw new Error(result.error || 'فشل إنشاء الطلب');
+        }
+        finalOrderId = result.order_id;
+        finalOrderNumber = result.order_number || '';
+      }
+
       const { error: updateError } = await supabase
         .from('orders')
         .update({
-          transfer_receipt_url: receiptUrl,
           sender_name: formData.senderName,
           sender_bank: formData.senderBank,
           sender_account: formData.senderAccount,
         })
-        .eq('id', resolvedParams.orderId);
+        .eq('id', finalOrderId);
 
       if (updateError) throw updateError;
 
-      // 3. Navigate to success
-      router.push(`/checkout/success/${resolvedParams.orderId}`);
+      // إرسال إشعار تيليجرام
+      if (isNewOrder && pendingCheckout) {
+        const { formData: fd, orderItems, discountValue, totalAfterDiscount } = pendingCheckout;
+        fetch('/api/notify-telegram', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            order_number: finalOrderNumber,
+            customer_name: fd.name,
+            customer_phone: fd.phone,
+            additional_phone: fd.additionalPhone || undefined,
+            area: fd.area,
+            address: `${fd.street ? fd.street + ' - ' : ''}${fd.address}`,
+            notes: fd.notes || undefined,
+            payment_method: 'bank_transfer',
+            sender_name: formData.senderName,
+            sender_bank: formData.senderBank,
+            sender_account: formData.senderAccount,
+            items: orderItems.map(i => ({
+              product_name: i.product_name,
+              quantity: i.quantity,
+              price: i.price,
+            })),
+            subtotal: orderItems.reduce((s, i) => s + i.price * i.quantity, 0),
+            discount: discountValue,
+            total: totalAfterDiscount,
+          }),
+        }).catch(err => console.error('Telegram notify failed:', err));
+      }
+
+      if (isNewOrder) sessionStorage.removeItem('pendingCheckout');
+
+      router.push(`/checkout/success/${finalOrderId}`);
     } catch (error) {
       console.error('Error submitting payment:', error);
       showToast('حدث خطأ أثناء إرسال البيانات. يرجى المحاولة مرة أخرى.', 'error');
       setIsSubmitting(false);
     }
   };
+
+  if (checkoutError) {
+    return (
+      <main className="min-h-screen bg-luxury-black">
+        <Header />
+        <div className="pt-32">
+          <section className="py-20 text-center">
+            <div className="text-6xl mb-6 text-luxury-gold/30">⚠️</div>
+            <h2 className="text-2xl font-bold text-white mb-4">انتهت جلسة الدفع</h2>
+            <p className="text-gray-400 mb-6">يرجى العودة وإعادة ملء بيانات الطلب.</p>
+            <a href="/checkout" className="px-6 py-3 bg-luxury-gold text-luxury-black font-bold rounded-sm hover:bg-luxury-gold-light transition-colors">
+              العودة للدفع
+            </a>
+          </section>
+        </div>
+        <Footer />
+      </main>
+    );
+  }
 
   return (
     <main className="min-h-screen bg-luxury-black">
@@ -105,7 +179,11 @@ export default function BankTransferPage({ params }: { params: Promise<{ orderId
             className="text-center mb-6 sm:mb-10"
           >
             <h1 className="text-2xl sm:text-3xl font-bold text-white mb-2">تأكيد الدفع</h1>
-            <p className="text-gray-400 mb-2 text-sm sm:text-base">رقم الطلب: <span className="text-luxury-gold font-bold">{resolvedParams.orderId.slice(-6).toUpperCase()}</span></p>
+            {!isNewOrder && (
+              <p className="text-gray-400 mb-2 text-sm sm:text-base">
+                رقم الطلب: <span className="text-luxury-gold font-bold">{resolvedParams.orderId.slice(-6).toUpperCase()}</span>
+              </p>
+            )}
             <p className="text-gray-400 text-sm sm:text-base">الرجاء إتمام التحويل البنكي لحساب المؤسسة وإرفاق الإيصال لتأكيد طلبك.</p>
           </motion.div>
 
@@ -119,7 +197,6 @@ export default function BankTransferPage({ params }: { params: Promise<{ orderId
             >
               <div className="absolute top-0 right-0 w-32 h-32 bg-luxury-gold/10 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none"></div>
 
-              {/* Card Header */}
               <div className="bg-luxury-black/50 p-6 flex justify-between items-center text-white border-b border-luxury-gold/20">
                 <h3 className="text-2xl font-bold text-luxury-gold">مصرف الراجحي</h3>
                 <div className="w-12 h-12 bg-luxury-gold/10 border border-luxury-gold/30 rounded-md flex items-center justify-center">
@@ -141,6 +218,13 @@ export default function BankTransferPage({ params }: { params: Promise<{ orderId
                     <span className="font-mono tracking-wider text-sm sm:text-lg text-luxury-gold break-all">{bankDetails.iban}</span>
                   </div>
                 </div>
+
+                {pendingCheckout && (
+                  <div className="mt-6 pt-4 border-t border-luxury-gold/20">
+                    <div className="text-gray-400 text-sm mb-1">المبلغ المطلوب تحويله:</div>
+                    <div className="text-luxury-gold font-bold text-2xl">{pendingCheckout.totalAfterDiscount.toFixed(0)} ر.س</div>
+                  </div>
+                )}
               </div>
             </motion.div>
 
@@ -190,44 +274,10 @@ export default function BankTransferPage({ params }: { params: Promise<{ orderId
                   />
                 </div>
 
-                <div className="pt-4">
-                  <label className="block text-white mb-2">صورة إيصال التحويل *</label>
-                  <div
-                    className={`border-2 border-dashed ${previewUrl ? 'border-luxury-gold/50' : 'border-gray-600'} rounded-lg p-6 text-center cursor-pointer hover:border-luxury-gold/50 transition-colors bg-luxury-black/50`}
-                    onClick={() => fileInputRef.current?.click()}
-                  >
-                    <input
-                      type="file"
-                      ref={fileInputRef}
-                      onChange={handleImageChange}
-                      accept="image/*"
-                      className="hidden"
-                      required={!previewUrl}
-                    />
-
-                    {previewUrl ? (
-                      <div className="relative w-full aspect-video rounded overflow-hidden">
-                        <img src={previewUrl} alt="Receipt preview" className="w-full h-full object-contain bg-black" />
-                        <div className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
-                          <span className="text-white font-bold bg-black/80 px-4 py-2 rounded">تغيير الصورة</span>
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="py-8">
-                        <svg className="mx-auto h-12 w-12 text-gray-400 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
-                        </svg>
-                        <p className="text-gray-400 font-medium">اضغط هنا لرفع صورة الإيصال</p>
-                        <p className="text-gray-500 text-sm mt-2">JPG, PNG, WEBP (الحد الأقصى 5MB)</p>
-                      </div>
-                    )}
-                  </div>
-                </div>
-
                 <div className="pt-6">
                   <button
                     type="submit"
-                    disabled={isSubmitting}
+                    disabled={isSubmitting || (isNewOrder && !pendingCheckout)}
                     className="w-full bg-luxury-gold text-luxury-black font-bold py-4 rounded-sm hover:bg-luxury-gold-light transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                   >
                     {isSubmitting ? (
