@@ -50,7 +50,25 @@ export default function OrdersPage() {
   const [updatingStatus, setUpdatingStatus] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState<{ open: boolean; id: string }>({ open: false, id: '' });
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [deletingTestOrders, setDeletingTestOrders] = useState(false);
   const { showToast } = useToast();
+
+  const isDev = process.env.NODE_ENV === 'development';
+
+  const handleDeleteAllTestOrders = async () => {
+    const testOrders = orders.filter(o => o.is_test);
+    if (testOrders.length === 0) { showToast('لا توجد طلبات تجريبية', 'info'); return; }
+    if (!confirm(`سيتم حذف ${testOrders.length} طلب تجريبي نهائياً. هل أنت متأكد؟`)) return;
+    setDeletingTestOrders(true);
+    const { error } = await supabase.from('orders').delete().eq('is_test', true);
+    if (!error) {
+      setOrders(prev => prev.filter(o => !o.is_test));
+      showToast(`تم حذف ${testOrders.length} طلب تجريبي`, 'success');
+    } else {
+      showToast('فشل حذف الطلبات التجريبية', 'error');
+    }
+    setDeletingTestOrders(false);
+  };
 
   const fetchOrders = useCallback(async () => {
     setLoading(true);
@@ -144,7 +162,29 @@ export default function OrdersPage() {
           <h1 className="text-xl sm:text-3xl font-bold text-white mb-1">الطلبات</h1>
           <p className="text-gray-400 text-sm">إدارة طلبات المتجر ({orders.length} طلب)</p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap justify-end">
+          {isDev && (
+            <button
+              onClick={handleDeleteAllTestOrders}
+              disabled={deletingTestOrders}
+              title="حذف كل الطلبات التجريبية دفعة واحدة"
+              className="flex items-center gap-1.5 px-3 py-2 rounded-sm border border-dashed border-purple-500/50 bg-purple-500/10 text-purple-300 hover:bg-purple-500/20 transition-colors text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {deletingTestOrders ? (
+                <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                </svg>
+              ) : (
+                <span>🧪</span>
+              )}
+              حذف الطلبات التجريبية
+              {orders.filter(o => o.is_test).length > 0 && (
+                <span className="bg-purple-500/30 text-purple-200 text-xs px-1.5 py-0.5 rounded-full">
+                  {orders.filter(o => o.is_test).length}
+                </span>
+              )}
+            </button>
+          )}
           <DashboardRefreshButton onRefresh={fetchOrders} loading={loading} />
           <Link href="/dashboard/orders/new"
             className="w-full sm:w-auto px-5 sm:px-6 py-2.5 sm:py-3 bg-luxury-gold text-luxury-black font-bold rounded-sm hover:bg-luxury-gold/80 transition-colors inline-flex items-center justify-center gap-2 text-sm">
