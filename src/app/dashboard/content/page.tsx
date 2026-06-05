@@ -6,6 +6,7 @@ import { getNavigationLinks, saveNavigationLinks, getHeroSlides, saveHeroSlides,
 import { supabase } from '@/lib/supabase';
 import { useToast } from '@/context/ToastContext';
 import { revalidateSite } from '@/app/actions/revalidate';
+import DashboardRefreshButton from '@/components/DashboardRefreshButton';
 
 interface Section {
   section_name: string;
@@ -192,6 +193,7 @@ export default function ContentManagement() {
 
   const [data, setData] = useState<ContentData>(initialData);
   const [dataLoaded, setDataLoaded] = useState(false);
+  const [refreshKey, setRefreshKey] = useState(0);
 
   useEffect(() => {
     async function fetchData() {
@@ -247,7 +249,7 @@ export default function ContentManagement() {
     }
     
     fetchData();
-  }, []);
+  }, [refreshKey]);
 
   async function handleSave() {
     setSaving(true);
@@ -381,13 +383,16 @@ export default function ContentManagement() {
           <h1 className="text-xl sm:text-3xl font-bold text-white mb-1 sm:mb-2">إدارة المحتوى</h1>
           <p className="text-gray-400 text-sm">تحكم في جميع محتويات الموقع</p>
         </div>
-        <button
-          onClick={handleSave}
-          disabled={saving}
-          className="w-full sm:w-auto px-6 sm:px-8 py-2.5 sm:py-3 bg-luxury-gold text-luxury-black font-bold rounded-sm hover:bg-luxury-gold-light transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base"
-        >
-          {saving ? 'جاري الحفظ...' : 'حفظ كل التغييرات'}
-        </button>
+        <div className="flex items-center gap-2">
+          <DashboardRefreshButton onRefresh={() => setRefreshKey(k => k + 1)} loading={loading} />
+          <button
+            onClick={handleSave}
+            disabled={saving}
+            className="w-full sm:w-auto px-6 sm:px-8 py-2.5 sm:py-3 bg-luxury-gold text-luxury-black font-bold rounded-sm hover:bg-luxury-gold-light transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base"
+          >
+            {saving ? 'جاري الحفظ...' : 'حفظ كل التغييرات'}
+          </button>
+        </div>
       </motion.div>
 
       {/* Accordions */}

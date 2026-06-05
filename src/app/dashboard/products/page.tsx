@@ -24,6 +24,7 @@ import {
   type ProductExportData,
 } from '@/lib/import-utils';
 import { ImportConflictModal } from '@/components/ImportConflictModal';
+import DashboardRefreshButton from '@/components/DashboardRefreshButton';
 
 interface Product {
   id: number;
@@ -583,6 +584,7 @@ export default function ProductsList() {
               حذف ({selectedProducts.size})
             </button>
           )}
+          <DashboardRefreshButton onRefresh={fetchProducts} loading={loading} />
           <Link
             href="/dashboard/products/add"
             className="px-4 py-2 bg-luxury-gold text-luxury-black font-bold rounded-sm hover:bg-luxury-gold-light transition-colors inline-flex items-center gap-1.5 text-xs sm:text-sm"

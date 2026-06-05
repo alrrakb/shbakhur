@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { getAllSeoSettings, saveSeoData, type SeoData } from '@/lib/seo';
 import { useToast } from '@/context/ToastContext';
+import DashboardRefreshButton from '@/components/DashboardRefreshButton';
 
 const TITLE_LIMIT = 60;
 const DESC_LIMIT = 160;
@@ -147,13 +148,16 @@ const ALL_STORE_PAGES = [
           <h1 className="text-xl sm:text-3xl font-bold text-white mb-1">تحسين محركات البحث (SEO)</h1>
           <p className="text-gray-400 text-sm">إدارة إعدادات SEO لكل صفحة ({seoSettings.length} صفحة)</p>
         </div>
-        <button
-          onClick={handleSave}
-          disabled={saving}
-          className="w-full sm:w-auto px-5 sm:px-6 py-2.5 sm:py-3 bg-luxury-gold text-luxury-black font-bold rounded-sm hover:bg-luxury-gold/80 transition-colors disabled:opacity-50 text-sm"
-        >
-          {saving ? 'جاري الحفظ...' : 'حفظ جميع التغييرات'}
-        </button>
+        <div className="flex items-center gap-2">
+          <DashboardRefreshButton onRefresh={fetchSeoSettings} loading={loading} />
+          <button
+            onClick={handleSave}
+            disabled={saving}
+            className="w-full sm:w-auto px-5 sm:px-6 py-2.5 sm:py-3 bg-luxury-gold text-luxury-black font-bold rounded-sm hover:bg-luxury-gold/80 transition-colors disabled:opacity-50 text-sm"
+          >
+            {saving ? 'جاري الحفظ...' : 'حفظ جميع التغييرات'}
+          </button>
+        </div>
       </motion.div>
 
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">

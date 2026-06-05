@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { createClient } from '@supabase/supabase-js';
 import { useToast } from '@/context/ToastContext';
+import DashboardRefreshButton from '@/components/DashboardRefreshButton';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -203,7 +204,7 @@ export default function CustomersPage() {
   const totalOrders = customers.reduce((s, c) => s + c.order_count, 0);
 
   return (
-    <div className="space-y-4 sm:space-y-6" dir="rtl">
+    <div className="space-y-4 sm:space-y-6 min-w-0 overflow-x-hidden" dir="rtl">
       {/* Header */}
       <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }}
         className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
@@ -211,10 +212,13 @@ export default function CustomersPage() {
           <h1 className="text-xl sm:text-3xl font-bold text-white mb-1">العملاء</h1>
           <p className="text-gray-400 text-sm">{customers.length} عميل مسجل</p>
         </div>
-        <button onClick={openAdd}
-          className="w-full sm:w-auto px-5 sm:px-6 py-2.5 sm:py-3 bg-luxury-gold text-luxury-black font-bold rounded-sm hover:bg-luxury-gold/80 transition-colors inline-flex items-center justify-center gap-2 text-sm">
-          <span>+</span> إضافة عميل جديد
-        </button>
+        <div className="flex items-center gap-2">
+          <DashboardRefreshButton onRefresh={fetchCustomers} loading={loading} />
+          <button onClick={openAdd}
+            className="w-full sm:w-auto px-5 sm:px-6 py-2.5 sm:py-3 bg-luxury-gold text-luxury-black font-bold rounded-sm hover:bg-luxury-gold/80 transition-colors inline-flex items-center justify-center gap-2 text-sm">
+            <span>+</span> إضافة عميل جديد
+          </button>
+        </div>
       </motion.div>
 
       {/* Stats */}
@@ -268,7 +272,7 @@ export default function CustomersPage() {
 
       {/* Table */}
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-        className="bg-[#1a1a1a] rounded-sm border border-luxury-gold/20 overflow-hidden">
+        className="bg-[#1a1a1a] rounded-sm border border-luxury-gold/20 overflow-x-auto">
         {loading ? (
           <div className="flex items-center justify-center h-48">
             <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-luxury-gold" />

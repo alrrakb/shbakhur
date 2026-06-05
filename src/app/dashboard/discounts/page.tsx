@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { createClient } from '@supabase/supabase-js';
 import { useToast } from '@/context/ToastContext';
+import DashboardRefreshButton from '@/components/DashboardRefreshButton';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -125,10 +126,13 @@ export default function DiscountsPage() {
           <h1 className="text-xl sm:text-3xl font-bold text-white mb-1">الخصومات</h1>
           <p className="text-gray-400 text-sm">{discounts.length} كود خصم</p>
         </div>
-        <button onClick={() => { closeForm(); setShowForm(true); }}
-          className="w-full sm:w-auto px-5 sm:px-6 py-2.5 sm:py-3 bg-luxury-gold text-luxury-black font-bold rounded-sm hover:bg-luxury-gold/80 transition-colors text-sm">
-          + إضافة خصم
-        </button>
+        <div className="flex items-center gap-2">
+          <DashboardRefreshButton onRefresh={fetchDiscounts} loading={loading} />
+          <button onClick={() => { closeForm(); setShowForm(true); }}
+            className="w-full sm:w-auto px-5 sm:px-6 py-2.5 sm:py-3 bg-luxury-gold text-luxury-black font-bold rounded-sm hover:bg-luxury-gold/80 transition-colors text-sm">
+            + إضافة خصم
+          </button>
+        </div>
       </motion.div>
 
       {/* Search + Filters Toolbar */}

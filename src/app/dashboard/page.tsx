@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
+import DashboardRefreshButton from '@/components/DashboardRefreshButton';
 
 interface Stats {
   productsCount: number;
@@ -48,6 +49,7 @@ export default function DashboardHome() {
   const [recentProducts, setRecentProducts] = useState<RecentProduct[]>([]);
   const [recentOrders, setRecentOrders] = useState<RecentOrder[]>([]);
   const [loading, setLoading] = useState(true);
+  const [refreshKey, setRefreshKey] = useState(0);
 
   useEffect(() => {
     async function fetchData() {
@@ -79,7 +81,7 @@ export default function DashboardHome() {
     }
 
     fetchData();
-  }, []);
+  }, [refreshKey]);
 
   const statCards = [
     { label: 'الطلبات', value: stats.ordersCount, icon: '📦', color: 'from-blue-600 to-indigo-500', href: '/dashboard/orders' },
@@ -101,11 +103,15 @@ export default function DashboardHome() {
   return (
     <div className="space-y-5 sm:space-y-8">
       {/* Header */}
-      <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="text-center">
-        <h1 className="text-xl sm:text-3xl font-bold text-white mb-1 sm:mb-2">
-          لوحة التحكم <span className="text-luxury-gold">SH للبخور</span>
-        </h1>
-        <p className="text-gray-400 text-sm">مرحباً بك في لوحة تحكم المتجر</p>
+      <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }}
+        className="flex items-start justify-between gap-3">
+        <div>
+          <h1 className="text-xl sm:text-3xl font-bold text-white mb-1 sm:mb-2">
+            لوحة التحكم <span className="text-luxury-gold">SH للبخور</span>
+          </h1>
+          <p className="text-gray-400 text-sm">مرحباً بك في لوحة تحكم المتجر</p>
+        </div>
+        <DashboardRefreshButton onRefresh={() => setRefreshKey(k => k + 1)} loading={loading} />
       </motion.div>
 
       {/* Stats Cards — 2 cols on mobile, 3 on md+ */}

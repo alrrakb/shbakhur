@@ -277,7 +277,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               marginRight: isMobile ? 0 : (sidebarOpen ? SIDEBAR_W_OPEN : SIDEBAR_W_CLOSED)
             }}
             transition={{ duration: 0.25, ease: 'easeInOut' }}
-            className={`flex-1 min-h-screen p-4 sm:p-6 lg:p-8 ${isMobile ? 'pt-16' : ''} w-full`}
+            className={`flex-1 min-h-screen min-w-0 overflow-x-hidden p-4 sm:p-6 lg:p-8 ${isMobile ? 'pt-16' : ''}`}
           >
             {children}
           </motion.main>

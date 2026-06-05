@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '@/lib/supabase';
 import { useToast } from '@/context/ToastContext';
+import DashboardRefreshButton from '@/components/DashboardRefreshButton';
 
 interface Category {
   id: string;
@@ -182,12 +183,15 @@ export default function CategoriesManagement() {
           <h1 className="text-xl sm:text-3xl font-bold text-white mb-1 sm:mb-2">التصنيفات</h1>
           <p className="text-gray-400 text-sm">إدارة تصنيفات المنتجات ({categories.length} تصنيف)</p>
         </div>
-        <button
-          onClick={openAddModal}
-          className="w-full sm:w-auto px-5 sm:px-6 py-2.5 sm:py-3 bg-luxury-gold text-luxury-black font-bold rounded-sm hover:bg-luxury-gold-light transition-colors inline-flex items-center justify-center gap-2 text-sm sm:text-base"
-        >
-          <span>+</span> إضافة تصنيف جديد
-        </button>
+        <div className="flex items-center gap-2">
+          <DashboardRefreshButton onRefresh={fetchData} loading={loading} />
+          <button
+            onClick={openAddModal}
+            className="w-full sm:w-auto px-5 sm:px-6 py-2.5 sm:py-3 bg-luxury-gold text-luxury-black font-bold rounded-sm hover:bg-luxury-gold-light transition-colors inline-flex items-center justify-center gap-2 text-sm sm:text-base"
+          >
+            <span>+</span> إضافة تصنيف جديد
+          </button>
+        </div>
       </motion.div>
 
       {/* Categories Grid */}

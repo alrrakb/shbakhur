@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { createClient } from '@supabase/supabase-js';
 import { useToast } from '@/context/ToastContext';
 import { Eye, Edit, Trash2 } from 'lucide-react';
+import DashboardRefreshButton from '@/components/DashboardRefreshButton';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -142,10 +143,13 @@ export default function OrdersPage() {
           <h1 className="text-xl sm:text-3xl font-bold text-white mb-1">الطلبات</h1>
           <p className="text-gray-400 text-sm">إدارة طلبات المتجر ({orders.length} طلب)</p>
         </div>
-        <Link href="/dashboard/orders/new"
-          className="w-full sm:w-auto px-5 sm:px-6 py-2.5 sm:py-3 bg-luxury-gold text-luxury-black font-bold rounded-sm hover:bg-luxury-gold/80 transition-colors inline-flex items-center justify-center gap-2 text-sm">
-          <span>+</span> إضافة طلب يدوي
-        </Link>
+        <div className="flex items-center gap-2">
+          <DashboardRefreshButton onRefresh={fetchOrders} loading={loading} />
+          <Link href="/dashboard/orders/new"
+            className="w-full sm:w-auto px-5 sm:px-6 py-2.5 sm:py-3 bg-luxury-gold text-luxury-black font-bold rounded-sm hover:bg-luxury-gold/80 transition-colors inline-flex items-center justify-center gap-2 text-sm">
+            <span>+</span> إضافة طلب يدوي
+          </Link>
+        </div>
       </motion.div>
 
       {/* Stats */}
