@@ -75,11 +75,17 @@ export default function OrdersPage() {
     unreadThreshold !== '' &&
     new Date(order.created_at) > new Date(unreadThreshold);
 
-  /** اضبط الطلب كمقروء */
+  /** اضبط الطلب كمقروء وأزل أي تمييز بصري فوراً */
   const markAsRead = (orderId: string) => {
     setReadOrderIds(prev => {
       const next = new Set([...prev, orderId]);
       localStorage.setItem('orders_read_ids', JSON.stringify([...next]));
+      return next;
+    });
+    // أزل الوميض الأخضر المؤقت فوراً إن كان نشطاً
+    setFlashOrderIds(prev => {
+      const next = new Set(prev);
+      next.delete(orderId);
       return next;
     });
   };
