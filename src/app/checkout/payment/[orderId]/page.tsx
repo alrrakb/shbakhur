@@ -17,6 +17,7 @@ interface PendingCheckout {
   orderItems: { product_id: string | number; product_name: string; quantity: number; price: number; image?: string }[];
   discountValue: number;
   totalAfterDiscount: number;
+  is_test?: boolean;
 }
 
 type TransferForm = { senderName: string; senderBank: string; senderAccount: string };
@@ -148,6 +149,7 @@ export default function BankTransferPage({ params }: { params: Promise<{ orderId
           notes:            fd.notes || undefined,
           discount_amount:  discountValue,
           payment_method:   'bank_transfer',
+          is_test:          pendingCheckout.is_test ?? false,
           items:            orderItems,
         });
 

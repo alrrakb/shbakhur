@@ -36,6 +36,7 @@ interface Order {
   sender_bank?: string | null;
   sender_account?: string | null;
   payment_method?: string | null;
+  is_test?: boolean | null;
   customers: { name: string; phone: string; additional_phone?: string | null; city?: string | null; address?: string | null } | null;
   order_items: { id: string; product_name: string | null; quantity: number; unit_price: number; total_price: number }[];
 }
@@ -57,7 +58,7 @@ export default function OrdersPage() {
       let query = supabase
         .from('orders')
         .select(`
-          id, order_number, status, subtotal, discount_amount, total_amount, notes, created_at, transfer_receipt_url, sender_name, sender_bank, sender_account, payment_method,
+          id, order_number, status, subtotal, discount_amount, total_amount, notes, created_at, transfer_receipt_url, sender_name, sender_bank, sender_account, payment_method, is_test,
           customers(name, phone, additional_phone, city, address),
           order_items(id, product_name, quantity, unit_price, total_price)
         `)
@@ -227,6 +228,11 @@ export default function OrdersPage() {
                           }}
                           className="accent-luxury-gold w-4 h-4 cursor-pointer" />
                         <span className="font-mono text-luxury-gold text-sm">{order.order_number}</span>
+                        {order.is_test && (
+                          <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-xs font-bold bg-purple-500/20 text-purple-300 border border-purple-500/40">
+                            🧪 تجريبي
+                          </span>
+                        )}
                       </div>
                       <span className={`whitespace-nowrap px-2 py-0.5 rounded-sm text-xs border ${st.bg} ${st.color}`}>
                         {st.label}
@@ -261,7 +267,10 @@ export default function OrdersPage() {
                     <div className="flex items-center justify-between">
                       <div>
                         <span className="text-luxury-gold font-bold text-sm">{order.total_amount.toFixed(0)} ر.س</span>
-                        <span className="text-gray-500 text-xs mr-2">{new Date(order.created_at).toLocaleDateString('ar-SA')}</span>
+                        <div className="text-gray-500 text-xs mt-0.5">
+                          {new Date(order.created_at).toLocaleDateString('ar-SA')}
+                          <span className="mr-1.5 text-gray-600">{new Date(order.created_at).toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' })}</span>
+                        </div>
                       </div>
                       <div className="flex items-center gap-1.5">
                         <button onClick={() => setSelectedOrder(order)} title="تفاصيل"
@@ -315,7 +324,14 @@ export default function OrdersPage() {
                             }}
                             className="accent-luxury-gold w-4 h-4 cursor-pointer" />
                         </td>
-                        <td className="p-4 font-mono text-luxury-gold text-sm">{order.order_number}</td>
+                        <td className="p-4">
+                          <div className="font-mono text-luxury-gold text-sm">{order.order_number}</div>
+                          {order.is_test && (
+                            <span className="inline-flex items-center gap-0.5 mt-1 px-1.5 py-0.5 rounded text-xs font-bold bg-purple-500/20 text-purple-300 border border-purple-500/40">
+                              🧪 تجريبي
+                            </span>
+                          )}
+                        </td>
                         <td className="p-4">
                           <div className="flex items-center gap-2 flex-wrap">
                             <span className="text-white font-medium">{order.customers?.name || '—'}</span>
@@ -344,8 +360,9 @@ export default function OrdersPage() {
                             {st.label}
                           </span>
                         </td>
-                        <td className="p-4 text-gray-400 text-sm whitespace-nowrap">
-                          {new Date(order.created_at).toLocaleDateString('ar-SA')}
+                        <td className="p-4 whitespace-nowrap">
+                          <div className="text-gray-400 text-sm">{new Date(order.created_at).toLocaleDateString('ar-SA')}</div>
+                          <div className="text-gray-600 text-xs mt-0.5">{new Date(order.created_at).toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' })}</div>
                         </td>
                         <td className="p-4">
                           <div className="flex items-center gap-2">
@@ -386,7 +403,14 @@ export default function OrdersPage() {
               onClick={e => e.stopPropagation()}>
               <div className="p-6 border-b border-luxury-gold/20 flex items-center justify-between">
                 <div>
-                  <h2 className="text-xl font-bold text-luxury-gold">{selectedOrder.order_number}</h2>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <h2 className="text-xl font-bold text-luxury-gold">{selectedOrder.order_number}</h2>
+                    {selectedOrder.is_test && (
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-bold bg-purple-500/20 text-purple-300 border border-purple-500/40">
+                        🧪 طلب تجريبي
+                      </span>
+                    )}
+                  </div>
                   <p className="text-gray-400 text-sm mt-1">
                     {new Date(selectedOrder.created_at).toLocaleString('ar-SA')}
                   </p>

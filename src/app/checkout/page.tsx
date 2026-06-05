@@ -107,7 +107,8 @@ export default function CheckoutPage() {
   const [errors, setErrors]   = useState<Partial<Record<keyof FormData, string>>>({});
   const [touched, setTouched] = useState<Partial<Record<keyof FormData, boolean>>>({});
 
-  const isDev = process.env.NODE_ENV === 'development';
+  const isDev   = process.env.NODE_ENV === 'development';
+  const isTest  = typeof window !== 'undefined' && window.location.hostname === 'localhost';
 
   // ── Helpers ─────────────────────────────────────────────────────────────────
   const calculateTotalAfterDiscount = () => {
@@ -189,6 +190,7 @@ export default function CheckoutPage() {
           notes: formData.notes || undefined,
           discount_amount: discountValue,
           payment_method: 'cod',
+          is_test: isTest,
           items: orderItems,
         });
 
@@ -224,6 +226,7 @@ export default function CheckoutPage() {
           orderItems,
           discountValue,
           totalAfterDiscount: calculateTotalAfterDiscount(),
+          is_test: isTest,
         };
         sessionStorage.setItem('pendingCheckout', JSON.stringify(checkoutData));
         setIsModalOpen(false);
