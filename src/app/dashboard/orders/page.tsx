@@ -51,6 +51,8 @@ export default function OrdersPage() {
   const [deleteConfirm, setDeleteConfirm] = useState<{ open: boolean; id: string }>({ open: false, id: '' });
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [deletingTestOrders, setDeletingTestOrders] = useState(false);
+  const [realtimeStatus, setRealtimeStatus] = useState<'connecting' | 'connected' | 'disconnected'>('connecting');
+  const [newOrderIds, setNewOrderIds] = useState<Set<string>>(new Set());
   const { showToast } = useToast();
 
   const isDev = process.env.NODE_ENV === 'development';
@@ -95,6 +97,62 @@ export default function OrdersPage() {
   }, [statusFilter]);
 
   useEffect(() => { fetchOrders(); }, [fetchOrders]);
+
+  // ── Realtime subscription ─────────────────────────────────────────────────
+  const ORDER_SELECT = `
+    id, order_number, status, subtotal, discount_amount, total_amount, notes, created_at,
+    transfer_receipt_url, sender_name, sender_bank, sender_account, payment_method, is_test,
+    customers(name, phone, additional_phone, city, address),
+    order_items(id, product_name, quantity, unit_price, total_price)
+  `;
+
+  useEffect(() => {
+    const channel = supabase
+      .channel('orders-realtime-dashboard')
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'orders' },
+        async (payload) => {
+          // جلب بيانات الطلب كاملةً مع الـ joins
+          const { data } = await supabase
+            .from('orders')
+            .select(ORDER_SELECT)
+            .eq('id', payload.new.id)
+            .single();
+
+          if (data) {
+            setOrders(prev => [data as any, ...prev]);
+            // إبراز الطلب الجديد بصرياً لمدة 8 ثوانٍ
+            setNewOrderIds(prev => new Set([...prev, (data as any).id]));
+            setTimeout(() => {
+              setNewOrderIds(prev => { const s = new Set(prev); s.delete((data as any).id); return s; });
+            }, 8000);
+            showToast(`🔔 طلب جديد: ${(data as any).order_number}`, 'success');
+          }
+        }
+      )
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'orders' },
+        (payload) => {
+          setOrders(prev => prev.map(o =>
+            o.id === payload.new.id ? { ...o, ...(payload.new as Partial<Order>) } : o
+          ));
+          setSelectedOrder(prev =>
+            prev?.id === payload.new.id ? ({ ...prev, ...(payload.new as Partial<Order>) } as Order) : prev
+          );
+        }
+      )
+      .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'orders' },
+        (payload) => {
+          setOrders(prev => prev.filter(o => o.id !== payload.old.id));
+          setSelectedOrder(prev => prev?.id === payload.old.id ? null : prev);
+        }
+      )
+      .subscribe((status) => {
+        if (status === 'SUBSCRIBED')   setRealtimeStatus('connected');
+        else if (status === 'CLOSED')  setRealtimeStatus('disconnected');
+        else                           setRealtimeStatus('connecting');
+      });
+
+    return () => { supabase.removeChannel(channel); };
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleStatusChange = async (orderId: string, newStatus: string) => {
     setUpdatingStatus(true);
@@ -159,7 +217,31 @@ export default function OrdersPage() {
       <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }}
         className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
-          <h1 className="text-xl sm:text-3xl font-bold text-white mb-1">الطلبات</h1>
+          <div className="flex items-center gap-2.5 mb-1">
+            <h1 className="text-xl sm:text-3xl font-bold text-white">الطلبات</h1>
+            {/* مؤشر Realtime */}
+            <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full border text-xs font-medium
+              transition-all duration-500
+              {realtimeStatus === 'connected'
+                ? 'bg-green-500/10 border-green-500/30 text-green-400'
+                : realtimeStatus === 'connecting'
+                ? 'bg-yellow-500/10 border-yellow-500/30 text-yellow-400'
+                : 'bg-red-500/10 border-red-500/30 text-red-400'
+              }"
+              style={{
+                backgroundColor: realtimeStatus === 'connected' ? 'rgba(34,197,94,0.1)' : realtimeStatus === 'connecting' ? 'rgba(234,179,8,0.1)' : 'rgba(239,68,68,0.1)',
+                borderColor:     realtimeStatus === 'connected' ? 'rgba(34,197,94,0.3)'  : realtimeStatus === 'connecting' ? 'rgba(234,179,8,0.3)'  : 'rgba(239,68,68,0.3)',
+                color:           realtimeStatus === 'connected' ? 'rgb(74,222,128)'      : realtimeStatus === 'connecting' ? 'rgb(250,204,21)'      : 'rgb(248,113,113)',
+              }}>
+              <span className={`w-1.5 h-1.5 rounded-full ${
+                realtimeStatus === 'connected'   ? 'bg-green-400 animate-pulse' :
+                realtimeStatus === 'connecting'  ? 'bg-yellow-400 animate-pulse' :
+                                                   'bg-red-400'
+              }`} />
+              {realtimeStatus === 'connected'  ? 'مباشر' :
+               realtimeStatus === 'connecting' ? 'جاري الاتصال...' : 'غير متصل'}
+            </div>
+          </div>
           <p className="text-gray-400 text-sm">إدارة طلبات المتجر ({orders.length} طلب)</p>
         </div>
         <div className="flex items-center gap-2 flex-wrap justify-end">
@@ -254,9 +336,14 @@ export default function OrdersPage() {
               {filtered.map((order, i) => {
                 const st = STATUS_LABELS[order.status] || STATUS_LABELS.pending;
                 return (
-                  <motion.div key={order.id} initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-                    transition={{ delay: i * 0.03 }}
-                    className={`p-4 ${selectedIds.includes(order.id) ? 'bg-luxury-gold/5' : ''}`}>
+                  <motion.div key={order.id}
+                    initial={{ opacity: 0, x: newOrderIds.has(order.id) ? -10 : 0 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: newOrderIds.has(order.id) ? 0 : i * 0.03 }}
+                    className={`p-4 transition-colors duration-700 ${
+                      newOrderIds.has(order.id) ? 'bg-green-500/5 border-r-2 border-green-500/50' :
+                      selectedIds.includes(order.id) ? 'bg-luxury-gold/5' : ''
+                    }`}>
                     {/* Row 1: checkbox + order number + status badge */}
                     <div className="flex items-center justify-between mb-2">
                       <div className="flex items-center gap-2">
@@ -268,6 +355,11 @@ export default function OrdersPage() {
                           }}
                           className="accent-luxury-gold w-4 h-4 cursor-pointer" />
                         <span className="font-mono text-luxury-gold text-sm">{order.order_number}</span>
+                        {newOrderIds.has(order.id) && (
+                          <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-xs font-bold bg-green-500/20 text-green-300 border border-green-500/40 animate-pulse">
+                            ● جديد
+                          </span>
+                        )}
                         {order.is_test && (
                           <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-xs font-bold bg-purple-500/20 text-purple-300 border border-purple-500/40">
                             🧪 تجريبي
@@ -352,9 +444,15 @@ export default function OrdersPage() {
                   {filtered.map((order, i) => {
                     const st = STATUS_LABELS[order.status] || STATUS_LABELS.pending;
                     return (
-                      <motion.tr key={order.id} initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-                        transition={{ delay: i * 0.03 }}
-                        className={`border-b border-luxury-gold/10 hover:bg-luxury-gold/5 transition-colors ${selectedIds.includes(order.id) ? 'bg-luxury-gold/5' : ''}`}>
+                      <motion.tr key={order.id}
+                        initial={{ opacity: 0, y: newOrderIds.has(order.id) ? -8 : 0 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: newOrderIds.has(order.id) ? 0 : i * 0.03 }}
+                        className={`border-b border-luxury-gold/10 transition-colors duration-700 ${
+                          newOrderIds.has(order.id) ? 'bg-green-500/5 border-r-2 border-r-green-500/50' :
+                          selectedIds.includes(order.id) ? 'bg-luxury-gold/5' :
+                          'hover:bg-luxury-gold/5'
+                        }`}>
                         <td className="p-4 text-center">
                           <input type="checkbox"
                             checked={selectedIds.includes(order.id)}
@@ -366,11 +464,18 @@ export default function OrdersPage() {
                         </td>
                         <td className="p-4">
                           <div className="font-mono text-luxury-gold text-sm">{order.order_number}</div>
-                          {order.is_test && (
-                            <span className="inline-flex items-center gap-0.5 mt-1 px-1.5 py-0.5 rounded text-xs font-bold bg-purple-500/20 text-purple-300 border border-purple-500/40">
-                              🧪 تجريبي
-                            </span>
-                          )}
+                          <div className="flex flex-wrap gap-1 mt-1">
+                            {newOrderIds.has(order.id) && (
+                              <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-xs font-bold bg-green-500/20 text-green-300 border border-green-500/40 animate-pulse">
+                                ● جديد
+                              </span>
+                            )}
+                            {order.is_test && (
+                              <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-xs font-bold bg-purple-500/20 text-purple-300 border border-purple-500/40">
+                                🧪 تجريبي
+                              </span>
+                            )}
+                          </div>
                         </td>
                         <td className="p-4">
                           <div className="flex items-center gap-2 flex-wrap">
