@@ -5,8 +5,9 @@ import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
 import { createClient } from '@supabase/supabase-js';
 import { useToast } from '@/context/ToastContext';
-import { Eye, Edit, Trash2 } from 'lucide-react';
+import { Eye, Edit, Trash2, FileText } from 'lucide-react';
 import DashboardRefreshButton from '@/components/DashboardRefreshButton';
+import InvoiceModal from '@/components/InvoiceModal';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -51,6 +52,7 @@ export default function OrdersPage() {
   const [deleteConfirm, setDeleteConfirm] = useState<{ open: boolean; id: string }>({ open: false, id: '' });
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [deletingTestOrders, setDeletingTestOrders] = useState(false);
+  const [invoiceOrder, setInvoiceOrder] = useState<Order | null>(null);
   const [realtimeStatus, setRealtimeStatus] = useState<'connecting' | 'connected' | 'disconnected'>('connecting');
   const [flashOrderIds, setFlashOrderIds] = useState<Set<string>>(new Set());   // وميض مؤقت 3 ثوانٍ
   const [readOrderIds, setReadOrderIds] = useState<Set<string>>(new Set());     // مقروء من localStorage
@@ -459,6 +461,10 @@ export default function OrdersPage() {
                           className="p-1.5 bg-luxury-gold/10 text-luxury-gold border border-luxury-gold/30 rounded-sm hover:bg-luxury-gold/20 transition-colors">
                           <Eye size={14} />
                         </button>
+                        <button onClick={() => setInvoiceOrder(order)} title="إصدار فاتورة"
+                          className="p-1.5 bg-white/10 text-gray-300 border border-white/20 rounded-sm hover:bg-white/20 transition-colors">
+                          <FileText size={14} />
+                        </button>
                         <Link href={`/dashboard/orders/${order.id}/edit`} title="تعديل"
                           className="p-1.5 bg-blue-500/10 text-blue-400 border border-blue-500/30 rounded-sm hover:bg-blue-500/20 transition-colors">
                           <Edit size={14} />
@@ -575,6 +581,10 @@ export default function OrdersPage() {
                             <button onClick={() => { setSelectedOrder(order); markAsRead(order.id); }} title="تفاصيل"
                               className="p-2 bg-luxury-gold/10 text-luxury-gold border border-luxury-gold/30 rounded-sm hover:bg-luxury-gold/20 transition-colors">
                               <Eye size={16} />
+                            </button>
+                            <button onClick={() => setInvoiceOrder(order)} title="إصدار فاتورة"
+                              className="p-2 bg-white/10 text-gray-300 border border-white/20 rounded-sm hover:bg-white/20 transition-colors">
+                              <FileText size={16} />
                             </button>
                             <Link href={`/dashboard/orders/${order.id}/edit`} title="تعديل"
                               className="p-2 bg-blue-500/10 text-blue-400 border border-blue-500/30 rounded-sm hover:bg-blue-500/20 transition-colors">
@@ -770,6 +780,11 @@ export default function OrdersPage() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Invoice Modal */}
+      {invoiceOrder && (
+        <InvoiceModal order={invoiceOrder} onClose={() => setInvoiceOrder(null)} />
+      )}
 
       {/* Delete Confirmation Modal */}
       <AnimatePresence>
