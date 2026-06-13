@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { getHeroSlides, type HeroSlide } from '@/lib/database';
+import { getHeroSlides, getSiteSettings, type HeroSlide } from '@/lib/database';
 import Link from 'next/link';
 import Image from 'next/image';
 
@@ -80,7 +80,11 @@ export default function Hero() {
 
       // 2. Always fetch fresh from DB
       try {
-        const fetchedSlides = await getHeroSlides();
+        const [fetchedSlides, fetchedHeroInfo] = await Promise.all([
+          getHeroSlides(),
+          getSiteSettings('hero_info'),
+        ]);
+        if (fetchedHeroInfo) setHeroInfo(fetchedHeroInfo);
         if (fetchedSlides.length > 0) {
           const activeSlides = fetchedSlides.filter((s: HeroSlide) => s.is_active !== false);
           setSlides(activeSlides);

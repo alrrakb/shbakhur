@@ -484,13 +484,43 @@ export async function getTestimonials(): Promise<Testimonial[]> {
     const { data, error } = await supabase
       .from('testimonials')
       .select('*')
-      .eq('is_active', true)
       .order('sort_order', { ascending: true });
 
     if (error) throw error;
-    return data || [];
+    return (data || []).map((t: any) => ({
+      id: t.id,
+      name: t.name,
+      location: t.role || t.location || '',
+      rating: t.rating,
+      comment: t.content || t.comment || '',
+      is_active: t.is_active !== false,
+      sort_order: t.sort_order,
+    }));
   } catch (error) {
     return [];
+  }
+}
+
+export async function saveTestimonials(testimonials: Omit<Testimonial, 'id'>[]): Promise<{ success: boolean; error?: string }> {
+  try {
+    await supabase.from('testimonials').delete().neq('id', 0);
+
+    if (testimonials.length === 0) return { success: true };
+
+    const inserts = testimonials.map((t, i) => ({
+      name: t.name || '',
+      role: t.location || '',
+      content: t.comment || '',
+      rating: t.rating || 5,
+      is_active: t.is_active !== false,
+      sort_order: t.sort_order ?? i + 1,
+    }));
+
+    const { error } = await supabase.from('testimonials').insert(inserts);
+    if (error) throw error;
+    return { success: true };
+  } catch (error: any) {
+    return { success: false, error: error.message };
   }
 }
 
@@ -793,6 +823,32 @@ export async function saveNewsTickerMessages(
       if (insError) throw insError;
     }
 
+    return { success: true };
+  } catch (error: any) {
+    return { success: false, error: error.message };
+  }
+}
+
+export async function getSiteSettings(key: string): Promise<any | null> {
+  try {
+    const { data, error } = await supabase
+      .from('site_settings')
+      .select('value')
+      .eq('key', key)
+      .single();
+    if (error) return null;
+    return data?.value ?? null;
+  } catch {
+    return null;
+  }
+}
+
+export async function saveSiteSettings(key: string, value: any): Promise<{ success: boolean; error?: string }> {
+  try {
+    const { error } = await supabase
+      .from('site_settings')
+      .upsert({ key, value, updated_at: new Date().toISOString() }, { onConflict: 'key' });
+    if (error) throw error;
     return { success: true };
   } catch (error: any) {
     return { success: false, error: error.message };

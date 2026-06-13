@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { getNavigationLinks, saveNavigationLinks, getHeroSlides, saveHeroSlides, saveFooterLinks, getFooterLinks, getFooterSettings, getPartners, savePartners, savePartnersSettings, getPartnersSettings, saveFooterSettings, getSiteLogo, saveSiteLogo, getNewsTickerMessages, saveNewsTickerMessages, type NavLink as DbNavLink } from '@/lib/database';
+import { getNavigationLinks, saveNavigationLinks, getHeroSlides, saveHeroSlides, saveFooterLinks, getFooterLinks, getFooterSettings, getPartners, savePartners, savePartnersSettings, getPartnersSettings, saveFooterSettings, getSiteLogo, saveSiteLogo, getNewsTickerMessages, saveNewsTickerMessages, getTestimonials, saveTestimonials, getSiteSettings, saveSiteSettings, type NavLink as DbNavLink } from '@/lib/database';
 import { supabase } from '@/lib/supabase';
 import { useToast } from '@/context/ToastContext';
 import { revalidateSite } from '@/app/actions/revalidate';
@@ -199,7 +199,7 @@ export default function ContentManagement() {
   useEffect(() => {
     async function fetchData() {
       try {
-        const [dbNavLinks, dbHeroSlides, dbPartners, dbFooterLinks, dbFooterSettings, dbSiteLogo, dbPartnersSettings, dbNewsTicker] = await Promise.all([
+        const [dbNavLinks, dbHeroSlides, dbPartners, dbFooterLinks, dbFooterSettings, dbSiteLogo, dbPartnersSettings, dbNewsTicker, dbTestimonials, dbHeroInfo, dbProductsSettings] = await Promise.all([
           getNavigationLinks(),
           getHeroSlides(),
           getPartners(),
@@ -208,6 +208,9 @@ export default function ContentManagement() {
           getSiteLogo(),
           getPartnersSettings(),
           getNewsTickerMessages(),
+          getTestimonials(),
+          getSiteSettings('hero_info'),
+          getSiteSettings('products_settings'),
         ]);
         
         const navLinksFromDb = dbNavLinks.map((link: any) => {
@@ -241,6 +244,9 @@ export default function ContentManagement() {
           navigation: navLinksFromDb.length > 0 ? navLinksFromDb : initialData.navigation,
           site_logo: dbSiteLogo ? [dbSiteLogo] : initialData.site_logo,
           news_ticker: dbNewsTicker.length > 0 ? dbNewsTicker : initialData.news_ticker,
+          testimonials: dbTestimonials.length > 0 ? dbTestimonials : initialData.testimonials,
+          hero_info: dbHeroInfo ?? initialData.hero_info,
+          products_settings: dbProductsSettings ?? initialData.products_settings,
         };
         
         setData(newData);
@@ -352,6 +358,21 @@ export default function ContentManagement() {
         sort_order: m.sort_order ?? i + 1,
       }));
       await saveNewsTickerMessages(newsTickerRows);
+
+      // Save testimonials
+      const testimonialsRows = (data.testimonials || []).map((t: any, i: number) => ({
+        name: t.name || '',
+        location: t.location || '',
+        rating: t.rating || 5,
+        comment: t.comment || '',
+        is_active: t.is_active !== false,
+        sort_order: t.sort_order ?? i + 1,
+      }));
+      await saveTestimonials(testimonialsRows);
+
+      // Save hero_info and products_settings
+      await saveSiteSettings('hero_info', data.hero_info);
+      await saveSiteSettings('products_settings', data.products_settings);
 
       await revalidateSite();
       showToast('تم حفظ جميع التغييرات بنجاح', 'success');

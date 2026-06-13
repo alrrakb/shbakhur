@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import ProductCard from './ProductCard';
 import Link from 'next/link';
-import { getCategories, getProductsByCategory } from '@/lib/database';
+import { getCategories, getProductsByCategory, getSiteSettings } from '@/lib/database';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Navigation } from 'swiper/modules';
 import 'swiper/css';
@@ -60,6 +60,9 @@ export default function ProductSelection() {
   useEffect(() => {
     async function loadData() {
       try {
+        const dbSettings = await getSiteSettings('products_settings');
+        if (dbSettings) setProductSettings(dbSettings);
+
         const categories = await getCategories();
         
         if (categories.length > 0) {
