@@ -266,12 +266,13 @@ export default function Header() {
                       >
                         {/* Gold Corner */}
                         <div className="absolute top-0 left-0 w-3 h-3 border-t-2 border-r-2 border-luxury-gold" />
-                        
+
                         <div className="p-4">
                           {(() => {
-                            const items = typeof link.dropdown_items === 'string' 
-                              ? JSON.parse(link.dropdown_items || '[]') 
-                              : (link.dropdown_items || []);
+                            const items = (typeof link.dropdown_items === 'string'
+                              ? JSON.parse(link.dropdown_items || '[]')
+                              : (link.dropdown_items || [])
+                            ).filter((item: any) => item.is_active !== false);
                             return items.map((item: any, idx: number) => (
                               <div key={idx}>
                                 {item.category ? (
@@ -378,9 +379,10 @@ export default function Header() {
                       {link.name}
                     </Link>
                     {link.has_dropdown && link.dropdown_items && (() => {
-                      const items = typeof link.dropdown_items === 'string' 
-                        ? JSON.parse(link.dropdown_items || '[]') 
-                        : (link.dropdown_items || []);
+                      const items = (typeof link.dropdown_items === 'string'
+                        ? JSON.parse(link.dropdown_items || '[]')
+                        : (link.dropdown_items || [])
+                      ).filter((item: any) => item.is_active !== false);
                       return items.map((item: any, idx: number) => (
                         <div key={idx} className="pr-4 space-y-1 border-r-2 border-luxury-gold/30">
                           {item.category ? (

@@ -595,7 +595,8 @@ export async function saveNavigationLinks(links: NavLink[]): Promise<{ success: 
           : (link.dropdown_items || []);
         dropdownItems = rawItems.map((item: any) => ({
           name: item.name,
-          href: item.link || item.href || ''
+          href: item.link || item.href || '',
+          is_active: item.is_active !== false,
         }));
       } catch {
         dropdownItems = [];

@@ -266,7 +266,8 @@ export default function ContentManagement() {
             : (item.dropdown_items || []);
           dropdownArray = raw.map((d: any) => ({
             name: d.name,
-            link: d.link || d.href || ''
+            link: d.link || d.href || '',
+            is_active: d.is_active !== false,
           }));
         } catch {
           dropdownArray = [];
@@ -673,7 +674,8 @@ function NavigationSection({ data, updateData }: { data: ContentData; updateData
       const items = typeof nav.dropdown_items === 'string' ? JSON.parse(nav.dropdown_items) : nav.dropdown_items || [];
       return items.map((item: any) => ({
         name: item.name,
-        link: item.link || item.href || ''
+        link: item.link || item.href || '',
+        is_active: item.is_active !== false,
       }));
     } catch {
       return [];
@@ -687,11 +689,11 @@ function NavigationSection({ data, updateData }: { data: ContentData; updateData
   const addDropdownItem = (index: number) => {
     const nav = (data.navigation || [])[index];
     const items = getDropdownItems(nav);
-    items.push({ name: '', link: '' });
+    items.push({ name: '', link: '', is_active: true });
     updateDropdownItems(index, items);
   };
 
-  const updateDropdownItem = (navIndex: number, itemIndex: number, field: string, value: string) => {
+  const updateDropdownItem = (navIndex: number, itemIndex: number, field: string, value: any) => {
     const nav = (data.navigation || [])[navIndex];
     const items = getDropdownItems(nav);
     items[itemIndex][field] = value;
@@ -752,7 +754,7 @@ function NavigationSection({ data, updateData }: { data: ContentData; updateData
             <div className="mt-3 p-3 bg-[#0f0f0f] rounded-sm space-y-2">
               <p className="text-luxury-gold text-sm font-medium">القائمة الفرعية</p>
               {getDropdownItems(nav).map((item: any, itemIndex: number) => (
-                <div key={itemIndex} className="flex gap-2 items-center">
+                <div key={itemIndex} className={`flex gap-2 items-center ${item.is_active === false ? 'opacity-40' : ''}`}>
                   <input
                     type="text"
                     value={item.name}
@@ -767,9 +769,21 @@ function NavigationSection({ data, updateData }: { data: ContentData; updateData
                     className="flex-1 px-2 py-1 bg-[#1a1a1a] border border-luxury-gold/10 rounded-sm text-white text-sm"
                     placeholder="/link"
                   />
-                  <button 
+                  <button
+                    type="button"
+                    title={item.is_active === false ? 'تفعيل' : 'إيقاف مؤقت'}
+                    onClick={() => updateDropdownItem(index, itemIndex, 'is_active', item.is_active === false)}
+                    className={`flex-shrink-0 w-7 h-7 rounded-sm text-xs font-bold transition-colors ${
+                      item.is_active === false
+                        ? 'bg-gray-700 text-gray-400 hover:bg-green-500/20 hover:text-green-400'
+                        : 'bg-green-500/15 text-green-400 hover:bg-red-500/15 hover:text-red-400'
+                    }`}
+                  >
+                    {item.is_active === false ? '●' : '✓'}
+                  </button>
+                  <button
                     onClick={() => removeDropdownItem(index, itemIndex)}
-                    className="text-red-500 text-xs"
+                    className="flex-shrink-0 text-red-500 text-xs"
                   >
                     ✕
                   </button>
