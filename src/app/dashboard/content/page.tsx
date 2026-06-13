@@ -218,7 +218,8 @@ export default function ContentManagement() {
               : (link.dropdown_items || []);
             dropdownArray = rawDropdowns.map((item: any) => ({
               name: item.name,
-              link: item.href || item.link || ''
+              link: item.href || item.link || '',
+              is_active: item.is_active !== false,
             }));
           } catch {
             dropdownArray = [];
