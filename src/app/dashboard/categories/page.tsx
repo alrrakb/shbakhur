@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '@/lib/supabase';
 import { useToast } from '@/context/ToastContext';
+import { revalidateSite } from '@/app/actions/revalidate';
 import DashboardRefreshButton from '@/components/DashboardRefreshButton';
 
 interface Category {
@@ -12,6 +13,7 @@ interface Category {
   slug: string;
   taxonomy: string;
   parent_id?: string | null;
+  is_active: boolean;
 }
 
 interface NavLink {
@@ -39,7 +41,7 @@ export default function CategoriesManagement() {
   async function fetchData() {
     try {
       const [catRes, navRes] = await Promise.all([
-        supabase.from('categories').select('id, name, slug, taxonomy, parent_id').order('name'),
+        supabase.from('categories').select('id, name, slug, taxonomy, parent_id, is_active').order('name'),
         supabase.from('navigation_links').select('id, name, link, has_dropdown, sort_order').order('sort_order')
       ]);
       if (catRes.data) setCategories(catRes.data);
@@ -136,6 +138,33 @@ export default function CategoriesManagement() {
     }
   };
 
+  const toggleActive = async (category: Category) => {
+    const newActive = !category.is_active;
+    try {
+      const { error } = await supabase
+        .from('categories')
+        .update({ is_active: newActive })
+        .eq('id', category.id);
+      if (error) throw error;
+
+      // Sync the matching navigation link visibility
+      await supabase
+        .from('navigation_links')
+        .update({ is_active: newActive })
+        .eq('link', `/products/${category.slug}`);
+
+      await revalidateSite();
+      fetchData();
+      showToast(
+        newActive ? `تم تفعيل تصنيف "${category.name}"` : `تم إيقاف تصنيف "${category.name}"`,
+        'success'
+      );
+    } catch (error) {
+      console.error('Error toggling active:', error);
+      showToast('حدث خطأ في تغيير حالة التصنيف', 'error');
+    }
+  };
+
   const openAddModal = () => {
     setEditingCategory(null);
     setFormData({ name: '', slug: '', addToNav: true, navLink: '/products/', parent_id: '' });
@@ -216,17 +245,24 @@ export default function CategoriesManagement() {
                 transition={{ delay: index * 0.05 }}
                 className="bg-[#1a1a1a] rounded-sm border border-luxury-gold/20 p-3 sm:p-4 hover:border-luxury-gold/50 transition-colors"
               >
-                {/* Name + badge */}
+                {/* Name + badges */}
                 <div className="flex items-start justify-between mb-2 gap-1">
                   <div className="min-w-0">
-                    <h3 className="text-white font-bold text-sm truncate">{category.name}</h3>
+                    <h3 className={`font-bold text-sm truncate ${category.is_active !== false ? 'text-white' : 'text-gray-500'}`}>
+                      {category.name}
+                    </h3>
                     {category.parent_id && (
                       <span className="block text-xs text-luxury-gold mt-0.5">{getParentName(category.parent_id)}</span>
                     )}
                   </div>
-                  <span className={`px-1.5 py-0.5 text-xs rounded flex-shrink-0 ${navLink ? 'bg-luxury-gold/20 text-luxury-gold' : 'bg-gray-700 text-gray-400'}`}>
-                    {navLink ? 'في القائمة' : 'غير مرتبط'}
-                  </span>
+                  <div className="flex flex-col items-end gap-1 flex-shrink-0">
+                    <span className={`px-1.5 py-0.5 text-xs rounded ${category.is_active !== false ? 'bg-green-500/15 text-green-400' : 'bg-red-500/15 text-red-400'}`}>
+                      {category.is_active !== false ? 'نشط' : 'متوقف'}
+                    </span>
+                    <span className={`px-1.5 py-0.5 text-xs rounded ${navLink ? 'bg-luxury-gold/20 text-luxury-gold' : 'bg-gray-700 text-gray-400'}`}>
+                      {navLink ? 'في القائمة' : 'غير مرتبط'}
+                    </span>
+                  </div>
                 </div>
 
                 {/* Slug */}
@@ -243,6 +279,20 @@ export default function CategoriesManagement() {
                     }`}
                   >
                     {navLink ? 'إزالة من القائمة' : 'إضافة للقائمة'}
+                  </button>
+                </div>
+
+                {/* Toggle active */}
+                <div className="mb-1.5">
+                  <button
+                    onClick={() => toggleActive(category)}
+                    className={`w-full px-2 py-1.5 rounded-sm text-xs font-medium transition-colors ${
+                      category.is_active !== false
+                        ? 'bg-red-500/10 text-red-400 hover:bg-red-500/20'
+                        : 'bg-green-500/10 text-green-400 hover:bg-green-500/20'
+                    }`}
+                  >
+                    {category.is_active !== false ? 'إيقاف التصنيف' : 'تفعيل التصنيف'}
                   </button>
                 </div>
 

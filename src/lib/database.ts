@@ -118,7 +118,8 @@ export async function getCategories(): Promise<ProductCategory[]> {
       slug: c.slug,
       taxonomy: c.taxonomy,
       count: c.count,
-      parent_id: c.parent_id
+      parent_id: c.parent_id,
+      is_active: c.is_active !== false,
     }));
   } catch (error) {
     return [];
@@ -132,11 +133,12 @@ export async function getProductsByCategory(
   try {
     const { data: categoryData, error: catError } = await supabase
       .from('categories')
-      .select('id')
+      .select('id, is_active')
       .eq('slug', categorySlug)
       .single();
 
     if (catError || !categoryData) return [];
+    if (categoryData.is_active === false) return [];
 
     const { data: childCats } = await supabase
       .from('categories')

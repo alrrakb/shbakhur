@@ -17,6 +17,7 @@ interface Category {
   name: string;
   slug: string;
   description: string;
+  is_active: boolean;
 }
 
 interface Product {
@@ -62,7 +63,7 @@ async function getCategoryBySlug(slug: string): Promise<Category | null> {
   
   const { data, error } = await supabase
     .from('categories')
-    .select('id, name, slug, description')
+    .select('id, name, slug, description, is_active')
     .or(`slug.eq.${slug},slug.eq.${decodedSlug}`)
     .limit(1);
   
@@ -131,9 +132,39 @@ export default async function CategoryPage({
     } else {
       const category = await getCategoryBySlug(slug);
       if (category) {
-         pageTitle = category.name;
-         pageDesc = category.description || `تصفح أفضل ${category.name} من متجر SH للبخور`;
-         rawProducts = await getProductsByCategory(category.slug);
+        // Category exists but is deactivated
+        if (category.is_active === false) {
+          return (
+            <main className="min-h-screen bg-luxury-black">
+              <Header />
+              <div className="pt-32">
+                <Breadcrumb items={[{ label: 'الرئيسية', href: '/' }, { label: category.name }]} />
+                <div className="max-w-4xl mx-auto px-4 py-24 text-center">
+                  <div className="w-20 h-20 rounded-full bg-luxury-gold/10 flex items-center justify-center mx-auto mb-6">
+                    <svg className="w-10 h-10 text-luxury-gold" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 6v6l4 2m6-2a10 10 0 11-20 0 10 10 0 0120 0z" />
+                    </svg>
+                  </div>
+                  <h1 className="text-3xl sm:text-4xl font-bold text-white mb-4">{category.name}</h1>
+                  <p className="text-luxury-gold text-lg font-semibold mb-3">قريباً</p>
+                  <p className="text-gray-400 max-w-md mx-auto">
+                    هذا التصنيف غير متاح حالياً. نعمل على توفيره في أقرب وقت ممكن.
+                  </p>
+                  <a
+                    href="/"
+                    className="inline-block mt-8 px-6 py-3 bg-luxury-gold text-luxury-black font-bold rounded-sm hover:bg-luxury-gold-light transition-colors"
+                  >
+                    العودة للرئيسية
+                  </a>
+                </div>
+              </div>
+              <Footer />
+            </main>
+          );
+        }
+        pageTitle = category.name;
+        pageDesc = category.description || `تصفح أفضل ${category.name} من متجر SH للبخور`;
+        rawProducts = await getProductsByCategory(category.slug);
       } else {
         return (
           <main className="min-h-screen bg-luxury-black">
