@@ -46,7 +46,7 @@ export default function Footer() {
       // Group footer links
       if (links && links.length > 0) {
         const grouped: GroupedLinks = {};
-        links.forEach(link => {
+        links.filter(link => link.is_active !== false).forEach(link => {
           if (!grouped[link.section]) grouped[link.section] = [];
           grouped[link.section].push(link);
         });

@@ -61,6 +61,7 @@ interface FooterLink {
   name: string;
   link: string;
   sort_order: number;
+  is_active?: boolean;
 }
 
 interface NewsMessage {
@@ -1521,7 +1522,7 @@ function FooterSection({ data, updateData }: { data: ContentData; updateData: an
   ];
 
   const addLink = (section: string = 'quick_links') => {
-    const newLink = { section, name: '', link: '#', sort_order: (data.footer_links || []).length + 1 };
+    const newLink = { section, name: '', link: '#', sort_order: (data.footer_links || []).length + 1, is_active: true };
     updateData('footer_links', [...(data.footer_links || []), newLink]);
   };
 
@@ -1549,7 +1550,7 @@ function FooterSection({ data, updateData }: { data: ContentData; updateData: an
           {(groupedLinks[section.value] || []).map((link: any, index: number) => {
             const originalIndex = (data.footer_links || []).findIndex((l: any) => l === link);
             return (
-              <div key={originalIndex} className="flex gap-3 items-center">
+              <div key={originalIndex} className={`flex gap-2 items-center ${link.is_active === false ? 'opacity-40' : ''}`}>
                 <input
                   type="text"
                   value={link.name}
@@ -1564,7 +1565,19 @@ function FooterSection({ data, updateData }: { data: ContentData; updateData: an
                   className="flex-1 px-3 py-2 bg-luxury-black border border-luxury-gold/20 rounded-sm text-white focus:border-luxury-gold focus:outline-none"
                   placeholder="الرابط"
                 />
-                <button onClick={() => removeLink(originalIndex)} className="text-red-500 hover:text-red-400">
+                <button
+                  type="button"
+                  title={link.is_active === false ? 'تفعيل' : 'إيقاف مؤقت'}
+                  onClick={() => updateLink(originalIndex, 'is_active', link.is_active === false)}
+                  className={`flex-shrink-0 w-7 h-7 rounded-sm text-xs font-bold transition-colors ${
+                    link.is_active === false
+                      ? 'bg-gray-700 text-gray-400 hover:bg-green-500/20 hover:text-green-400'
+                      : 'bg-green-500/15 text-green-400 hover:bg-red-500/15 hover:text-red-400'
+                  }`}
+                >
+                  {link.is_active === false ? '●' : '✓'}
+                </button>
+                <button onClick={() => removeLink(originalIndex)} className="flex-shrink-0 text-red-500 hover:text-red-400 text-xs">
                   ✕
                 </button>
               </div>

@@ -437,6 +437,7 @@ export interface FooterLink {
   name: string;
   link: string;
   sort_order: number;
+  is_active?: boolean;
 }
 
 export async function getHeroSlides(): Promise<HeroSlide[]> {
@@ -643,7 +644,8 @@ export async function saveFooterLinks(links: FooterLink[]): Promise<{ success: b
       section: link.section,
       name: link.name,
       link: link.link,
-      sort_order: link.sort_order || index + 1
+      sort_order: link.sort_order || index + 1,
+      is_active: link.is_active !== false,
     }));
 
     if (inserts.length > 0) {
