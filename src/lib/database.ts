@@ -753,12 +753,43 @@ export async function getNewsTickerMessages(): Promise<NewsMessage[]> {
     const { data, error } = await supabase
       .from('news_ticker_messages')
       .select('*')
-      .eq('is_active', true)
       .order('sort_order', { ascending: true });
 
     if (error) throw error;
     return data || [];
   } catch (error) {
     return [];
+  }
+}
+
+export async function saveNewsTickerMessages(
+  messages: Omit<NewsMessage, 'id'>[]
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    // Delete all existing rows then insert fresh
+    const { error: delError } = await supabase
+      .from('news_ticker_messages')
+      .delete()
+      .neq('id', 0);
+
+    if (delError) throw delError;
+
+    if (messages.length > 0) {
+      const rows = messages.map((m, i) => ({
+        message: m.message,
+        is_active: m.is_active,
+        sort_order: m.sort_order ?? i + 1,
+      }));
+
+      const { error: insError } = await supabase
+        .from('news_ticker_messages')
+        .insert(rows);
+
+      if (insError) throw insError;
+    }
+
+    return { success: true };
+  } catch (error: any) {
+    return { success: false, error: error.message };
   }
 }

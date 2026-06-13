@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { getNavigationLinks, saveNavigationLinks, getHeroSlides, saveHeroSlides, saveFooterLinks, getFooterLinks, getFooterSettings, getPartners, savePartners, savePartnersSettings, getPartnersSettings, saveFooterSettings, getSiteLogo, saveSiteLogo, type NavLink as DbNavLink } from '@/lib/database';
+import { getNavigationLinks, saveNavigationLinks, getHeroSlides, saveHeroSlides, saveFooterLinks, getFooterLinks, getFooterSettings, getPartners, savePartners, savePartnersSettings, getPartnersSettings, saveFooterSettings, getSiteLogo, saveSiteLogo, getNewsTickerMessages, saveNewsTickerMessages, type NavLink as DbNavLink } from '@/lib/database';
 import { supabase } from '@/lib/supabase';
 import { useToast } from '@/context/ToastContext';
 import { revalidateSite } from '@/app/actions/revalidate';
@@ -198,14 +198,15 @@ export default function ContentManagement() {
   useEffect(() => {
     async function fetchData() {
       try {
-        const [dbNavLinks, dbHeroSlides, dbPartners, dbFooterLinks, dbFooterSettings, dbSiteLogo, dbPartnersSettings] = await Promise.all([
+        const [dbNavLinks, dbHeroSlides, dbPartners, dbFooterLinks, dbFooterSettings, dbSiteLogo, dbPartnersSettings, dbNewsTicker] = await Promise.all([
           getNavigationLinks(),
           getHeroSlides(),
           getPartners(),
           getFooterLinks(),
           getFooterSettings(),
           getSiteLogo(),
-          getPartnersSettings()
+          getPartnersSettings(),
+          getNewsTickerMessages(),
         ]);
         
         const navLinksFromDb = dbNavLinks.map((link: any) => {
@@ -237,6 +238,7 @@ export default function ContentManagement() {
           footer_settings: (dbFooterSettings as any) ?? initialData.footer_settings,
           navigation: navLinksFromDb.length > 0 ? navLinksFromDb : initialData.navigation,
           site_logo: dbSiteLogo ? [dbSiteLogo] : initialData.site_logo,
+          news_ticker: dbNewsTicker.length > 0 ? dbNewsTicker : initialData.news_ticker,
         };
         
         setData(newData);
@@ -340,6 +342,14 @@ export default function ContentManagement() {
         });
       }
       
+      // Save news ticker messages
+      const newsTickerRows = (data.news_ticker || []).map((m: any, i: number) => ({
+        message: m.message,
+        is_active: m.is_active !== false,
+        sort_order: m.sort_order ?? i + 1,
+      }));
+      await saveNewsTickerMessages(newsTickerRows);
+
       await revalidateSite();
       showToast('تم حفظ جميع التغييرات بنجاح', 'success');
     } catch (error) {
