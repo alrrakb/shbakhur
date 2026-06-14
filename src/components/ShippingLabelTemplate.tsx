@@ -75,6 +75,28 @@ export default function ShippingLabelTemplate({ order }: { order: InvoiceOrder }
         </span>
       </div>
 
+      {/* Customer info */}
+      <div style={{ padding: '10px 16px', ...row }}>
+        <p style={{ fontWeight: 800, fontSize: '19px', color: '#111827', margin: '0 0 4px', lineHeight: 1.2 }}>
+          {order.customers?.name || '—'}
+        </p>
+        {order.customers?.phone && (
+          <p style={{ fontSize: '14px', color: '#374151', fontWeight: 700, margin: '0 0 2px' }} dir="ltr">
+            {order.customers.phone}
+          </p>
+        )}
+        {order.customers?.additional_phone && (
+          <p style={{ fontSize: '13px', color: '#6b7280', fontWeight: 500, margin: '0 0 2px' }} dir="ltr">
+            {order.customers.additional_phone}
+          </p>
+        )}
+        {addressParts && (
+          <p style={{ fontSize: '12px', color: '#4b5563', margin: '3px 0 0', lineHeight: 1.4 }}>
+            {addressParts}
+          </p>
+        )}
+      </div>
+
       {/* Items */}
       <div style={{ padding: '8px 16px', ...row }}>
         <p style={{ fontSize: '11px', color: '#9ca3af', fontWeight: 600, margin: '0 0 5px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
