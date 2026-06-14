@@ -107,7 +107,7 @@ export default function InvoiceModal({ order, onClose }: InvoiceModalProps) {
     *, *::before, *::after { box-sizing: border-box; }
     html, body { margin: 0; padding: 0; background: #fff; font-family: 'Cairo', 'Segoe UI', Tahoma, Arial, sans-serif; direction: rtl; }
     @media print { * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; } }
-    @page { size: 100mm 150mm; margin: 0; }
+    @page { size: 5in 6in; margin: 5mm; }
     body { padding: 0; display: flex; align-items: flex-start; justify-content: center; }
   </style>
 </head>

@@ -5,11 +5,7 @@ import JsBarcode from 'jsbarcode';
 import { type InvoiceOrder } from './InvoiceTemplate';
 
 const formatCurrency = (amount: number) =>
-  new Intl.NumberFormat('ar-SA', {
-    style: 'currency',
-    currency: 'SAR',
-    minimumFractionDigits: 0,
-  })
+  new Intl.NumberFormat('ar-SA', { style: 'currency', currency: 'SAR', minimumFractionDigits: 0 })
     .format(amount)
     .replace('ر.س.', 'ر.س');
 
@@ -21,16 +17,16 @@ export default function ShippingLabelTemplate({ order }: { order: InvoiceOrder }
       try {
         JsBarcode(svgRef.current, order.order_number, {
           format: 'CODE128',
-          width: 2,
-          height: 40,
+          width: 2.5,
+          height: 55,
           displayValue: true,
-          fontSize: 11,
+          fontSize: 13,
           textAlign: 'center',
           textPosition: 'bottom',
-          textMargin: 2,
+          textMargin: 3,
           background: '#ffffff',
           lineColor: '#000000',
-          margin: 5,
+          margin: 6,
         });
       } catch (e) {
         console.error('Barcode error', e);
@@ -40,9 +36,9 @@ export default function ShippingLabelTemplate({ order }: { order: InvoiceOrder }
 
   const addressParts = [order.customers?.city, order.customers?.address]
     .filter(Boolean)
-    .join(' - ');
+    .join(' — ');
 
-  const D: React.CSSProperties = { borderBottom: '1px solid #e5e7eb' };
+  const row: React.CSSProperties = { borderBottom: '1px solid #d1d5db' };
 
   return (
     <div
@@ -53,70 +49,87 @@ export default function ShippingLabelTemplate({ order }: { order: InvoiceOrder }
         color: '#111827',
         background: '#ffffff',
         width: '100%',
-        maxWidth: '300px',
-        margin: '0 auto',
         border: '2px solid #111827',
-        borderRadius: '5px',
+        borderRadius: '6px',
         overflow: 'hidden',
       }}
     >
       {/* Header */}
-      <div style={{ background: '#111827', color: '#fff', padding: '6px 12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <span style={{ fontWeight: 700, fontSize: '13px' }}>متجر SH</span>
-        <span style={{ fontSize: '10px', color: '#9ca3af' }}>ملصق الشحن</span>
+      <div style={{
+        background: '#111827', color: '#fff',
+        padding: '10px 16px',
+        display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+      }}>
+        <span style={{ fontWeight: 800, fontSize: '17px', letterSpacing: '0.5px' }}>متجر SH للبخور</span>
+        <span style={{ fontSize: '12px', color: '#9ca3af', fontWeight: 500 }}>ملصق الشحن</span>
       </div>
 
       {/* Order number */}
-      <div style={{ background: '#f3f4f6', padding: '4px 12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', ...D }}>
-        <span style={{ fontSize: '10px', color: '#6b7280' }}>رقم الطلب</span>
-        <span style={{ fontWeight: 700, fontSize: '14px', letterSpacing: '1px', color: '#111827', fontFamily: 'monospace' }}>
+      <div style={{
+        background: '#f9fafb', padding: '8px 16px',
+        display: 'flex', justifyContent: 'space-between', alignItems: 'center', ...row,
+      }}>
+        <span style={{ fontSize: '12px', color: '#6b7280', fontWeight: 500 }}>رقم الطلب</span>
+        <span style={{ fontWeight: 800, fontSize: '18px', letterSpacing: '2px', color: '#111827', fontFamily: 'monospace' }}>
           #{order.order_number}
         </span>
       </div>
 
-      {/* Customer */}
-      <div style={{ padding: '7px 12px', ...D }}>
-        <p style={{ fontWeight: 800, fontSize: '16px', color: '#111827', margin: '0 0 2px', lineHeight: 1.2 }}>
+      {/* Customer info */}
+      <div style={{ padding: '10px 16px', ...row }}>
+        <p style={{ fontWeight: 800, fontSize: '19px', color: '#111827', margin: '0 0 4px', lineHeight: 1.2 }}>
           {order.customers?.name || '—'}
         </p>
         {order.customers?.phone && (
-          <p style={{ fontSize: '12px', color: '#374151', fontWeight: 600, margin: '0 0 1px' }} dir="ltr">
+          <p style={{ fontSize: '14px', color: '#374151', fontWeight: 700, margin: '0 0 2px' }} dir="ltr">
             {order.customers.phone}
           </p>
         )}
         {order.customers?.additional_phone && (
-          <p style={{ fontSize: '11px', color: '#6b7280', margin: '0 0 1px' }} dir="ltr">
+          <p style={{ fontSize: '13px', color: '#6b7280', fontWeight: 500, margin: '0 0 2px' }} dir="ltr">
             {order.customers.additional_phone}
           </p>
         )}
         {addressParts && (
-          <p style={{ fontSize: '10px', color: '#6b7280', margin: '1px 0 0' }}>{addressParts}</p>
+          <p style={{ fontSize: '12px', color: '#4b5563', margin: '3px 0 0', lineHeight: 1.4 }}>
+            {addressParts}
+          </p>
         )}
       </div>
 
       {/* Items */}
-      <div style={{ padding: '5px 12px', ...D }}>
+      <div style={{ padding: '8px 16px', ...row }}>
+        <p style={{ fontSize: '11px', color: '#9ca3af', fontWeight: 600, margin: '0 0 5px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+          المنتجات
+        </p>
         {order.order_items.map((item, i) => (
-          <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '11px', color: '#374151', marginBottom: '1px' }}>
-            <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', marginLeft: '6px' }}>
+          <div key={i} style={{
+            display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+            fontSize: '13px', color: '#374151', marginBottom: '3px',
+          }}>
+            <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', marginLeft: '8px' }}>
               {item.product_name || '—'}
             </span>
-            <span style={{ color: '#6b7280', fontWeight: 600, flexShrink: 0 }}>× {item.quantity}</span>
+            <span style={{ color: '#6b7280', fontWeight: 700, flexShrink: 0, fontSize: '12px' }}>× {item.quantity}</span>
           </div>
         ))}
       </div>
 
       {/* Total */}
-      <div style={{ padding: '5px 12px', ...D, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <span style={{ fontSize: '11px', color: '#6b7280' }}>الإجمالي</span>
-        <span style={{ fontWeight: 700, fontSize: '14px', color: '#111827' }}>
+      <div style={{
+        padding: '8px 16px', ...row,
+        display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+        background: '#f9fafb',
+      }}>
+        <span style={{ fontSize: '13px', color: '#6b7280', fontWeight: 500 }}>الإجمالي</span>
+        <span style={{ fontWeight: 800, fontSize: '17px', color: '#111827' }}>
           {formatCurrency(order.total_amount)}
         </span>
       </div>
 
       {/* Barcode */}
-      <div style={{ padding: '7px 12px', display: 'flex', justifyContent: 'center' }}>
-        <svg ref={svgRef} />
+      <div style={{ padding: '10px 16px', display: 'flex', justifyContent: 'center' }}>
+        <svg ref={svgRef} style={{ maxWidth: '100%' }} />
       </div>
     </div>
   );
