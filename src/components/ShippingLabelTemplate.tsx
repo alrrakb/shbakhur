@@ -64,65 +64,54 @@ export default function ShippingLabelTemplate({ order }: { order: InvoiceOrder }
         <span style={{ fontSize: '12px', color: '#9ca3af', fontWeight: 500 }}>ملصق الشحن</span>
       </div>
 
-      {/* Order number */}
-      <div style={{
-        background: '#f9fafb', padding: '8px 16px',
-        display: 'flex', justifyContent: 'space-between', alignItems: 'center', ...row,
-      }}>
-        <span style={{ fontSize: '12px', color: '#6b7280', fontWeight: 500 }}>رقم الطلب</span>
-        <span style={{ fontWeight: 800, fontSize: '18px', letterSpacing: '2px', color: '#111827', fontFamily: 'monospace' }}>
-          #{order.order_number}
-        </span>
-      </div>
-
       {/* Customer info */}
-      <div style={{ padding: '10px 16px', ...row }}>
-        <p style={{ fontWeight: 800, fontSize: '19px', color: '#111827', margin: '0 0 4px', lineHeight: 1.2 }}>
+      <div style={{ padding: '12px 16px', ...row }}>
+        <p style={{ fontWeight: 800, fontSize: '22px', color: '#111827', margin: '0 0 5px', lineHeight: 1.2 }}>
           {order.customers?.name || '—'}
         </p>
         {order.customers?.phone && (
-          <p style={{ fontSize: '14px', color: '#374151', fontWeight: 700, margin: '0 0 2px' }} dir="ltr">
+          <p style={{ fontSize: '16px', color: '#374151', fontWeight: 700, margin: '0 0 3px' }} dir="ltr">
             {order.customers.phone}
           </p>
         )}
         {order.customers?.additional_phone && (
-          <p style={{ fontSize: '13px', color: '#6b7280', fontWeight: 500, margin: '0 0 2px' }} dir="ltr">
+          <p style={{ fontSize: '15px', color: '#6b7280', fontWeight: 500, margin: '0 0 3px' }} dir="ltr">
             {order.customers.additional_phone}
           </p>
         )}
         {addressParts && (
-          <p style={{ fontSize: '12px', color: '#4b5563', margin: '3px 0 0', lineHeight: 1.4 }}>
+          <p style={{ fontSize: '14px', color: '#4b5563', margin: '4px 0 0', lineHeight: 1.4 }}>
             {addressParts}
           </p>
         )}
       </div>
 
       {/* Items */}
-      <div style={{ padding: '8px 16px', ...row }}>
-        <p style={{ fontSize: '11px', color: '#9ca3af', fontWeight: 600, margin: '0 0 5px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+      <div style={{ padding: '10px 16px', ...row }}>
+        <p style={{ fontSize: '12px', color: '#9ca3af', fontWeight: 600, margin: '0 0 6px', letterSpacing: '0.5px' }}>
           المنتجات
         </p>
         {order.order_items.map((item, i) => (
           <div key={i} style={{
             display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-            fontSize: '13px', color: '#374151', marginBottom: '3px',
+            fontSize: '15px', color: '#374151', marginBottom: '4px',
           }}>
             <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', marginLeft: '8px' }}>
               {item.product_name || '—'}
             </span>
-            <span style={{ color: '#6b7280', fontWeight: 700, flexShrink: 0, fontSize: '12px' }}>× {item.quantity}</span>
+            <span style={{ color: '#6b7280', fontWeight: 700, flexShrink: 0, fontSize: '14px' }}>× {item.quantity}</span>
           </div>
         ))}
       </div>
 
       {/* Total */}
       <div style={{
-        padding: '8px 16px', ...row,
+        padding: '10px 16px', ...row,
         display: 'flex', justifyContent: 'space-between', alignItems: 'center',
         background: '#f9fafb',
       }}>
-        <span style={{ fontSize: '13px', color: '#6b7280', fontWeight: 500 }}>الإجمالي</span>
-        <span style={{ fontWeight: 800, fontSize: '17px', color: '#111827' }}>
+        <span style={{ fontSize: '15px', color: '#6b7280', fontWeight: 500 }}>الإجمالي</span>
+        <span style={{ fontWeight: 800, fontSize: '20px', color: '#111827' }}>
           {formatCurrency(order.total_amount)}
         </span>
       </div>
