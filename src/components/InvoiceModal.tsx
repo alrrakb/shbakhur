@@ -82,7 +82,7 @@ export default function InvoiceModal({ order, onClose }: InvoiceModalProps) {
     const el = labelRef.current;
     if (!el) return;
 
-    const win = window.open('', '_blank', 'width=500,height=650');
+    const win = window.open('', '_blank', 'width=900,height=700');
     if (!win) { alert('يرجى السماح بفتح النوافذ المنبثقة في متصفحك.'); return; }
 
     // Convert any <canvas> barcodes to <img> data URLs so they survive the copy
@@ -105,10 +105,11 @@ export default function InvoiceModal({ order, onClose }: InvoiceModalProps) {
   <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet" />
   <style>
     *, *::before, *::after { box-sizing: border-box; }
-    html, body { margin: 0; padding: 0; background: #fff; font-family: 'Cairo', 'Segoe UI', Tahoma, Arial, sans-serif; direction: rtl; }
+    html, body { margin: 0; padding: 0; background: #fff; font-family: 'Cairo', 'Segoe UI', Tahoma, Arial, sans-serif; direction: rtl; width: 100%; }
     @media print { * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; } }
-    @page { size: 12in 6in; margin: 5mm; }
-    body { padding: 0; display: flex; align-items: flex-start; justify-content: center; }
+    @page { size: 5.5in 6in; margin: 5mm; }
+    body { padding: 0; }
+    body > div { width: 100% !important; max-width: 100% !important; }
   </style>
 </head>
 <body>${html}</body>
