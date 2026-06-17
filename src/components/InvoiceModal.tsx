@@ -200,10 +200,10 @@ export default function InvoiceModal({ order, onClose }: InvoiceModalProps) {
 
           {/* ── Label tab ────────────────────────────────────────────────────── */}
           <div
-            className={activeTab === 'label' ? 'overflow-y-auto flex justify-center py-6 px-4 bg-gray-100' : 'hidden'}
+            className={activeTab === 'label' ? 'overflow-y-auto py-6 px-6 bg-gray-100' : 'hidden'}
             style={{ maxHeight: '78vh' }}
           >
-            <div ref={labelRef}>
+            <div ref={labelRef} style={{ width: '100%' }}>
               <ShippingLabelTemplate order={order} />
             </div>
           </div>
