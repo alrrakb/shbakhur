@@ -57,6 +57,20 @@ export default function CategoriesManagement() {
     return navLinks.find(n => n.link === `/products/${catSlug}`);
   }
 
+  function isInNav(category: Category): boolean {
+    if (!category.parent_id) {
+      return !!navLinks.find(n => n.link === `/products/${category.slug}`);
+    }
+    const parentCat = categories.find(c => c.id === category.parent_id);
+    if (!parentCat) return false;
+    const parentNav = navLinks.find(n => n.link === `/products/${parentCat.slug}`);
+    if (!parentNav) return false;
+    const items: any[] = typeof parentNav.dropdown_items === 'string'
+      ? JSON.parse(parentNav.dropdown_items || '[]')
+      : (parentNav.dropdown_items || []);
+    return items.some((item: any) => item.href === `/products/${category.slug}`);
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const parentIdVal = formData.parent_id === '' ? null : formData.parent_id;
@@ -77,15 +91,38 @@ export default function CategoriesManagement() {
       }
 
       if (formData.addToNav && formData.navLink) {
-        const maxOrder = navLinks.length > 0 ? Math.max(...navLinks.map(n => n.sort_order)) : 0;
-        const existingNav = navLinks.find(n => n.link === formData.navLink);
-        if (!existingNav) {
-          await supabase.from('navigation_links').insert({
-            name: formData.name,
-            link: formData.navLink,
-            has_dropdown: false,
-            sort_order: maxOrder + 1
-          });
+        if (parentIdVal) {
+          // Subcategory → add as dropdown item under parent nav link
+          const parentCat = categories.find(c => c.id === parentIdVal);
+          if (parentCat) {
+            const parentNav = navLinks.find(n => n.link === `/products/${parentCat.slug}`);
+            if (parentNav) {
+              const currentItems: any[] = typeof parentNav.dropdown_items === 'string'
+                ? JSON.parse(parentNav.dropdown_items || '[]')
+                : (parentNav.dropdown_items || []);
+              if (!currentItems.some((i: any) => i.href === formData.navLink)) {
+                currentItems.push({ name: formData.name, href: formData.navLink, is_active: true });
+              }
+              await supabase.from('navigation_links').update({
+                has_dropdown: true,
+                dropdown_items: JSON.stringify(currentItems)
+              }).eq('id', parentNav.id);
+            } else {
+              showToast('يجب إضافة التصنيف الأب للقائمة أولاً', 'error');
+            }
+          }
+        } else {
+          // Top-level → insert as standalone nav link
+          const maxOrder = navLinks.length > 0 ? Math.max(...navLinks.map(n => n.sort_order)) : 0;
+          const existingNav = navLinks.find(n => n.link === formData.navLink);
+          if (!existingNav) {
+            await supabase.from('navigation_links').insert({
+              name: formData.name,
+              link: formData.navLink,
+              has_dropdown: false,
+              sort_order: maxOrder + 1
+            });
+          }
         }
       }
 
@@ -119,19 +156,56 @@ export default function CategoriesManagement() {
   const toggleNavLink = async (category: Category, add: boolean) => {
     try {
       const link = `/products/${category.slug}`;
-      if (add) {
-        const maxOrder = navLinks.length > 0 ? Math.max(...navLinks.map(n => n.sort_order)) : 0;
-        await supabase.from('navigation_links').insert({
-          name: category.name,
-          link: link,
-          has_dropdown: false,
-          sort_order: maxOrder + 1
-        });
+
+      if (category.parent_id) {
+        // Subcategory → modify parent's dropdown_items
+        const parentCat = categories.find(c => c.id === category.parent_id);
+        if (!parentCat) { showToast('لم يتم العثور على التصنيف الأب', 'error'); return; }
+        const parentNav = navLinks.find(n => n.link === `/products/${parentCat.slug}`);
+
+        if (add) {
+          if (!parentNav) { showToast('يجب إضافة التصنيف الأب للقائمة أولاً', 'error'); return; }
+          const currentItems: any[] = typeof parentNav.dropdown_items === 'string'
+            ? JSON.parse(parentNav.dropdown_items || '[]')
+            : (parentNav.dropdown_items || []);
+          if (!currentItems.some((i: any) => i.href === link)) {
+            currentItems.push({ name: category.name, href: link, is_active: true });
+          }
+          await supabase.from('navigation_links').update({
+            has_dropdown: true,
+            dropdown_items: JSON.stringify(currentItems)
+          }).eq('id', parentNav.id);
+          showToast('تمت إضافة التصنيف كعنصر فرعي تحت التصنيف الأب', 'success');
+        } else {
+          if (parentNav) {
+            const currentItems: any[] = typeof parentNav.dropdown_items === 'string'
+              ? JSON.parse(parentNav.dropdown_items || '[]')
+              : (parentNav.dropdown_items || []);
+            const updatedItems = currentItems.filter((i: any) => i.href !== link);
+            await supabase.from('navigation_links').update({
+              has_dropdown: updatedItems.length > 0,
+              dropdown_items: JSON.stringify(updatedItems)
+            }).eq('id', parentNav.id);
+          }
+          showToast('تمت إزالة التصنيف من القائمة', 'success');
+        }
       } else {
-        await supabase.from('navigation_links').delete().eq('link', link);
+        // Top-level category → standalone nav link
+        if (add) {
+          const maxOrder = navLinks.length > 0 ? Math.max(...navLinks.map(n => n.sort_order)) : 0;
+          await supabase.from('navigation_links').insert({
+            name: category.name,
+            link: link,
+            has_dropdown: false,
+            sort_order: maxOrder + 1
+          });
+        } else {
+          await supabase.from('navigation_links').delete().eq('link', link);
+        }
+        showToast(add ? 'تمت إضافة الرابط للقائمة' : 'تمت إزالة الرابط من القائمة', 'success');
       }
+
       fetchData();
-      showToast(add ? 'تمت إضافة الرابط للقائمة' : 'تمت إزالة الرابط من القائمة', 'success');
     } catch (error) {
       console.error('Error toggling nav:', error);
       showToast('حدث خطأ', 'error');
@@ -237,6 +311,7 @@ export default function CategoriesManagement() {
         ) : categories.length > 0 ? (
           categories.map((category, index) => {
             const navLink = getNavLinkForCategory(category.slug);
+            const inNav = isInNav(category);
             return (
               <motion.div
                 key={category.id}
@@ -259,8 +334,8 @@ export default function CategoriesManagement() {
                     <span className={`px-1.5 py-0.5 text-xs rounded ${category.is_active !== false ? 'bg-green-500/15 text-green-400' : 'bg-red-500/15 text-red-400'}`}>
                       {category.is_active !== false ? 'نشط' : 'متوقف'}
                     </span>
-                    <span className={`px-1.5 py-0.5 text-xs rounded ${navLink ? 'bg-luxury-gold/20 text-luxury-gold' : 'bg-gray-700 text-gray-400'}`}>
-                      {navLink ? 'في القائمة' : 'غير مرتبط'}
+                    <span className={`px-1.5 py-0.5 text-xs rounded ${inNav ? 'bg-luxury-gold/20 text-luxury-gold' : 'bg-gray-700 text-gray-400'}`}>
+                      {inNav ? 'في القائمة' : 'غير مرتبط'}
                     </span>
                   </div>
                 </div>
@@ -271,14 +346,14 @@ export default function CategoriesManagement() {
                 {/* Toggle nav */}
                 <div className="mb-2">
                   <button
-                    onClick={() => toggleNavLink(category, !navLink)}
+                    onClick={() => toggleNavLink(category, !inNav)}
                     className={`w-full px-2 py-1.5 rounded-sm text-xs transition-colors ${
-                      navLink
+                      inNav
                         ? 'bg-red-500/10 text-red-500 hover:bg-red-500/20'
                         : 'bg-luxury-gold/10 text-luxury-gold hover:bg-luxury-gold/20'
                     }`}
                   >
-                    {navLink ? 'إزالة من القائمة' : 'إضافة للقائمة'}
+                    {inNav ? 'إزالة من القائمة' : 'إضافة للقائمة'}
                   </button>
                 </div>
 
