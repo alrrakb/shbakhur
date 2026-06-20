@@ -21,7 +21,7 @@ interface NavLink {
   name: string;
   link: string;
   has_dropdown: boolean;
-  dropdown_items: any[] | string;
+  dropdown_items?: any[] | string;
   sort_order: number;
 }
 
@@ -43,7 +43,7 @@ export default function CategoriesManagement() {
     try {
       const [catRes, navRes] = await Promise.all([
         supabase.from('categories').select('id, name, slug, taxonomy, parent_id, is_active').order('name'),
-        supabase.from('navigation_links').select('id, name, link, has_dropdown, sort_order').order('sort_order')
+        supabase.from('navigation_links').select('id, name, link, has_dropdown, dropdown_items, sort_order').order('sort_order')
       ]);
       if (catRes.data) setCategories(catRes.data);
       if (navRes.data) setNavLinks(navRes.data);
