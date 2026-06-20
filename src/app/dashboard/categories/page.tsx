@@ -21,6 +21,7 @@ interface NavLink {
   name: string;
   link: string;
   has_dropdown: boolean;
+  dropdown_items: any[] | string;
   sort_order: number;
 }
 
