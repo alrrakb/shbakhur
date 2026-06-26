@@ -89,30 +89,38 @@ function buildMessage(order: OrderNotificationPayload): string {
 export async function POST(req: NextRequest) {
   try {
     const token = process.env.TELEGRAM_BOT_TOKEN;
-    const chatId = process.env.TELEGRAM_CHAT_ID;
+    const chatIdsRaw = process.env.TELEGRAM_CHAT_ID;
 
-    if (!token || !chatId) {
+    if (!token || !chatIdsRaw) {
       return NextResponse.json({ error: 'Telegram credentials not configured' }, { status: 500 });
     }
+
+    const chatIds = chatIdsRaw.split(',').map((id) => id.trim()).filter(Boolean);
 
     const payload: OrderNotificationPayload = await req.json();
     const text = buildMessage(payload);
 
-    const res = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        chat_id: chatId,
-        text,
-        parse_mode: 'HTML',
-      }),
-    });
+    const results = await Promise.all(
+      chatIds.map((chatId) =>
+        fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            chat_id: chatId,
+            text,
+            parse_mode: 'HTML',
+          }),
+        }).then((res) => res.json())
+      )
+    );
 
-    const data = await res.json();
+    const failed = results.filter((data) => !data.ok);
+    if (failed.length > 0) {
+      console.error('Telegram API error(s):', failed);
+    }
 
-    if (!data.ok) {
-      console.error('Telegram API error:', data);
-      return NextResponse.json({ error: data.description }, { status: 500 });
+    if (failed.length === results.length) {
+      return NextResponse.json({ error: failed[0]?.description || 'All sends failed' }, { status: 500 });
     }
 
     return NextResponse.json({ success: true });
