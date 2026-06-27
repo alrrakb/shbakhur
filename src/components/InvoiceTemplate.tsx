@@ -6,6 +6,7 @@ export interface InvoiceOrder {
   status: string;
   subtotal: number;
   discount_amount: number;
+  shipping_cost?: number;
   total_amount: number;
   notes: string | null;
   created_at: string;
@@ -328,6 +329,15 @@ export default function InvoiceTemplate({
               }}>
                 <span style={{ color: '#059669' }}>الخصم</span>
                 <span style={{ fontWeight: 600, color: '#059669' }}>- {formatCurrency(order.discount_amount)}</span>
+              </div>
+            )}
+            {(order.shipping_cost ?? 0) > 0 && (
+              <div style={{
+                display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                padding: '0.5rem 0', borderBottom: '1px solid #f3f4f6', fontSize: '0.875rem',
+              }}>
+                <span style={{ color: '#6b7280' }}>رسوم التوصيل</span>
+                <span style={{ fontWeight: 600, color: '#1f2937' }}>{formatCurrency(order.shipping_cost ?? 0)}</span>
               </div>
             )}
             <div style={{

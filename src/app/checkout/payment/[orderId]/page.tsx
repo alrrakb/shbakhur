@@ -16,6 +16,7 @@ interface PendingCheckout {
   };
   orderItems: { product_id: string | number; product_name: string; quantity: number; price: number; image?: string }[];
   discountValue: number;
+  shippingCost?: number;
   totalAfterDiscount: number;
   is_test?: boolean;
 }
@@ -148,6 +149,7 @@ export default function BankTransferPage({ params }: { params: Promise<{ orderId
           additional_phone: fd.additionalPhone || undefined,
           notes:            fd.notes || undefined,
           discount_amount:  discountValue,
+          shipping_cost:    pendingCheckout.shippingCost ?? 0,
           payment_method:   'bank_transfer',
           is_test:          pendingCheckout.is_test ?? false,
           items:            orderItems,
@@ -170,6 +172,7 @@ export default function BankTransferPage({ params }: { params: Promise<{ orderId
       // إشعار تيليجرام
       if (isNewOrder && pendingCheckout) {
         const { formData: fd, orderItems, discountValue, totalAfterDiscount } = pendingCheckout;
+        const shipping = pendingCheckout.shippingCost ?? 0;
         fetch('/api/notify-telegram', {
           method:  'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -188,7 +191,8 @@ export default function BankTransferPage({ params }: { params: Promise<{ orderId
             items:    orderItems.map(i => ({ product_name: i.product_name, quantity: i.quantity, price: i.price })),
             subtotal: orderItems.reduce((s, i) => s + i.price * i.quantity, 0),
             discount: discountValue,
-            total:    totalAfterDiscount,
+            shipping,
+            total:    totalAfterDiscount + shipping,
           }),
         }).catch(err => console.error('Telegram notify failed:', err));
       }
@@ -273,7 +277,14 @@ export default function BankTransferPage({ params }: { params: Promise<{ orderId
                 {pendingCheckout && (
                   <div className="mt-6 pt-4 border-t border-luxury-gold/20">
                     <div className="text-gray-400 text-sm mb-1">المبلغ المطلوب تحويله:</div>
-                    <div className="text-luxury-gold font-bold text-2xl">{pendingCheckout.totalAfterDiscount.toFixed(0)} ر.س</div>
+                    <div className="text-luxury-gold font-bold text-2xl">
+                      {(pendingCheckout.totalAfterDiscount + (pendingCheckout.shippingCost ?? 0)).toFixed(0)} ر.س
+                    </div>
+                    {(pendingCheckout.shippingCost ?? 0) > 0 && (
+                      <div className="text-gray-500 text-xs mt-1">
+                        شامل رسوم توصيل {(pendingCheckout.shippingCost ?? 0).toFixed(0)} ر.س
+                      </div>
+                    )}
                   </div>
                 )}
               </div>

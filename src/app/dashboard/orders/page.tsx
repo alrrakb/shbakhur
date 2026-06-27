@@ -29,6 +29,7 @@ interface Order {
   status: string;
   subtotal: number;
   discount_amount: number;
+  shipping_cost?: number;
   total_amount: number;
   notes: string | null;
   created_at: string;
@@ -113,7 +114,7 @@ export default function OrdersPage() {
       let query = supabase
         .from('orders')
         .select(`
-          id, order_number, status, subtotal, discount_amount, total_amount, notes, created_at, transfer_receipt_url, sender_name, sender_bank, sender_account, payment_method, is_test,
+          id, order_number, status, subtotal, discount_amount, shipping_cost, total_amount, notes, created_at, transfer_receipt_url, sender_name, sender_bank, sender_account, payment_method, is_test,
           customers(name, phone, additional_phone, city, address),
           order_items(id, product_name, quantity, unit_price, total_price)
         `)
@@ -135,7 +136,7 @@ export default function OrdersPage() {
 
   // ── Realtime subscription ─────────────────────────────────────────────────
   const ORDER_SELECT = `
-    id, order_number, status, subtotal, discount_amount, total_amount, notes, created_at,
+    id, order_number, status, subtotal, discount_amount, shipping_cost, total_amount, notes, created_at,
     transfer_receipt_url, sender_name, sender_bank, sender_account, payment_method, is_test,
     customers(name, phone, additional_phone, city, address),
     order_items(id, product_name, quantity, unit_price, total_price)
@@ -768,6 +769,12 @@ export default function OrdersPage() {
                     <div className="flex justify-between text-green-400">
                       <span>الخصم</span>
                       <span>-{selectedOrder.discount_amount.toFixed(0)} ر.س</span>
+                    </div>
+                  )}
+                  {(selectedOrder.shipping_cost ?? 0) > 0 && (
+                    <div className="flex justify-between text-gray-400">
+                      <span>رسوم التوصيل</span>
+                      <span>{(selectedOrder.shipping_cost ?? 0).toFixed(0)} ر.س</span>
                     </div>
                   )}
                   <div className="flex justify-between text-white font-bold text-lg">

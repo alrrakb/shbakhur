@@ -290,6 +290,7 @@ export async function createOrder(orderData: {
   additional_phone?: string;
   notes?: string;
   discount_amount?: number;
+  shipping_cost?: number;
   payment_method?: 'cod' | 'bank_transfer';
   is_test?: boolean;
   items: { product_id: number | string; product_name: string; quantity: number; price: number; image?: string }[];
@@ -337,7 +338,8 @@ export async function createOrder(orderData: {
     // 2. Calculate totals
     const subtotal = orderData.items.reduce((sum, item) => sum + item.price * item.quantity, 0);
     const discount = orderData.discount_amount || 0;
-    const totalAmount = Math.max(0, subtotal - discount);
+    const shipping = orderData.shipping_cost || 0;
+    const totalAmount = Math.max(0, subtotal - discount) + shipping;
 
     // 3. Generate unique order number
     const now = new Date();
@@ -354,6 +356,7 @@ export async function createOrder(orderData: {
         status: 'pending',
         subtotal,
         discount_amount: discount,
+        shipping_cost: shipping,
         total_amount: totalAmount,
         notes: finalNotes || null,
         payment_method: orderData.payment_method || 'bank_transfer',
@@ -852,5 +855,16 @@ export async function saveSiteSettings(key: string, value: any): Promise<{ succe
     return { success: true };
   } catch (error: any) {
     return { success: false, error: error.message };
+  }
+}
+
+/** قيمة رسوم التوصيل المُعدّة من لوحة التحكم (افتراضي 25 ر.س). */
+export async function getShippingFee(): Promise<number> {
+  try {
+    const settings = await getSiteSettings('shipping_settings');
+    const fee = settings?.fee;
+    return typeof fee === 'number' && fee >= 0 ? fee : 25;
+  } catch {
+    return 25;
   }
 }

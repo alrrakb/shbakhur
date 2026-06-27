@@ -87,6 +87,7 @@ interface ContentData {
   hero_info: { title: string; description: string; icon: string; is_active: boolean };
   category_cards: CategoryCard[];
   products_settings: any;
+  shipping_settings: { fee: number };
   partners_settings: { section_title: string; section_description: string; is_active: boolean };
   footer_settings: { 
     about_title: string; 
@@ -118,6 +119,7 @@ const accordions: AccordionSection[] = [
   { id: 'hero_info', title: 'معلومات الشحن', icon: '🚚' },
   { id: 'categories', title: 'مربعات التصنيفات', icon: '📁' },
   { id: 'products', title: 'إعدادات المنتجات', icon: '🛍️' },
+  { id: 'shipping', title: 'رسوم التوصيل', icon: '🚚' },
   { id: 'testimonials', title: 'آراء العملاء', icon: '⭐' },
   { id: 'partners', title: 'الشركاء', icon: '🤝' },
   { id: 'footer', title: 'الفوتر', icon: '📋' },
@@ -154,6 +156,7 @@ export default function ContentManagement() {
       { id: 6, icon: '🏺', name: 'ملحقات', description: 'مباخر ومستلزمات', page_link: '/products/incense-accessories', sort_order: 6, is_active: true },
     ],
     products_settings: { section_title: 'منتجاتنا', section_description: 'اكتشف تشكيلتنا الفاخرة', items_per_section: 4 },
+    shipping_settings: { fee: 25 },
     partners_settings: { section_title: 'شركاؤنا', section_description: 'موردين موثوقين · أفضل العلامات العالمية · شراكات استراتيجية', is_active: true },
     footer_settings: { 
       about_title: 'نحن', 
@@ -199,7 +202,7 @@ export default function ContentManagement() {
   useEffect(() => {
     async function fetchData() {
       try {
-        const [dbNavLinks, dbHeroSlides, dbPartners, dbFooterLinks, dbFooterSettings, dbSiteLogo, dbPartnersSettings, dbNewsTicker, dbTestimonials, dbHeroInfo, dbProductsSettings] = await Promise.all([
+        const [dbNavLinks, dbHeroSlides, dbPartners, dbFooterLinks, dbFooterSettings, dbSiteLogo, dbPartnersSettings, dbNewsTicker, dbTestimonials, dbHeroInfo, dbProductsSettings, dbShippingSettings] = await Promise.all([
           getNavigationLinks(),
           getHeroSlides(),
           getPartners(),
@@ -211,6 +214,7 @@ export default function ContentManagement() {
           getTestimonials(),
           getSiteSettings('hero_info'),
           getSiteSettings('products_settings'),
+          getSiteSettings('shipping_settings'),
         ]);
         
         const navLinksFromDb = dbNavLinks.map((link: any) => {
@@ -247,6 +251,7 @@ export default function ContentManagement() {
           testimonials: dbTestimonials.length > 0 ? dbTestimonials : initialData.testimonials,
           hero_info: dbHeroInfo ?? initialData.hero_info,
           products_settings: dbProductsSettings ?? initialData.products_settings,
+          shipping_settings: dbShippingSettings ?? initialData.shipping_settings,
         };
         
         setData(newData);
@@ -373,6 +378,9 @@ export default function ContentManagement() {
       // Save hero_info and products_settings
       await saveSiteSettings('hero_info', data.hero_info);
       await saveSiteSettings('products_settings', data.products_settings);
+      await saveSiteSettings('shipping_settings', {
+        fee: Math.max(0, Number(data.shipping_settings?.fee) || 0),
+      });
 
       await revalidateSite();
       showToast('تم حفظ جميع التغييرات بنجاح', 'success');
@@ -503,6 +511,12 @@ export default function ContentManagement() {
                     )}
                     {accordion.id === 'products' && (
                       <ProductsSettingsSection
+                        data={data}
+                        updateData={updateData}
+                      />
+                    )}
+                    {accordion.id === 'shipping' && (
+                      <ShippingSettingsSection
                         data={data}
                         updateData={updateData}
                       />
@@ -1181,6 +1195,31 @@ function ProductsSettingsSection({ data, updateData }: { data: ContentData; upda
         />
         إظهار قسم المنتجات
       </label>
+    </div>
+  );
+}
+
+// Shipping Settings Section
+function ShippingSettingsSection({ data, updateData }: { data: ContentData; updateData: any }) {
+  const settings = data.shipping_settings || { fee: 25 };
+
+  return (
+    <div className="space-y-4">
+      <div className="bg-luxury-gold/5 border border-luxury-gold/20 rounded-sm p-4 text-sm text-gray-400">
+        تُضاف رسوم التوصيل تلقائياً إلى إجمالي كل طلب جديد في صفحة الدفع والتحويل البنكي وتظهر في الفاتورة.
+      </div>
+      <div>
+        <label className="block text-white font-medium mb-2">قيمة رسوم التوصيل (ر.س)</label>
+        <input
+          type="number"
+          min="0"
+          value={settings.fee ?? 25}
+          onChange={(e) => updateData('shipping_settings', { ...settings, fee: Math.max(0, Number(e.target.value) || 0) })}
+          className="w-full px-4 py-3 bg-luxury-black border border-luxury-gold/20 rounded-sm text-white focus:border-luxury-gold focus:outline-none"
+          placeholder="25"
+        />
+        <p className="text-gray-500 text-xs mt-1">ضع القيمة 0 لجعل التوصيل مجانياً.</p>
+      </div>
     </div>
   );
 }

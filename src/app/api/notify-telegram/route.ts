@@ -19,6 +19,7 @@ export interface OrderNotificationPayload {
   }[];
   subtotal: number;
   discount: number;
+  shipping?: number;
   total: number;
 }
 
@@ -36,6 +37,11 @@ function buildMessage(order: OrderNotificationPayload): string {
   const discountLine =
     order.discount > 0
       ? `\n🏷 الخصم: <b>-${order.discount.toFixed(0)} ر.س</b>`
+      : '';
+
+  const shippingLine =
+    order.shipping && order.shipping > 0
+      ? `\n🚚 رسوم التوصيل: <b>${order.shipping.toFixed(0)} ر.س</b>`
       : '';
 
   const bankLines =
@@ -79,6 +85,7 @@ function buildMessage(order: OrderNotificationPayload): string {
     `\n\n💰 <b>الإجمالي</b>\n` +
     `  المجموع الفرعي: ${order.subtotal.toFixed(0)} ر.س` +
     discountLine +
+    shippingLine +
     `\n  ✅ الصافي: <b>${order.total.toFixed(0)} ر.س</b>` +
     notesLine +
     `\n\n━━━━━━━━━━━━━━━━━━━━\n` +

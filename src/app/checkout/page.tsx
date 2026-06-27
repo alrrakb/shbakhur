@@ -1,11 +1,11 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
 import { useCart } from '@/context/CartContext';
 import { useToast } from '@/context/ToastContext';
-import { createOrder } from '@/lib/database';
+import { createOrder, getShippingFee } from '@/lib/database';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { useRouter } from 'next/navigation';
@@ -99,6 +99,11 @@ export default function CheckoutPage() {
   const [isModalOpen, setIsModalOpen]   = useState(false);
   const [isLoading, setIsLoading]       = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<'cod' | 'bank_transfer'>('bank_transfer');
+  const [shippingCost, setShippingCost] = useState(0);
+
+  useEffect(() => {
+    getShippingFee().then(setShippingCost).catch(() => setShippingCost(0));
+  }, []);
 
   const [formData, setFormData] = useState<FormData>({
     name: '', phone: '', additionalPhone: '',
@@ -119,6 +124,7 @@ export default function CheckoutPage() {
     return Math.max(0, totalPrice - disc);
   };
   const discountValue = totalPrice - calculateTotalAfterDiscount();
+  const grandTotal = calculateTotalAfterDiscount() + shippingCost;
 
   const handleChange = (field: keyof FormData, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -189,6 +195,7 @@ export default function CheckoutPage() {
           additional_phone: formData.additionalPhone || undefined,
           notes: formData.notes || undefined,
           discount_amount: discountValue,
+          shipping_cost: shippingCost,
           payment_method: 'cod',
           is_test: isTest,
           items: orderItems,
@@ -210,7 +217,8 @@ export default function CheckoutPage() {
               items: orderItems.map(i => ({ product_name: i.product_name, quantity: i.quantity, price: i.price })),
               subtotal: totalPrice,
               discount: discountValue,
-              total: calculateTotalAfterDiscount(),
+              shipping: shippingCost,
+              total: grandTotal,
             }),
           }).catch(err => console.error('Telegram notify failed:', err));
 
@@ -225,6 +233,7 @@ export default function CheckoutPage() {
           formData,
           orderItems,
           discountValue,
+          shippingCost,
           totalAfterDiscount: calculateTotalAfterDiscount(),
           is_test: isTest,
         };
@@ -465,7 +474,7 @@ export default function CheckoutPage() {
                     </div>
                     <div>
                       <div className="text-white font-bold text-sm">الدفع عند الاستلام</div>
-                      <div className="text-gray-400 text-xs mt-0.5">ادفع نقداً عند وصول طلبك</div>
+                      <div className="text-gray-400 text-xs mt-0.5">ادفع نقداً او عن طريق البطاقة</div>
                     </div>
                     <svg className="w-8 h-8 text-luxury-gold/60 mr-auto flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
@@ -505,9 +514,13 @@ export default function CheckoutPage() {
                     <span>-{discountValue.toFixed(0)} ر.س</span>
                   </div>
                 )}
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-gray-400">رسوم التوصيل</span>
+                  <span className="text-white font-bold">{shippingCost.toFixed(0)} ر.س</span>
+                </div>
                 <div className="flex items-center justify-between mb-6 pt-4 border-t border-luxury-gold/10">
                   <span className="text-gray-300 font-bold text-sm sm:text-base">المجموع النهائي</span>
-                  <span className="text-luxury-gold font-bold text-xl sm:text-2xl">{calculateTotalAfterDiscount().toFixed(0)} ر.س</span>
+                  <span className="text-luxury-gold font-bold text-xl sm:text-2xl">{grandTotal.toFixed(0)} ر.س</span>
                 </div>
                 <button type="submit"
                   className="w-full px-8 py-4 bg-luxury-gold text-luxury-black font-bold rounded-sm hover:bg-luxury-gold-light transition-colors">
@@ -542,7 +555,8 @@ export default function CheckoutPage() {
                 )}
               </div>
               <div className="text-gray-400 space-y-2 mb-8">
-                <p>المبلغ الإجمالي: <span className="text-luxury-gold font-bold">{calculateTotalAfterDiscount().toFixed(0)} ر.س</span></p>
+                <p>المبلغ الإجمالي: <span className="text-luxury-gold font-bold">{grandTotal.toFixed(0)} ر.س</span></p>
+                <p className="text-xs text-gray-500">شامل رسوم توصيل {shippingCost.toFixed(0)} ر.س</p>
                 <p className="text-sm">
                   {paymentMethod === 'cod'
                     ? 'سيتم تأكيد طلبك فوراً وسيتواصل معك فريقنا قريباً.'

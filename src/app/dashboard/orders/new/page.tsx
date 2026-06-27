@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { createClient } from '@supabase/supabase-js';
 import { useToast } from '@/context/ToastContext';
+import { getShippingFee } from '@/lib/database';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -28,9 +29,12 @@ export default function NewOrderPage() {
     discount_value: '',
   });
 
+  const [shippingCost, setShippingCost] = useState(0);
+
   useEffect(() => {
     supabase.from('products').select('id, title, price, sale_price, image').eq('is_active', true)
       .order('title').then(({ data }) => setProducts((data as any) || []));
+    getShippingFee().then(setShippingCost).catch(() => setShippingCost(0));
   }, []);
 
   const subtotal = cart.reduce((s, i) => s + i.total_price, 0);
@@ -40,7 +44,7 @@ export default function NewOrderPage() {
     if (form.discount_type === 'percentage') return subtotal * v / 100;
     return 0;
   })();
-  const total = subtotal - discountAmount;
+  const total = subtotal - discountAmount + shippingCost;
 
   function addProduct(p: StoreProduct) {
     const price = Number(p.sale_price && p.sale_price !== '0' ? p.sale_price : p.price) || 0;
@@ -93,6 +97,7 @@ export default function NewOrderPage() {
       const { data: order, error: oe } = await supabase.from('orders').insert({
         customer_id: customerId, order_number: orderNumber, status: 'pending',
         subtotal, discount_amount: discountAmount,
+        shipping_cost: shippingCost,
         total_amount: total, notes: finalNotes || null,
         discount_type: form.discount_type,
         discount_value: form.discount_type !== 'none' ? Number(form.discount_value) : null,
@@ -242,6 +247,15 @@ export default function NewOrderPage() {
               <span>الخصم</span><span>-{discountAmount.toFixed(0)} ر.س</span>
             </div>
           )}
+          <div className="flex justify-between items-center text-gray-400">
+            <span>رسوم التوصيل</span>
+            <div className="flex items-center gap-1">
+              <input type="number" min="0" value={shippingCost}
+                onChange={e => setShippingCost(Math.max(0, Number(e.target.value) || 0))}
+                className="w-20 px-2 py-1 bg-luxury-black border border-luxury-gold/20 rounded-sm text-white text-left focus:border-luxury-gold focus:outline-none" />
+              <span>ر.س</span>
+            </div>
+          </div>
           <div className="flex justify-between text-white font-bold text-xl border-t border-luxury-gold/20 pt-3">
             <span>الإجمالي</span><span className="text-luxury-gold">{total.toFixed(0)} ر.س</span>
           </div>

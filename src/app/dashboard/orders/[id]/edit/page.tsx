@@ -27,6 +27,7 @@ export default function EditOrderPage() {
   const [products, setProducts] = useState<StoreProduct[]>([]);
   const [cart, setCart] = useState<CartItem[]>([]);
   const [productSearch, setProductSearch] = useState('');
+  const [shippingCost, setShippingCost] = useState(0);
 
   const [form, setForm] = useState({
     name: '', phone: '', additional_phone: '', area: '', street: '', house_number: '', notes: '',
@@ -55,6 +56,7 @@ export default function EditOrderPage() {
         if (error || !orderData) throw error || new Error('Order not found');
 
         setOrder(orderData);
+        setShippingCost(Number(orderData.shipping_cost) || 0);
         if (orderData.customers) {
           const rawAddress = orderData.customers.address || '';
           const match = rawAddress.match(/^(.*?)(?:\s*\((.*?)\))?$/);
@@ -102,7 +104,7 @@ export default function EditOrderPage() {
     if (form.discount_type === 'percentage') return subtotal * v / 100;
     return 0;
   })();
-  const total = subtotal - discountAmount;
+  const total = subtotal - discountAmount + shippingCost;
 
   function addProduct(p: StoreProduct) {
     const price = Number(p.sale_price && p.sale_price !== '0' ? p.sale_price : p.price) || 0;
@@ -161,6 +163,7 @@ export default function EditOrderPage() {
         .update({
           subtotal,
           discount_amount: discountAmount,
+          shipping_cost: shippingCost,
           total_amount: total,
           notes: finalNotes || null,
           discount_type: form.discount_type,
@@ -372,6 +375,15 @@ export default function EditOrderPage() {
               <span>الخصم</span><span>-{discountAmount.toFixed(0)} ر.س</span>
             </div>
           )}
+          <div className="flex justify-between items-center text-gray-400">
+            <span>رسوم التوصيل</span>
+            <div className="flex items-center gap-1">
+              <input type="number" min="0" value={shippingCost}
+                onChange={e => setShippingCost(Math.max(0, Number(e.target.value) || 0))}
+                className="w-20 px-2 py-1 bg-luxury-black border border-luxury-gold/20 rounded-sm text-white text-left focus:border-luxury-gold focus:outline-none" />
+              <span>ر.س</span>
+            </div>
+          </div>
           <div className="flex justify-between text-white font-bold text-xl border-t border-luxury-gold/20 pt-3">
             <span>الإجمالي</span><span className="text-luxury-gold">{total.toFixed(0)} ر.س</span>
           </div>
