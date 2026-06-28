@@ -60,27 +60,27 @@ export default function ShippingLabelTemplate({ order }: { order: InvoiceOrder }
         padding: '10px 16px',
         display: 'flex', justifyContent: 'space-between', alignItems: 'center',
       }}>
-        <span style={{ fontWeight: 800, fontSize: '17px', letterSpacing: '0.5px' }}>متجر SH للبخور</span>
-        <span style={{ fontSize: '12px', color: '#9ca3af', fontWeight: 500 }}>ملصق الشحن</span>
+        <span style={{ fontWeight: 800, fontSize: '21px', letterSpacing: '0.5px' }}>متجر SH للبخور</span>
+        <span style={{ fontSize: '14px', color: '#9ca3af', fontWeight: 500 }}>ملصق الشحن</span>
       </div>
 
       {/* Customer info */}
       <div style={{ padding: '12px 16px', ...row }}>
-        <p style={{ fontWeight: 800, fontSize: '22px', color: '#111827', margin: '0 0 5px', lineHeight: 1.2 }}>
+        <p style={{ fontWeight: 800, fontSize: '28px', color: '#111827', margin: '0 0 5px', lineHeight: 1.2 }}>
           {order.customers?.name || '—'}
         </p>
         {order.customers?.phone && (
-          <p style={{ fontSize: '16px', color: '#374151', fontWeight: 700, margin: '0 0 3px' }} dir="ltr">
+          <p style={{ fontSize: '20px', color: '#374151', fontWeight: 700, margin: '0 0 3px' }} dir="ltr">
             {order.customers.phone}
           </p>
         )}
         {order.customers?.additional_phone && (
-          <p style={{ fontSize: '15px', color: '#6b7280', fontWeight: 500, margin: '0 0 3px' }} dir="ltr">
+          <p style={{ fontSize: '18px', color: '#6b7280', fontWeight: 500, margin: '0 0 3px' }} dir="ltr">
             {order.customers.additional_phone}
           </p>
         )}
         {addressParts && (
-          <p style={{ fontSize: '14px', color: '#4b5563', margin: '4px 0 0', lineHeight: 1.4 }}>
+          <p style={{ fontSize: '17px', color: '#4b5563', margin: '4px 0 0', lineHeight: 1.4 }}>
             {addressParts}
           </p>
         )}
@@ -88,18 +88,18 @@ export default function ShippingLabelTemplate({ order }: { order: InvoiceOrder }
 
       {/* Items */}
       <div style={{ padding: '10px 16px', ...row }}>
-        <p style={{ fontSize: '12px', color: '#9ca3af', fontWeight: 600, margin: '0 0 6px', letterSpacing: '0.5px' }}>
+        <p style={{ fontSize: '14px', color: '#9ca3af', fontWeight: 600, margin: '0 0 6px', letterSpacing: '0.5px' }}>
           المنتجات
         </p>
         {order.order_items.map((item, i) => (
           <div key={i} style={{
             display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-            fontSize: '15px', color: '#374151', marginBottom: '4px',
+            fontSize: '19px', color: '#374151', marginBottom: '4px',
           }}>
             <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', marginLeft: '8px' }}>
               {item.product_name || '—'}
             </span>
-            <span style={{ color: '#6b7280', fontWeight: 700, flexShrink: 0, fontSize: '14px' }}>× {item.quantity}</span>
+            <span style={{ color: '#6b7280', fontWeight: 700, flexShrink: 0, fontSize: '18px' }}>× {item.quantity}</span>
           </div>
         ))}
       </div>
@@ -110,8 +110,8 @@ export default function ShippingLabelTemplate({ order }: { order: InvoiceOrder }
         display: 'flex', justifyContent: 'space-between', alignItems: 'center',
         background: '#f9fafb',
       }}>
-        <span style={{ fontSize: '15px', color: '#6b7280', fontWeight: 500 }}>الإجمالي</span>
-        <span style={{ fontWeight: 800, fontSize: '20px', color: '#111827' }}>
+        <span style={{ fontSize: '19px', color: '#6b7280', fontWeight: 500 }}>الإجمالي</span>
+        <span style={{ fontWeight: 800, fontSize: '26px', color: '#111827' }}>
           {formatCurrency(order.total_amount)}
         </span>
       </div>
