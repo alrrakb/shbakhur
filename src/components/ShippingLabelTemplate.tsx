@@ -117,7 +117,7 @@ export default function ShippingLabelTemplate({ order }: { order: InvoiceOrder }
       </div>
 
       {/* Barcode */}
-      <div style={{ padding: '10px 16px', display: 'flex', justifyContent: 'center' }}>
+      <div style={{ padding: '10px 16px 30px', display: 'flex', justifyContent: 'center' }}>
         <svg ref={svgRef} style={{ maxWidth: '100%' }} />
       </div>
     </div>

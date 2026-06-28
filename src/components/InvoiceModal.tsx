@@ -107,7 +107,7 @@ export default function InvoiceModal({ order, onClose }: InvoiceModalProps) {
     *, *::before, *::after { box-sizing: border-box; }
     html, body { margin: 0; padding: 0; background: #fff; font-family: 'Cairo', 'Segoe UI', Tahoma, Arial, sans-serif; direction: rtl; width: 100%; }
     @media print { * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; } }
-    @page { size: 5.5in 6in; margin: 5mm; }
+    @page { size: 8.25in 6.5in; margin: 5mm; }
     body { padding: 0; }
     body > div { width: 100% !important; max-width: 100% !important; }
   </style>
@@ -134,7 +134,7 @@ export default function InvoiceModal({ order, onClose }: InvoiceModalProps) {
           initial={{ scale: 0.95, opacity: 0, y: 20 }}
           animate={{ scale: 1, opacity: 1, y: 0 }}
           exit={{ scale: 0.95, opacity: 0, y: 20 }}
-          className="bg-white w-full max-w-3xl rounded-lg shadow-2xl my-6"
+          className={`bg-white w-full rounded-lg shadow-2xl my-6 transition-[max-width] duration-300 ${activeTab === 'label' ? 'max-w-5xl' : 'max-w-3xl'}`}
           onClick={(e) => e.stopPropagation()}
         >
           {/* ── Header ───────────────────────────────────────────────────────── */}
