@@ -5,6 +5,7 @@ export interface OrderNotificationPayload {
   customer_name: string;
   customer_phone: string;
   additional_phone?: string;
+  city?: string;
   area?: string;
   address?: string;
   notes?: string;
@@ -76,7 +77,8 @@ function buildMessage(order: OrderNotificationPayload): string {
       ? `  جوال إضافي: <code>${order.additional_phone}</code>\n`
       : '') +
     `\n📍 <b>عنوان التوصيل</b>\n` +
-    `  المنطقة/الحي: ${order.area || '—'}\n` +
+    (order.city ? `  المدينة: ${order.city}\n` : '') +
+    `  الحي: ${order.area || '—'}\n` +
     `  التفاصيل: ${order.address || '—'}\n` +
     `\n💳 <b>طريقة الدفع</b>\n  ${paymentLabel}` +
     bankLines +

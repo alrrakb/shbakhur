@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { motion } from 'framer-motion';
+import { Plus, Minus, Search, ExternalLink, Save, ArrowRight } from 'lucide-react';
 import { createClient } from '@supabase/supabase-js';
 import { useToast } from '@/context/ToastContext';
 
@@ -292,7 +293,8 @@ export default function EditOrderPage() {
           <div className="relative mb-4">
             <input value={productSearch} onChange={e => setProductSearch(e.target.value)}
               placeholder="ابحث وأضف منتجاً..."
-              className="w-full px-4 py-2 bg-luxury-black border border-luxury-gold/20 rounded-sm text-white focus:border-luxury-gold focus:outline-none" />
+              className="w-full pr-10 pl-4 py-2 bg-luxury-black border border-luxury-gold/20 rounded-sm text-white focus:border-luxury-gold focus:outline-none" />
+            <Search size={16} className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" />
             {productSearch && filteredProducts.length > 0 && (
               <div className="absolute top-full right-0 left-0 bg-[#111] border border-luxury-gold/20 rounded-sm mt-1 z-10 max-h-60 overflow-y-auto">
                 {filteredProducts.map(p => (
@@ -319,10 +321,14 @@ export default function EditOrderPage() {
                   </div>
                   <div className="flex items-center gap-2">
                     <button type="button" onClick={() => updateQty(item.product_id, item.quantity - 1)}
-                      className="w-7 h-7 bg-luxury-gold/10 text-luxury-gold border border-luxury-gold/30 rounded-sm hover:bg-luxury-gold/20 flex items-center justify-center">—</button>
+                      className="w-7 h-7 bg-luxury-gold/10 text-luxury-gold border border-luxury-gold/30 rounded-sm hover:bg-luxury-gold/20 flex items-center justify-center">
+                      <Minus size={12} />
+                    </button>
                     <span className="w-8 text-center text-white">{item.quantity}</span>
                     <button type="button" onClick={() => updateQty(item.product_id, item.quantity + 1)}
-                      className="w-7 h-7 bg-luxury-gold/10 text-luxury-gold border border-luxury-gold/30 rounded-sm hover:bg-luxury-gold/20 flex items-center justify-center">+</button>
+                      className="w-7 h-7 bg-luxury-gold/10 text-luxury-gold border border-luxury-gold/30 rounded-sm hover:bg-luxury-gold/20 flex items-center justify-center">
+                      <Plus size={12} />
+                    </button>
                   </div>
                   <div className="text-luxury-gold font-bold w-24 text-left">{item.total_price.toFixed(0)} ر.س</div>
                 </div>

@@ -8,16 +8,28 @@ import { CartProvider } from '@/context/CartContext';
 import { ToastProvider } from '@/context/ToastContext';
 import { supabase } from '@/lib/supabase';
 import { signOut } from '@/lib/auth';
+import {
+  LayoutDashboard,
+  FileText,
+  ShoppingBag,
+  FolderTree,
+  Search,
+  Package,
+  Users,
+  Percent,
+  Globe,
+  LogOut,
+} from 'lucide-react';
 
 const navItems = [
-  { name: 'لوحة التحكم', href: '/dashboard', icon: '📊' },
-  { name: 'المحتوى', href: '/dashboard/content', icon: '📝' },
-  { name: 'المنتجات', href: '/dashboard/products', icon: '🛍️' },
-  { name: 'التصنيفات', href: '/dashboard/categories', icon: '📁' },
-  { name: 'تحسين SEO', href: '/dashboard/seo', icon: '🔍' },
-  { name: 'الطلبات', href: '/dashboard/orders', icon: '📦' },
-  { name: 'العملاء', href: '/dashboard/customers', icon: '👥' },
-  { name: 'الخصومات', href: '/dashboard/discounts', icon: '🎫' },
+  { name: 'لوحة التحكم', href: '/dashboard', icon: LayoutDashboard },
+  { name: 'المحتوى', href: '/dashboard/content', icon: FileText },
+  { name: 'المنتجات', href: '/dashboard/products', icon: ShoppingBag },
+  { name: 'التصنيفات', href: '/dashboard/categories', icon: FolderTree },
+  { name: 'تحسين SEO', href: '/dashboard/seo', icon: Search },
+  { name: 'الطلبات', href: '/dashboard/orders', icon: Package },
+  { name: 'العملاء', href: '/dashboard/customers', icon: Users },
+  { name: 'الخصومات', href: '/dashboard/discounts', icon: Percent },
 ];
 
 // Hamburger icon component
@@ -145,7 +157,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                   : 'text-gray-400 hover:bg-luxury-gold/5 hover:text-luxury-gold'
               }`}
             >
-              <span className="text-lg flex-shrink-0">{item.icon}</span>
+              <item.icon className="w-5 h-5 flex-shrink-0" />
               <AnimatePresence initial={false}>
                 {(sidebarOpen || isMobile) && (
                   <motion.span
@@ -170,7 +182,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           href="/"
           className="flex items-center gap-3 px-3 py-2.5 text-gray-400 hover:text-luxury-gold transition-colors rounded-sm hover:bg-luxury-gold/5"
         >
-          <span className="text-lg flex-shrink-0">🌐</span>
+          <Globe className="w-5 h-5 flex-shrink-0" />
           <AnimatePresence>
             {(sidebarOpen || isMobile) && (
               <motion.span
@@ -195,7 +207,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           }}
           className="w-full flex items-center gap-3 px-3 py-2.5 text-red-400 hover:text-red-300 hover:bg-red-500/10 transition-colors rounded-sm"
         >
-          <span className="text-lg flex-shrink-0">🚪</span>
+          <LogOut className="w-5 h-5 flex-shrink-0" />
           <AnimatePresence>
             {(sidebarOpen || isMobile) && (
               <motion.span

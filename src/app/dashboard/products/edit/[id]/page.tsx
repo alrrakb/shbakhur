@@ -62,24 +62,9 @@ export default function EditProduct() {
     is_active: true,
   });
 
-  // DEBUG: Track formData changes
-  useEffect(() => {
-    console.log('📝 formData changed - featured_image:', formData.featured_image || '(empty)');
-    if (!formData.featured_image) {
-      console.log('⚠️⚠️⚠️ featured_image RESET detected! Stack:', new Error().stack);
-    }
-  }, [formData.featured_image]);
-
-  // DEBUG: Track component mount/unmount
-  useEffect(() => {
-    console.log('🚀 Component MOUNTED');
-    return () => console.log('💥 Component UNMOUNTED');
-  }, []);
-
   useEffect(() => {
     // Prevent re-fetching and overwriting user changes after initial load
     if (initialLoadDone.current) {
-      console.log('⏭️ Skipping fetch - initial load already done');
       return;
     }
 
@@ -94,7 +79,6 @@ export default function EditProduct() {
         if (productRes.error) throw productRes.error;
 
         if (productRes.data) {
-          console.log('📥 Initial load - setting form data from DB');
           // Check if stock is null/undefined (infinite stock)
           const hasInfiniteStock = productRes.data.stock === null || productRes.data.stock === undefined;
           setIsInfiniteStock(hasInfiniteStock);
@@ -173,24 +157,17 @@ export default function EditProduct() {
 
   const handleUploadFeaturedImage = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    console.log('🔥 handleUploadFeaturedImage called, file:', file ? file.name : 'NO FILE');
     if (!file) return;
 
     setUploading(true);
     try {
       const imageUrl = await uploadToSupabaseStorage(file, 'products', 'featured');
-      console.log('Uploaded image URL:', imageUrl);
       
-      setFormData(prev => {
-        const newState = { ...prev, featured_image: imageUrl };
-        console.log('Updated formData:', newState);
-        return newState;
-      });
+      setFormData(prev => ({ ...prev, featured_image: imageUrl }));
       
-      // CRITICAL: Reset file input to prevent stray change events
+      // Reset file input to prevent stray change events
       if (featuredInputRef.current) {
         featuredInputRef.current.value = '';
-        console.log('✅ File input reset');
       }
       
       showToast('تم رفع الصورة بنجاح', 'success');
@@ -286,10 +263,6 @@ export default function EditProduct() {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-    console.log(`🎯 handleChange called: name="${name}", value="${value?.substring(0, 50)}..."`);
-    if (name === 'featured_image') {
-      console.log('⚠️ featured_image changed via handleChange! Stack:', new Error().stack);
-    }
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 

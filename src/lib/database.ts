@@ -8,7 +8,7 @@ export async function getProducts(options?: { limit?: number; offset?: number })
   try {
     let query = supabase
       .from('products')
-      .select('*, product_categories(categories(id, name, slug, taxonomy))')
+      .select('id, title, slug, price, sale_price, regular_price, sku, image, short_description, stock_status, created_at, product_categories(categories(id, name, slug, taxonomy))')
       .order('id', { ascending: false });
 
     if (options?.limit) {
@@ -30,7 +30,7 @@ export async function getProducts(options?: { limit?: number; offset?: number })
       return {
         id: p.id,
         title: p.title,
-        description: p.description || '',
+        description: '',
         short_description: p.short_description || '',
         slug: p.slug,
         price: p.price || '0',
@@ -161,7 +161,7 @@ export async function getProductsByCategory(
 
     let query = supabase
       .from('products')
-      .select('*, product_categories(categories(id, name, slug, taxonomy))')
+      .select('id, title, slug, price, sale_price, regular_price, image, short_description, stock_status, is_active, created_at, product_categories(categories(id, name, slug, taxonomy))')
       .in('id', productIds)
       .order('id', { ascending: false });
 
@@ -181,7 +181,7 @@ export async function getProductsByCategory(
       return {
         id: p.id,
         title: p.title,
-        description: p.description || '',
+        description: '',
         short_description: p.short_description || '',
         slug: p.slug,
         price: p.price || '0',
@@ -200,7 +200,7 @@ export async function getAllProducts(options?: { limit?: number; offset?: number
   try {
     let query = supabase
       .from('products')
-      .select('*, product_categories(categories(name))')
+      .select('id, title, slug, price, sale_price, regular_price, image, short_description, stock_status, is_active, created_at, product_categories(categories(name))')
       .order('id', { ascending: false });
 
     if (options?.limit) {
@@ -219,13 +219,14 @@ export async function getAllProducts(options?: { limit?: number; offset?: number
         id: p.id ? p.id.toString() : '',
         title: p.title || '',
         slug: p.slug || '',
-        description: p.description || '',
+        description: '',
         price: p.price?.toString() || p.regular_price?.toString() || '0',
         sale_price: p.sale_price?.toString() || '',
         image: p.image || '',
         short_description: p.short_description || '',
         stock_status: p.stock_status,
         is_active: p.is_active !== false,
+        created_at: p.created_at,
         categories: extractedCats
       };
     });
@@ -238,7 +239,7 @@ export async function getSaleProducts(options?: { limit?: number; offset?: numbe
   try {
     let query = supabase
       .from('products')
-      .select('*, product_categories(categories(name))')
+      .select('id, title, slug, price, sale_price, regular_price, image, short_description, stock_status, is_active, created_at, product_categories(categories(name))')
       .not('sale_price', 'is', null)
       .not('sale_price', 'eq', '')
       .not('price', 'is', null)
@@ -267,7 +268,7 @@ export async function getSaleProducts(options?: { limit?: number; offset?: numbe
         id: p.id ? p.id.toString() : '',
         title: p.title || '',
         slug: p.slug || '',
-        description: p.description || '',
+        description: '',
         price: p.price?.toString() || p.regular_price?.toString() || '0',
         sale_price: p.sale_price?.toString() || '',
         image: p.image || '',
@@ -285,6 +286,7 @@ export async function getSaleProducts(options?: { limit?: number; offset?: numbe
 export async function createOrder(orderData: {
   customer_name: string;
   customer_phone: string;
+  customer_city?: string;
   customer_area?: string;
   customer_street?: string;
   additional_phone?: string;
@@ -297,7 +299,7 @@ export async function createOrder(orderData: {
 }): Promise<{ success: boolean; order_id?: string; order_number?: string; error?: string }> {
   try {
     const phone = orderData.customer_phone.trim();
-    
+    const city = orderData.customer_city || orderData.customer_area || null;
     const combinedAddress = [orderData.customer_area, orderData.customer_street].filter(Boolean).join(' - ');
     const finalNotes = orderData.notes ? `ملاحظات العميل: ${orderData.notes}` : '';
 
@@ -315,8 +317,8 @@ export async function createOrder(orderData: {
       await supabase.from('customers').update({
         name: orderData.customer_name,
         additional_phone: orderData.additional_phone || null,
-        city: orderData.customer_area || null,
-        address: orderData.customer_street || null,
+        city: city,
+        address: combinedAddress || null,
       }).eq('id', customerId);
     } else {
       const { data: newCustomer, error: customerError } = await supabase
@@ -325,8 +327,8 @@ export async function createOrder(orderData: {
           name: orderData.customer_name,
           phone,
           additional_phone: orderData.additional_phone || null,
-          city: orderData.customer_area || null,
-          address: orderData.customer_street || null,
+          city: city,
+          address: combinedAddress || null,
         })
         .select('id')
         .single();
@@ -858,13 +860,55 @@ export async function saveSiteSettings(key: string, value: any): Promise<{ succe
   }
 }
 
+export interface ShippingSettings {
+  fee: number;
+  free_shipping_enabled: boolean;
+  free_shipping_threshold: number;
+}
+
+export const DEFAULT_SHIPPING_SETTINGS: ShippingSettings = {
+  fee: 25,
+  free_shipping_enabled: true,
+  free_shipping_threshold: 250,
+};
+
+/** جلب إعدادات الشحن والتوصيل مع القيم الافتراضية الأمانية */
+export async function getShippingSettings(): Promise<ShippingSettings> {
+  try {
+    const settings = await getSiteSettings('shipping_settings');
+    if (!settings) return DEFAULT_SHIPPING_SETTINGS;
+    return {
+      fee: typeof settings.fee === 'number' && settings.fee >= 0 ? settings.fee : DEFAULT_SHIPPING_SETTINGS.fee,
+      free_shipping_enabled: typeof settings.free_shipping_enabled === 'boolean' ? settings.free_shipping_enabled : DEFAULT_SHIPPING_SETTINGS.free_shipping_enabled,
+      free_shipping_threshold: typeof settings.free_shipping_threshold === 'number' && settings.free_shipping_threshold >= 0 ? settings.free_shipping_threshold : DEFAULT_SHIPPING_SETTINGS.free_shipping_threshold,
+    };
+  } catch {
+    return DEFAULT_SHIPPING_SETTINGS;
+  }
+}
+
+/** حفظ إعدادات الشحن في قاعدة البيانات */
+export async function saveShippingSettings(settings: Partial<ShippingSettings>): Promise<{ success: boolean; error?: string }> {
+  try {
+    const current = await getShippingSettings();
+    const updated: ShippingSettings = {
+      fee: typeof settings.fee === 'number' && settings.fee >= 0 ? settings.fee : current.fee,
+      free_shipping_enabled: typeof settings.free_shipping_enabled === 'boolean' ? settings.free_shipping_enabled : current.free_shipping_enabled,
+      free_shipping_threshold: typeof settings.free_shipping_threshold === 'number' && settings.free_shipping_threshold >= 0 ? settings.free_shipping_threshold : current.free_shipping_threshold,
+    };
+    return await saveSiteSettings('shipping_settings', updated);
+  } catch (error: any) {
+    return { success: false, error: error.message };
+  }
+}
+
 /** قيمة رسوم التوصيل المُعدّة من لوحة التحكم (افتراضي 25 ر.س). */
 export async function getShippingFee(): Promise<number> {
   try {
-    const settings = await getSiteSettings('shipping_settings');
-    const fee = settings?.fee;
-    return typeof fee === 'number' && fee >= 0 ? fee : 25;
+    const settings = await getShippingSettings();
+    return settings.fee;
   } catch {
     return 25;
   }
 }
+

@@ -11,7 +11,7 @@ const defaultSlides: HeroSlide[] = [
     id: 1,
     title: 'شحن سريع ومضمون',
     subtitle: 'أجود أنواع البخور والعطور',
-    description: ' delivery within 2-4 business days',
+    description: 'توصيل سريع وموثوق لجميع مدن ومناطق المملكة خلال 2-4 أيام عمل',
     button_text: 'تسوق الآن',
     button_link: '/products',
     image_url: 'https://images.unsplash.com/photo-1615634260167-c8cdede054de?w=1920&q=80',
@@ -271,37 +271,6 @@ export default function Hero() {
               />
             ))}
           </div>
-        );
-      })()}
-
-      {/* Shipping Badge - Only show if there's content */}
-      {(() => {
-        const slide = slides[currentSlide];
-        const hasContent = slide.title || slide.subtitle || slide.description || slide.button_text;
-        
-        if (!hasContent || heroInfo.is_active === false) {
-          return null;
-        }
-        
-        return (
-          <motion.div
-            initial={{ opacity: 0, x: 50 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 1, duration: 0.5 }}
-            className="absolute bottom-8 left-8 z-20 hidden lg:block"
-          >
-            <div className="bg-luxury-dark/80 backdrop-blur-sm border border-luxury-gold/30 px-6 py-4 rounded-sm">
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-full bg-luxury-gold/20 flex items-center justify-center text-2xl">
-                  {heroInfo.icon || '🚚'}
-                </div>
-                <div>
-                  <p className="text-luxury-gold font-bold">{heroInfo.title || 'شحن سريع ومضمون'}</p>
-                  <p className="text-gray-400 text-sm">{heroInfo.description || 'خلال 2-4 أيام عمل'}</p>
-                </div>
-              </div>
-            </div>
-          </motion.div>
         );
       })()}
     </section>

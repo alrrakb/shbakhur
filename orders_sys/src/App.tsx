@@ -13,6 +13,7 @@ import DiscountsPage from '@/pages/DiscountsPage'
 import InvoicePage from '@/pages/InvoicePage'
 import NewInvoicePage from '@/pages/NewInvoicePage'
 import ProfessionalInvoicePage from '@/pages/ProfessionalInvoicePage'
+import ShippingLabelPage from '@/pages/ShippingLabelPage'
 import LoadingSpinner from '@/components/LoadingSpinner'
 
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -60,6 +61,7 @@ const AppRoutes: React.FC = () => {
         <Route path="invoice/:orderId" element={<InvoicePage />} />
         <Route path="invoice-new/:orderId" element={<NewInvoicePage />} />
         <Route path="professional-invoice/:orderId" element={<ProfessionalInvoicePage />} />
+        <Route path="shipping-label/:orderId" element={<ShippingLabelPage />} />
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>

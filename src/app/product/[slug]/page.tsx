@@ -85,7 +85,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
       if (relatedIds.length > 0) {
         const { data: relProds } = await supabase
           .from('products')
-          .select('id, title, slug, price, sale_price, image, discount_percentage, created_at')
+          .select('id, title, short_description, slug, price, sale_price, image, discount_percentage, created_at')
           .in('id', relatedIds)
           .eq('is_active', true)
           .limit(4);
@@ -93,6 +93,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
         relatedProducts = (relProds || []).map((p: any) => ({
           id: p.id,
           title: p.title || '',
+          short_description: p.short_description || '',
           slug: p.slug || '',
           price: p.price || '0',
           sale_price: p.sale_price || null,

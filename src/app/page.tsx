@@ -1,5 +1,6 @@
 import Header from '@/components/Header';
 import Hero from '@/components/Hero';
+import TrustFeatures from '@/components/TrustFeatures';
 import ProductSelection from '@/components/ProductSelection';
 import Testimonials from '@/components/Testimonials';
 import Partners from '@/components/Partners';
@@ -22,6 +23,7 @@ export default function Home() {
     <main className="min-h-screen bg-luxury-black">
       <Header />
       <Hero />
+      <TrustFeatures />
       <ProductSelection />
       <Testimonials />
       <Partners />

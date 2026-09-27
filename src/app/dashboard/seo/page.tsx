@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
+import { Save, Search, Globe, FileText, Sparkles, Image as ImageIcon } from 'lucide-react';
 import { getAllSeoSettings, saveSeoData, type SeoData } from '@/lib/seo';
 import { useToast } from '@/context/ToastContext';
 import DashboardRefreshButton from '@/components/DashboardRefreshButton';
@@ -153,9 +154,9 @@ const ALL_STORE_PAGES = [
           <button
             onClick={handleSave}
             disabled={saving}
-            className="w-full sm:w-auto px-5 sm:px-6 py-2.5 sm:py-3 bg-luxury-gold text-luxury-black font-bold rounded-sm hover:bg-luxury-gold/80 transition-colors disabled:opacity-50 text-sm"
+            className="w-full sm:w-auto px-5 sm:px-6 py-2.5 sm:py-3 bg-luxury-gold text-luxury-black font-bold rounded-sm hover:bg-luxury-gold/80 transition-colors disabled:opacity-50 text-sm inline-flex items-center justify-center gap-2"
           >
-            {saving ? 'جاري الحفظ...' : 'حفظ جميع التغييرات'}
+            {saving ? 'جاري الحفظ...' : <><Save size={16} /> حفظ جميع التغييرات</>}
           </button>
         </div>
       </motion.div>

@@ -43,17 +43,6 @@ export default function AddProduct() {
     fetchCategories();
   }, []);
 
-  // DEBUG: Track formData changes
-  useEffect(() => {
-    console.log('📝 formData changed - featured_image:', formData.featured_image || '(empty)');
-  }, [formData.featured_image]);
-
-  // DEBUG: Track component mount/unmount
-  useEffect(() => {
-    console.log('🚀 Component MOUNTED');
-    return () => console.log('💥 Component UNMOUNTED');
-  }, []);
-
   const handleCategoryChange = (categoryId: string, checked: boolean) => {
     setFormData(prev => ({
       ...prev,
@@ -97,28 +86,15 @@ export default function AddProduct() {
 
   const handleUploadFeaturedImage = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    console.log('🔥 handleUploadFeaturedImage called, file:', file ? file.name : 'NO FILE');
     if (!file) return;
 
     setUploading(true);
     try {
       const imageUrl = await uploadToSupabaseStorage(file, 'products', 'featured');
-      console.log('Uploaded image URL:', imageUrl);
+      setFormData(prev => ({ ...prev, featured_image: imageUrl }));
       
-      // Update form state with new image URL
-      console.log('Setting featured_image to:', imageUrl);
-      setFormData(prev => {
-        const newState = { ...prev, featured_image: imageUrl };
-        console.log('Old state featured_image:', prev.featured_image);
-        console.log('New state featured_image:', newState.featured_image);
-        console.log('State update successful:', newState.featured_image === imageUrl ? 'YES' : 'NO');
-        return newState;
-      });
-      
-      // CRITICAL: Reset file input to prevent stray change events
       if (featuredInputRef.current) {
         featuredInputRef.current.value = '';
-        console.log('✅ File input reset');
       }
       
       showToast('تم رفع الصورة بنجاح', 'success');
@@ -220,10 +196,6 @@ export default function AddProduct() {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-    console.log(`🎯 handleChange called: name="${name}", value="${value?.substring(0, 50)}..."`);
-    if (name === 'featured_image') {
-      console.log('⚠️ featured_image changed via handleChange! Stack:', new Error().stack);
-    }
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 

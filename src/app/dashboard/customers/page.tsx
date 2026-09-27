@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { createClient } from '@supabase/supabase-js';
 import { useToast } from '@/context/ToastContext';
 import DashboardRefreshButton from '@/components/DashboardRefreshButton';
+import { Users, Package, Wallet } from 'lucide-react';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -224,14 +225,16 @@ export default function CustomersPage() {
       {/* Stats */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
         {[
-          { label: 'إجمالي العملاء', value: customers.length, icon: '👥', color: 'text-white' },
-          { label: 'إجمالي الطلبات', value: totalOrders, icon: '📦', color: 'text-luxury-gold' },
-          { label: 'إجمالي الإيرادات', value: `${totalRevenue.toFixed(0)} ر.س`, icon: '💰', color: 'text-green-400' },
+          { label: 'إجمالي العملاء', value: customers.length, icon: Users, color: 'text-white' },
+          { label: 'إجمالي الطلبات', value: totalOrders, icon: Package, color: 'text-luxury-gold' },
+          { label: 'إجمالي الإيرادات', value: `${totalRevenue.toFixed(0)} ر.س`, icon: Wallet, color: 'text-green-400' },
         ].map((s, i) => (
           <motion.div key={i} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
             transition={{ delay: i * 0.06 }}
             className="bg-[#1a1a1a] rounded-sm border border-luxury-gold/20 p-5 flex items-center gap-4">
-            <span className="text-3xl">{s.icon}</span>
+            <div className="w-12 h-12 rounded-xl bg-luxury-gold/10 border border-luxury-gold/20 flex items-center justify-center text-luxury-gold flex-shrink-0">
+              <s.icon className="w-6 h-6" />
+            </div>
             <div>
               <div className={`text-2xl font-bold ${s.color}`}>{s.value}</div>
               <div className="text-gray-400 text-sm">{s.label}</div>

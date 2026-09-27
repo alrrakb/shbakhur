@@ -5,6 +5,7 @@ import { motion } from 'framer-motion';
 import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
 import DashboardRefreshButton from '@/components/DashboardRefreshButton';
+import { Package, Users, ShoppingBag } from 'lucide-react';
 
 interface Stats {
   productsCount: number;
@@ -84,19 +85,19 @@ export default function DashboardHome() {
   }, [refreshKey]);
 
   const statCards = [
-    { label: 'الطلبات', value: stats.ordersCount, icon: '📦', color: 'from-blue-600 to-indigo-500', href: '/dashboard/orders' },
-    { label: 'العملاء', value: stats.customersCount, icon: '👥', color: 'from-purple-600 to-pink-500', href: '/dashboard/customers' },
-    { label: 'المنتجات', value: stats.productsCount, icon: '🛍️', color: 'from-amber-600 to-yellow-500', href: '/dashboard/products' },
+    { label: 'الطلبات', value: stats.ordersCount, icon: Package, color: 'from-blue-600 to-indigo-500', href: '/dashboard/orders' },
+    { label: 'العملاء', value: stats.customersCount, icon: Users, color: 'from-purple-600 to-pink-500', href: '/dashboard/customers' },
+    { label: 'المنتجات', value: stats.productsCount, icon: ShoppingBag, color: 'from-amber-600 to-yellow-500', href: '/dashboard/products' },
   ];
 
   const quickActions = [
     { label: '+ إضافة منتج', href: '/dashboard/products/add', style: 'bg-luxury-gold text-luxury-black font-bold hover:bg-luxury-gold/80' },
-    { label: '+ إضافة طلب', href: '/dashboard/orders/add', style: 'bg-blue-600/20 text-blue-400 border border-blue-500/30 hover:bg-blue-600/30' },
+    { label: '+ إضافة طلب', href: '/dashboard/orders/new', style: 'bg-blue-600/20 text-blue-400 border border-blue-500/30 hover:bg-blue-600/30' },
     { label: '+ إضافة عميل', href: '/dashboard/customers', style: 'bg-purple-600/20 text-purple-400 border border-purple-500/30 hover:bg-purple-600/30' },
     { label: '+ إضافة كوبون', href: '/dashboard/discounts', style: 'bg-green-600/20 text-green-400 border border-green-500/30 hover:bg-green-600/30' },
     { label: 'تحرير المحتوى', href: '/dashboard/content', style: 'border border-luxury-gold/30 text-luxury-gold hover:bg-luxury-gold/10' },
     { label: 'إعدادات SEO', href: '/dashboard/seo', style: 'border border-gray-600 text-gray-400 hover:border-gray-500 hover:text-white' },
-    { label: 'الشعارات والمظهر', href: '/dashboard/media', style: 'border border-gray-600 text-gray-400 hover:border-gray-500 hover:text-white' },
+    { label: 'الشعارات والمظهر', href: '/dashboard/content', style: 'border border-gray-600 text-gray-400 hover:border-gray-500 hover:text-white' },
     { label: 'عرض الموقع', href: '/', style: 'border border-gray-700 text-gray-500 hover:border-gray-600 hover:text-gray-300' },
   ];
 
@@ -135,9 +136,9 @@ export default function DashboardHome() {
                     {loading ? <span className="animate-pulse">...</span> : stat.value}
                   </p>
                 </div>
-                <span className="text-2xl sm:text-4xl opacity-50 group-hover:scale-110 transition-transform flex-shrink-0">
-                  {stat.icon}
-                </span>
+                <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-luxury-gold/10 border border-luxury-gold/20 flex items-center justify-center text-luxury-gold group-hover:scale-110 transition-transform flex-shrink-0">
+                  <stat.icon className="w-5 h-5 sm:w-6 sm:h-6" />
+                </div>
               </div>
             </Link>
           </motion.div>

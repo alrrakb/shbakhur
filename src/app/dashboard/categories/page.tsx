@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Plus, Edit3, Trash2, FolderTree, AlertTriangle, Layers, X, Globe } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { useToast } from '@/context/ToastContext';
 import { revalidateSite } from '@/app/actions/revalidate';
@@ -293,7 +294,7 @@ export default function CategoriesManagement() {
             onClick={openAddModal}
             className="w-full sm:w-auto px-5 sm:px-6 py-2.5 sm:py-3 bg-luxury-gold text-luxury-black font-bold rounded-sm hover:bg-luxury-gold-light transition-colors inline-flex items-center justify-center gap-2 text-sm sm:text-base"
           >
-            <span>+</span> إضافة تصنيف جديد
+            <Plus size={18} /> إضافة تصنيف جديد
           </button>
         </div>
       </motion.div>
@@ -376,14 +377,16 @@ export default function CategoriesManagement() {
                 <div className="flex gap-1.5">
                   <button
                     onClick={() => openEditModal(category)}
-                    className="flex-1 px-2 py-1.5 bg-luxury-gold/10 text-luxury-gold rounded-sm hover:bg-luxury-gold/20 transition-colors text-xs"
+                    className="flex-1 px-2 py-1.5 bg-luxury-gold/10 text-luxury-gold rounded-sm hover:bg-luxury-gold/20 transition-colors text-xs inline-flex items-center justify-center gap-1"
                   >
+                    <Edit3 size={13} />
                     تعديل
                   </button>
                   <button
                     onClick={() => confirmDelete(category)}
-                    className="px-2 py-1.5 bg-red-500/10 text-red-500 rounded-sm hover:bg-red-500/20 transition-colors text-xs"
+                    className="px-2 py-1.5 bg-red-500/10 text-red-500 rounded-sm hover:bg-red-500/20 transition-colors text-xs inline-flex items-center justify-center gap-1"
                   >
+                    <Trash2 size={13} />
                     حذف
                   </button>
                 </div>
@@ -525,9 +528,7 @@ export default function CategoriesManagement() {
               onClick={(e) => e.stopPropagation()}
             >
               <div className="w-14 h-14 rounded-full bg-red-500/10 flex items-center justify-center mx-auto mb-4">
-                <svg className="w-7 h-7 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                </svg>
+                <Trash2 className="w-7 h-7 text-red-500" />
               </div>
               <h3 className="text-lg sm:text-xl font-bold text-white mb-2">تأكيد الحذف</h3>
               <p className="text-gray-400 mb-5 text-sm">

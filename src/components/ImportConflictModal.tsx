@@ -1,6 +1,7 @@
 'use client';
 
 import { motion, AnimatePresence } from 'framer-motion';
+import { CheckCircle2 } from 'lucide-react';
 import type { ImportConflict } from '@/lib/import-utils';
 
 interface ImportConflictModalProps {
@@ -76,8 +77,9 @@ export function ImportConflictModal({
                 ))}
               </div>
             ) : (
-              <div className="text-sm text-green-400 bg-green-500/10 p-3 rounded-sm">
-                ✅ جميع الحقول متطابقة - لا يوجد اختلافات
+              <div className="text-sm text-emerald-400 bg-emerald-500/10 p-3 rounded-sm flex items-center gap-2">
+                <CheckCircle2 size={16} className="text-emerald-400 flex-shrink-0" />
+                <span>جميع الحقول متطابقة - لا توجد اختلافات</span>
               </div>
             )}
           </div>

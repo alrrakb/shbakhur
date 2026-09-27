@@ -39,6 +39,7 @@ export default function ProductGrid({ products }: ProductGridProps) {
     switch (sortBy) {
       case 'price-asc':  return priceA - priceB;
       case 'price-desc': return priceB - priceA;
+      case 'newest':     return (new Date(b.created_at || 0).getTime()) - (new Date(a.created_at || 0).getTime());
       default:           return String(a.id).localeCompare(String(b.id));
     }
   });
@@ -89,7 +90,7 @@ export default function ProductGrid({ products }: ProductGridProps) {
 
         {/* Products Grid */}
         {sortedProducts.length > 0 ? (
-          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4 lg:gap-6">
+          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4 lg:gap-6 items-stretch">
             <AnimatePresence mode="popLayout">
               {sortedProducts.map((product, index) => (
                 <ProductCard key={product.id} product={product} index={index} />
@@ -98,11 +99,13 @@ export default function ProductGrid({ products }: ProductGridProps) {
           </div>
         ) : (
           <div className="text-center py-20">
-            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-luxury-gold/10 mb-4">
-              <span className="text-3xl">📦</span>
+            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-luxury-gold/10 border border-luxury-gold/30 mb-4 text-luxury-gold">
+              <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+              </svg>
             </div>
-            <p className="text-gray-500 text-lg">لا توجد منتجات مطابقة للفلتر</p>
-            <p className="text-gray-600 text-sm mt-2">جرب تغيير خيارات الفلترة</p>
+            <p className="text-gray-400 text-lg font-bold">لا توجد منتجات مطابقة للفلتر</p>
+            <p className="text-gray-500 text-sm mt-1">جرب تغيير خيارات الفلترة أو البحث</p>
           </div>
         )}
       </div>

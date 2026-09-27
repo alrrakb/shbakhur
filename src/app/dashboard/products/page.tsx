@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
+import { Plus, Upload, Download, Trash2, Edit3, ChevronDown, FileSpreadsheet, FileCode, Search, AlertTriangle } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { useToast } from '@/context/ToastContext';
 import {
@@ -505,9 +506,7 @@ export default function ProductsList() {
               </span>
             ) : (
               <>
-                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
-                </svg>
+                <Upload size={14} />
                 استيراد
               </>
             )}
@@ -530,13 +529,9 @@ export default function ProductsList() {
                 </span>
               ) : (
                 <>
-                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                  </svg>
+                  <Download size={14} />
                   تصدير
-                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                  </svg>
+                  <ChevronDown size={14} />
                 </>
               )}
             </button>
@@ -552,9 +547,7 @@ export default function ProductsList() {
                   onClick={handleExportCsv}
                   className="w-full px-4 py-3 text-right text-white hover:bg-luxury-gold/10 transition-colors flex items-center gap-2 border-b border-luxury-gold/10"
                 >
-                  <svg className="w-4 h-4 text-luxury-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                  </svg>
+                  <FileSpreadsheet size={16} className="text-luxury-gold" />
                   <div>
                     <div className="text-sm">تصدير CSV</div>
                     <div className="text-xs text-gray-500">6 حقول محددة</div>
@@ -564,9 +557,7 @@ export default function ProductsList() {
                   onClick={handleExportJson}
                   className="w-full px-4 py-3 text-right text-white hover:bg-luxury-gold/10 transition-colors flex items-center gap-2"
                 >
-                  <svg className="w-4 h-4 text-luxury-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
-                  </svg>
+                  <FileCode size={16} className="text-luxury-gold" />
                   <div>
                     <div className="text-sm">تصدير JSON</div>
                     <div className="text-xs text-gray-500">جميع البيانات + الصور</div>
@@ -580,7 +571,7 @@ export default function ProductsList() {
               onClick={() => setMultiDeleteModal(true)}
               className="px-3 py-2 bg-red-500/10 text-red-500 border border-red-500/30 rounded-sm hover:bg-red-500/20 transition-colors inline-flex items-center gap-1.5 text-xs sm:text-sm"
             >
-              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+              <Trash2 size={14} />
               حذف ({selectedProducts.size})
             </button>
           )}
@@ -589,7 +580,7 @@ export default function ProductsList() {
             href="/dashboard/products/add"
             className="px-4 py-2 bg-luxury-gold text-luxury-black font-bold rounded-sm hover:bg-luxury-gold-light transition-colors inline-flex items-center gap-1.5 text-xs sm:text-sm"
           >
-            <span>+</span> إضافة
+            <Plus size={15} /> إضافة
           </Link>
         </div>
       </motion.div>
@@ -916,8 +907,11 @@ export default function ProductsList() {
               className="bg-[#1a1a1a] border border-luxury-gold/30 rounded-sm p-6 max-w-md w-full z-[10000]"
               onClick={(e) => e.stopPropagation()}
             >
-              <h3 className="text-xl font-bold text-white mb-4">تأكيد الحذف</h3>
-              <p className="text-gray-400 mb-6">
+              <div className="w-14 h-14 rounded-full bg-red-500/10 flex items-center justify-center mx-auto mb-4">
+                <Trash2 className="w-7 h-7 text-red-500" />
+              </div>
+              <h3 className="text-xl font-bold text-white mb-2 text-center">تأكيد الحذف</h3>
+              <p className="text-gray-400 mb-6 text-center">
                 هل أنت متأكد من حذف "{deleteModal.product.title}"؟
                 <br />
                 <span className="text-red-500">لا يمكن التراجع عن هذا الإجراء</span>
@@ -931,7 +925,7 @@ export default function ProductsList() {
                 </button>
                 <button
                   onClick={handleDelete}
-                  className="flex-1 px-4 py-2 bg-red-500 text-white rounded-sm hover:bg-red-600 transition-colors"
+                  className="flex-1 px-4 py-2 bg-red-500 text-white rounded-sm hover:bg-red-600 transition-colors font-bold"
                 >
                   حذف
                 </button>
@@ -958,8 +952,11 @@ export default function ProductsList() {
               className="bg-[#1a1a1a] border border-luxury-gold/30 rounded-sm p-6 max-w-md w-full z-[10000]"
               onClick={(e) => e.stopPropagation()}
             >
-              <h3 className="text-xl font-bold text-white mb-4">تأكيد حذف المنتجات</h3>
-              <p className="text-gray-400 mb-6">
+              <div className="w-14 h-14 rounded-full bg-red-500/10 flex items-center justify-center mx-auto mb-4">
+                <Trash2 className="w-7 h-7 text-red-500" />
+              </div>
+              <h3 className="text-xl font-bold text-white mb-2 text-center">تأكيد حذف المنتجات</h3>
+              <p className="text-gray-400 mb-6 text-center">
                 هل أنت متأكد من حذف {selectedProducts.size} منتجات؟
                 <br />
                 <span className="text-red-500">لا يمكن التراجع عن هذا الإجراء</span>
@@ -973,7 +970,7 @@ export default function ProductsList() {
                 </button>
                 <button
                   onClick={handleMultiDelete}
-                  className="flex-1 px-4 py-2 bg-red-500 text-white rounded-sm hover:bg-red-600 transition-colors"
+                  className="flex-1 px-4 py-2 bg-red-500 text-white rounded-sm hover:bg-red-600 transition-colors font-bold"
                 >
                   حذف ({selectedProducts.size})
                 </button>

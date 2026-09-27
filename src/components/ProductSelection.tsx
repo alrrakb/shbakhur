@@ -24,22 +24,70 @@ interface CategorySection {
   id: string;
   name: string;
   href: string;
-  icon: string;
   products: Product[];
 }
 
-const categoryIcons: Record<string, string> = {
-  incense: '🔥',
-  'enhanced-oud': '💎',
-  'natural-oud': '🪵',
-  'oud-oil': '💧',
-  'incense-accessories': '🏺',
-  perfumes: '✨',
-  'special-offers': '🎁',
-  'tom-ford-perfumes': '👑',
-  'gucci-perfumes': '🌸',
-  'dior-perfumes': '💄',
-};
+function CategoryIcon({ slug, className = "w-5 h-5 text-luxury-gold" }: { slug: string; className?: string }) {
+  switch (slug) {
+    case 'incense':
+    case 'بخور':
+      return (
+        <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M17.657 18.657A8 8 0 016.343 7.343S7 9 9 10c0-2 .5-5 2.986-7C14 5 16.09 5.777 17.656 7.343a7.975 7.975 0 012.344 5.657c0 2.122-.843 4.157-2.343 5.657z" />
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M9.879 16.121A3 3 0 1012.015 11L11 14H9c0 .768.293 1.536.879 2.121z" />
+        </svg>
+      );
+    case 'enhanced-oud':
+    case 'عود-محسن':
+      return (
+        <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M12 2l8 6-8 14L4 8l8-6zM4 8h16M9 2l3 6 3-6" />
+        </svg>
+      );
+    case 'natural-oud':
+    case 'عود-طبيعي':
+      return (
+        <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
+        </svg>
+      );
+    case 'oud-oil':
+    case 'دهن-العود':
+      return (
+        <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M12 2.69l5.66 5.66a8 8 0 11-11.31 0z" />
+        </svg>
+      );
+    case 'incense-accessories':
+    case 'ملحقات-البخور':
+      return (
+        <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+        </svg>
+      );
+    case 'perfumes':
+    case 'العطور':
+    case 'عطور':
+      return (
+        <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M9 3h6m-3 0v4m-5 4h10a2 2 0 012 2v6a3 3 0 01-3 3H8a3 3 0 01-3-3v-6a2 2 0 012-2z" />
+        </svg>
+      );
+    case 'special-offers':
+    case 'عروضنا':
+      return (
+        <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V6a2 2 0 10-2 2h2zm0 0H4v13a2 2 0 002 2h12a2 2 0 002-2V8H12z" />
+        </svg>
+      );
+    default:
+      return (
+        <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+        </svg>
+      );
+  }
+}
 
 export default function ProductSelection() {
   const [sections, setSections] = useState<CategorySection[]>([]);
@@ -73,7 +121,6 @@ export default function ProductSelection() {
                 id: cat.slug,
                 name: cat.name,
                 href: `/products/${cat.slug}`,
-                icon: categoryIcons[cat.slug] || '📦',
                 products,
               };
             })
@@ -122,26 +169,32 @@ export default function ProductSelection() {
           </p>
         </motion.div>
 
-        {/* Categories - Hidden */}
-        {false && (
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-12">
-          {sections.map((category, index) => (
-            <Link key={category.id} href={category.href}>
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.1 }}
-                whileHover={{ scale: 1.02, y: -5 }}
-                className="group bg-luxury-dark border border-luxury-gold/20 hover:border-luxury-gold/50 rounded-sm p-4 text-center transition-all duration-300"
+        {/* Category Quick Pills Navigator */}
+        {sections.filter(s => s.products.length > 0).length > 1 && (
+          <div className="flex items-center justify-center gap-2 sm:gap-3 flex-wrap mb-16 px-2">
+            {sections.filter(s => s.products.length > 0).map((category, index) => (
+              <a
+                key={category.id}
+                href={`#${category.id}`}
+                onClick={(e) => {
+                  e.preventDefault();
+                  const target = document.getElementById(category.id);
+                  if (target) {
+                    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                  }
+                }}
+                className="group flex items-center gap-2 px-4 sm:px-5 py-2 sm:py-2.5 rounded-full bg-[#181818] border border-luxury-gold/30 hover:border-luxury-gold hover:bg-luxury-gold/10 transition-all text-xs sm:text-sm font-bold text-gray-200 hover:text-luxury-gold shadow-sm hover:shadow-[0_0_15px_rgba(212,175,55,0.2)] active:scale-95"
               >
-                <span className="text-3xl mb-2 block">{category.icon}</span>
-                <h3 className="text-white font-bold text-sm group-hover:text-luxury-gold transition-colors">
-                  {category.name}
-                </h3>
-              </motion.div>
-            </Link>
-          ))}
-        </div>
+                <span className="text-luxury-gold group-hover:scale-110 transition-transform">
+                  <CategoryIcon slug={category.id} className="w-4 h-4" />
+                </span>
+                <span>{category.name}</span>
+                <span className="text-[10px] sm:text-xs text-luxury-gold/70 bg-luxury-gold/10 px-2 py-0.5 rounded-full font-mono">
+                  {category.products.length}
+                </span>
+              </a>
+            ))}
+          </div>
         )}
 
         {/* Product Grid by Category */}
@@ -152,7 +205,9 @@ export default function ProductSelection() {
           <div key={category.id} id={category.id} className="mb-20 scroll-mt-24 relative">
             <div className="flex items-center justify-between mb-8">
               <h3 className="text-2xl md:text-3xl font-bold text-white flex items-center gap-3">
-                <span className="text-2xl">{category.icon}</span>
+                <span className="w-8 h-8 rounded-lg bg-luxury-gold/10 border border-luxury-gold/30 flex items-center justify-center text-luxury-gold">
+                  <CategoryIcon slug={category.id} className="w-4 h-4" />
+                </span>
                 {category.name}
               </h3>
               <div className="flex items-center gap-4 sm:gap-6">
@@ -195,7 +250,7 @@ export default function ProductSelection() {
                 className="!pb-6 !pt-2"
               >
                 {category.products.map((product, index) => (
-                  <SwiperSlide key={product.id} className="h-auto">
+                  <SwiperSlide key={product.id} className="!h-auto flex flex-col">
                     <ProductCard product={product} index={index} />
                   </SwiperSlide>
                 ))}
@@ -207,14 +262,16 @@ export default function ProductSelection() {
         {/* No Products Message */}
         {sections.length > 0 && sections.every(s => s.products.length === 0) && (
           <div className="text-center py-12">
-            <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-luxury-gold/10 mb-4">
-              <span className="text-4xl">📦</span>
+            <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-luxury-gold/10 border border-luxury-gold/30 mb-4 text-luxury-gold">
+              <svg className="w-10 h-10" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+              </svg>
             </div>
             <h3 className="text-2xl font-bold text-white mb-2">لا توجد منتجات حالياً</h3>
             <p className="text-gray-400 max-w-md mx-auto">
              سنقوم باضافة المنتجات قريباً
             </p>
-            <Link href="/products" className="inline-block mt-6 px-6 py-3 bg-luxury-gold text-luxury-black font-bold rounded-sm hover:bg-luxury-gold-light transition-colors">
+            <Link href="/products" className="inline-block mt-6 px-6 py-3 bg-luxury-gold text-luxury-black font-bold rounded-xl hover:bg-luxury-gold-light transition-colors">
              تصفح جميع المنتجات
             </Link>
           </div>

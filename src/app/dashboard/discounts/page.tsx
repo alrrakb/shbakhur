@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Plus, Search, Trash2, Edit3, Tag, Percent, AlertTriangle } from 'lucide-react';
 import { createClient } from '@supabase/supabase-js';
 import { useToast } from '@/context/ToastContext';
 import DashboardRefreshButton from '@/components/DashboardRefreshButton';
@@ -129,17 +130,20 @@ export default function DiscountsPage() {
         <div className="flex items-center gap-2">
           <DashboardRefreshButton onRefresh={fetchDiscounts} loading={loading} />
           <button onClick={() => { closeForm(); setShowForm(true); }}
-            className="w-full sm:w-auto px-5 sm:px-6 py-2.5 sm:py-3 bg-luxury-gold text-luxury-black font-bold rounded-sm hover:bg-luxury-gold/80 transition-colors text-sm">
-            + إضافة خصم
+            className="w-full sm:w-auto px-5 sm:px-6 py-2.5 sm:py-3 bg-luxury-gold text-luxury-black font-bold rounded-sm hover:bg-luxury-gold/80 transition-colors text-sm inline-flex items-center justify-center gap-2">
+            <Plus size={16} /> إضافة خصم
           </button>
         </div>
       </motion.div>
 
       {/* Search + Filters Toolbar */}
       <div className="flex flex-col md:flex-row gap-3">
-        <input type="text" placeholder="بحث بكود الخصم أو الوصف..." value={search}
-          onChange={e => setSearch(e.target.value)}
-          className="flex-1 px-4 py-3 bg-[#1a1a1a] border border-luxury-gold/20 rounded-sm text-white focus:border-luxury-gold focus:outline-none transition-colors" />
+        <div className="relative flex-1">
+          <input type="text" placeholder="بحث بكود الخصم أو الوصف..." value={search}
+            onChange={e => setSearch(e.target.value)}
+            className="w-full pr-10 pl-4 py-3 bg-[#1a1a1a] border border-luxury-gold/20 rounded-sm text-white focus:border-luxury-gold focus:outline-none transition-colors" />
+          <Search size={16} className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" />
+        </div>
         <select value={statusFilter} onChange={e => setStatusFilter(e.target.value)}
           className="w-full md:w-48 px-4 py-3 bg-[#1a1a1a] border border-luxury-gold/20 rounded-sm text-white focus:border-luxury-gold focus:outline-none transition-colors">
           <option value="">كل الحالات</option>
@@ -228,8 +232,11 @@ export default function DiscountsPage() {
               exit={{ scale: 0.95, opacity: 0 }}
               className="bg-[#111] border border-luxury-gold/30 rounded-sm p-6 w-full max-w-md"
             >
-              <h3 className="text-xl font-bold text-white mb-2">تأكيد الحذف</h3>
-              <p className="text-gray-400 mb-6">هل أنت متأكد من حذف كود الخصم هذا؟ هذا الإجراء لا يمكن التراجع عنه.</p>
+              <div className="w-14 h-14 rounded-full bg-red-500/10 flex items-center justify-center mx-auto mb-4">
+                <Trash2 className="w-7 h-7 text-red-500" />
+              </div>
+              <h3 className="text-xl font-bold text-white mb-2 text-center">تأكيد الحذف</h3>
+              <p className="text-gray-400 mb-6 text-center">هل أنت متأكد من حذف كود الخصم هذا؟ هذا الإجراء لا يمكن التراجع عنه.</p>
               <div className="flex gap-4">
                 <button
                   onClick={() => setDeleteConfirm({ open: false, id: '' })}
@@ -304,11 +311,13 @@ export default function DiscountsPage() {
 
                   <div className="flex gap-2">
                     <button onClick={() => openEdit(d)}
-                      className="px-3 py-1.5 bg-luxury-gold/10 text-luxury-gold border border-luxury-gold/30 rounded-sm hover:bg-luxury-gold/20 transition-colors text-xs flex-1 text-center">
+                      className="px-3 py-1.5 bg-luxury-gold/10 text-luxury-gold border border-luxury-gold/30 rounded-sm hover:bg-luxury-gold/20 transition-colors text-xs flex-1 inline-flex items-center justify-center gap-1">
+                      <Edit3 size={13} />
                       تعديل
                     </button>
                     <button onClick={() => handleDelete(d.id)}
-                      className="px-3 py-1.5 bg-red-500/10 text-red-400 border border-red-500/30 rounded-sm hover:bg-red-500/20 transition-colors text-xs flex-1 text-center">
+                      className="px-3 py-1.5 bg-red-500/10 text-red-400 border border-red-500/30 rounded-sm hover:bg-red-500/20 transition-colors text-xs flex-1 inline-flex items-center justify-center gap-1">
+                      <Trash2 size={13} />
                       حذف
                     </button>
                   </div>
@@ -361,11 +370,13 @@ export default function DiscountsPage() {
                     <td className="p-4">
                       <div className="flex gap-2">
                         <button onClick={() => openEdit(d)}
-                          className="px-3 py-1 bg-luxury-gold/10 text-luxury-gold border border-luxury-gold/30 rounded-sm hover:bg-luxury-gold/20 text-sm">
+                          className="px-3 py-1 bg-luxury-gold/10 text-luxury-gold border border-luxury-gold/30 rounded-sm hover:bg-luxury-gold/20 text-sm inline-flex items-center gap-1">
+                          <Edit3 size={13} />
                           تعديل
                         </button>
                         <button onClick={() => handleDelete(d.id)}
-                          className="px-3 py-1 bg-red-500/10 text-red-400 border border-red-500/30 rounded-sm hover:bg-red-500/20 text-sm">
+                          className="px-3 py-1 bg-red-500/10 text-red-400 border border-red-500/30 rounded-sm hover:bg-red-500/20 text-sm inline-flex items-center gap-1">
+                          <Trash2 size={13} />
                           حذف
                         </button>
                       </div>

@@ -7,6 +7,21 @@ import { supabase } from '@/lib/supabase';
 import { useToast } from '@/context/ToastContext';
 import { revalidateSite } from '@/app/actions/revalidate';
 import DashboardRefreshButton from '@/components/DashboardRefreshButton';
+import {
+  Palette,
+  Menu,
+  Megaphone,
+  Sliders,
+  Truck,
+  FolderTree,
+  ShoppingBag,
+  Star,
+  Handshake,
+  PanelBottom,
+  Check,
+  X,
+  Trash2,
+} from 'lucide-react';
 
 interface Section {
   section_name: string;
@@ -87,7 +102,7 @@ interface ContentData {
   hero_info: { title: string; description: string; icon: string; is_active: boolean };
   category_cards: CategoryCard[];
   products_settings: any;
-  shipping_settings: { fee: number };
+  shipping_settings: { fee: number; free_shipping_enabled?: boolean; free_shipping_threshold?: number };
   partners_settings: { section_title: string; section_description: string; is_active: boolean };
   footer_settings: { 
     about_title: string; 
@@ -108,21 +123,21 @@ interface ContentData {
 interface AccordionSection {
   id: string;
   title: string;
-  icon: string;
+  icon: any;
 }
 
 const accordions: AccordionSection[] = [
-  { id: 'logo', title: 'الشعار والهيدر', icon: '🎨' },
-  { id: 'navigation', title: 'قائمة التنقل', icon: '🔗' },
-  { id: 'news', title: 'الأخبار العاجلة', icon: '📰' },
-  { id: 'hero', title: 'سلايدر الهيرو', icon: '🖼️' },
-  { id: 'hero_info', title: 'معلومات الشحن', icon: '🚚' },
-  { id: 'categories', title: 'مربعات التصنيفات', icon: '📁' },
-  { id: 'products', title: 'إعدادات المنتجات', icon: '🛍️' },
-  { id: 'shipping', title: 'رسوم التوصيل', icon: '🚚' },
-  { id: 'testimonials', title: 'آراء العملاء', icon: '⭐' },
-  { id: 'partners', title: 'الشركاء', icon: '🤝' },
-  { id: 'footer', title: 'الفوتر', icon: '📋' },
+  { id: 'logo', title: 'الشعار والهيدر', icon: Palette },
+  { id: 'navigation', title: 'قائمة التنقل', icon: Menu },
+  { id: 'news', title: 'الأخبار العاجلة', icon: Megaphone },
+  { id: 'hero', title: 'سلايدر الهيرو', icon: Sliders },
+  { id: 'hero_info', title: 'معلومات الشحن السريع', icon: Truck },
+  { id: 'categories', title: 'مربعات التصنيفات', icon: FolderTree },
+  { id: 'products', title: 'إعدادات المنتجات', icon: ShoppingBag },
+  { id: 'shipping', title: 'رسوم التوصيل والشحن المجاني', icon: Truck },
+  { id: 'testimonials', title: 'آراء العملاء', icon: Star },
+  { id: 'partners', title: 'الشركاء والعلامات التجارية', icon: Handshake },
+  { id: 'footer', title: 'الفوتر', icon: PanelBottom },
 ];
 
 export default function ContentManagement() {
@@ -156,7 +171,7 @@ export default function ContentManagement() {
       { id: 6, icon: '🏺', name: 'ملحقات', description: 'مباخر ومستلزمات', page_link: '/products/incense-accessories', sort_order: 6, is_active: true },
     ],
     products_settings: { section_title: 'منتجاتنا', section_description: 'اكتشف تشكيلتنا الفاخرة', items_per_section: 4 },
-    shipping_settings: { fee: 25 },
+    shipping_settings: { fee: 25, free_shipping_enabled: true, free_shipping_threshold: 250 },
     partners_settings: { section_title: 'شركاؤنا', section_description: 'موردين موثوقين · أفضل العلامات العالمية · شراكات استراتيجية', is_active: true },
     footer_settings: { 
       about_title: 'نحن', 
@@ -178,10 +193,10 @@ export default function ContentManagement() {
     ],
     footer_links: [],
     news_ticker: [
-      { id: 1, message: 'الشحن مجاني', is_active: true, sort_order: 1 },
-      { id: 2, message: 'التوصيل للرياض فقط', is_active: true, sort_order: 2 },
+      { id: 1, message: 'الشحن مجاني للطلبات المؤهلة', is_active: true, sort_order: 1 },
+      { id: 2, message: 'شحن سريع لجميع مدن ومناطق المملكة', is_active: true, sort_order: 2 },
       { id: 3, message: 'خصم 20% على الطلبات الأولى', is_active: true, sort_order: 3 },
-      { id: 4, message: 'توصيل سريع خلال 2-4 أيام عمل', is_active: true, sort_order: 4 },
+      { id: 4, message: 'توصيل موثوق خلال 2-4 أيام عمل', is_active: true, sort_order: 4 },
       { id: 5, message: 'للطلب يرجى التواصل واتساب', is_active: true, sort_order: 5 },
     ],
     navigation: [
@@ -380,6 +395,8 @@ export default function ContentManagement() {
       await saveSiteSettings('products_settings', data.products_settings);
       await saveSiteSettings('shipping_settings', {
         fee: Math.max(0, Number(data.shipping_settings?.fee) || 0),
+        free_shipping_enabled: Boolean(data.shipping_settings?.free_shipping_enabled ?? true),
+        free_shipping_threshold: Math.max(0, Number(data.shipping_settings?.free_shipping_threshold) || 250),
       });
 
       await revalidateSite();
@@ -450,8 +467,10 @@ export default function ContentManagement() {
               onClick={() => toggleSection(accordion.id)}
               className="w-full px-4 sm:px-6 py-3 sm:py-4 flex items-center justify-between text-white hover:bg-luxury-gold/5 transition-colors"
             >
-              <div className="flex items-center gap-2 sm:gap-3">
-                <span className="text-xl sm:text-2xl">{accordion.icon}</span>
+              <div className="flex items-center gap-2.5 sm:gap-3.5">
+                <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg bg-luxury-gold/10 border border-luxury-gold/25 flex items-center justify-center text-luxury-gold flex-shrink-0">
+                  <accordion.icon className="w-4 h-4 sm:w-5 sm:h-5" />
+                </div>
                 <span className="font-bold text-sm sm:text-base">{accordion.title}</span>
               </div>
               <svg
@@ -810,19 +829,20 @@ function NavigationSection({ data, updateData }: { data: ContentData; updateData
                     type="button"
                     title={item.is_active === false ? 'تفعيل' : 'إيقاف مؤقت'}
                     onClick={() => updateDropdownItem(index, itemIndex, 'is_active', item.is_active === false)}
-                    className={`flex-shrink-0 w-7 h-7 rounded-sm text-xs font-bold transition-colors ${
+                    className={`flex-shrink-0 w-7 h-7 rounded-sm flex items-center justify-center transition-colors ${
                       item.is_active === false
                         ? 'bg-gray-700 text-gray-400 hover:bg-green-500/20 hover:text-green-400'
                         : 'bg-green-500/15 text-green-400 hover:bg-red-500/15 hover:text-red-400'
                     }`}
                   >
-                    {item.is_active === false ? '●' : '✓'}
+                    {item.is_active === false ? <X size={13} /> : <Check size={13} />}
                   </button>
                   <button
                     onClick={() => removeDropdownItem(index, itemIndex)}
-                    className="flex-shrink-0 text-red-500 text-xs"
+                    className="flex-shrink-0 text-red-500 hover:text-red-400 p-1"
+                    title="حذف"
                   >
-                    ✕
+                    <Trash2 size={14} />
                   </button>
                 </div>
               ))}
@@ -878,7 +898,9 @@ function NewsSection({ data, updateData }: { data: ContentData; updateData: any 
             />
             مفعل
           </label>
-          <button onClick={() => removeNews(index)} className="text-red-500">✕</button>
+          <button onClick={() => removeNews(index)} className="text-red-500 hover:text-red-400 p-1" title="حذف">
+            <Trash2 size={16} />
+          </button>
         </div>
       ))}
       <button onClick={addNews} className="px-4 py-2 bg-luxury-gold/10 text-luxury-gold rounded-sm hover:bg-luxury-gold/20">+ إضافة رسالة</button>
@@ -1201,25 +1223,53 @@ function ProductsSettingsSection({ data, updateData }: { data: ContentData; upda
 
 // Shipping Settings Section
 function ShippingSettingsSection({ data, updateData }: { data: ContentData; updateData: any }) {
-  const settings = data.shipping_settings || { fee: 25 };
+  const settings = data.shipping_settings || { fee: 25, free_shipping_enabled: true, free_shipping_threshold: 250 };
 
   return (
-    <div className="space-y-4">
-      <div className="bg-luxury-gold/5 border border-luxury-gold/20 rounded-sm p-4 text-sm text-gray-400">
-        تُضاف رسوم التوصيل تلقائياً إلى إجمالي كل طلب جديد في صفحة الدفع والتحويل البنكي وتظهر في الفاتورة.
+    <div className="space-y-5">
+      <div className="bg-luxury-gold/5 border border-luxury-gold/20 rounded-xl p-4 text-sm text-gray-300">
+        تُضاف رسوم التوصيل تلقائياً إلى إجمالي كل طلب جديد، وتُطبق ميزة الشحن المجاني تلقائياً عند استيفاء الحد الأدنى لسلة المشتريات.
       </div>
       <div>
-        <label className="block text-white font-medium mb-2">قيمة رسوم التوصيل (ر.س)</label>
+        <label className="block text-white font-semibold text-sm mb-2">سعر رسوم الشحن الافتراضي (ر.س)</label>
         <input
           type="number"
           min="0"
           value={settings.fee ?? 25}
           onChange={(e) => updateData('shipping_settings', { ...settings, fee: Math.max(0, Number(e.target.value) || 0) })}
-          className="w-full px-4 py-3 bg-luxury-black border border-luxury-gold/20 rounded-sm text-white focus:border-luxury-gold focus:outline-none"
+          className="w-full px-4 py-3 bg-luxury-black border border-luxury-gold/20 rounded-xl text-white font-mono focus:border-luxury-gold focus:outline-none"
           placeholder="25"
         />
-        <p className="text-gray-500 text-xs mt-1">ضع القيمة 0 لجعل التوصيل مجانياً.</p>
+        <p className="text-gray-500 text-xs mt-1">تطبق على الطلبات غير المستوفية للشحن المجاني.</p>
       </div>
+
+      <div className="bg-luxury-black/60 border border-luxury-gold/20 rounded-xl p-4 flex items-center justify-between">
+        <div>
+          <span className="text-white text-sm font-bold block">تفعيل الشحن المجاني للمشتريات</span>
+          <p className="text-xs text-gray-400">إعفاء العميل من رسوم الشحن عند تجاوز قيمة الطلب حداً معيناً</p>
+        </div>
+        <input
+          type="checkbox"
+          checked={settings.free_shipping_enabled !== false}
+          onChange={(e) => updateData('shipping_settings', { ...settings, free_shipping_enabled: e.target.checked })}
+          className="w-5 h-5 accent-luxury-gold cursor-pointer"
+        />
+      </div>
+
+      {settings.free_shipping_enabled !== false && (
+        <div>
+          <label className="block text-white font-semibold text-sm mb-2">تطبيق الشحن المجاني على المشتريات التي تزيد عن (ر.س)</label>
+          <input
+            type="number"
+            min="0"
+            step="10"
+            value={settings.free_shipping_threshold ?? 250}
+            onChange={(e) => updateData('shipping_settings', { ...settings, free_shipping_threshold: Math.max(0, Number(e.target.value) || 0) })}
+            className="w-full px-4 py-3 bg-luxury-black border border-luxury-gold/20 rounded-xl text-white font-mono focus:border-luxury-gold focus:outline-none"
+            placeholder="250"
+          />
+        </div>
+      )}
     </div>
   );
 }
@@ -1552,8 +1602,8 @@ function FooterSettingsSection({ data, updateData }: { data: ContentData; update
               className="flex-1 px-4 py-3 bg-luxury-black border border-luxury-gold/20 rounded-sm text-white focus:border-luxury-gold focus:outline-none"
               placeholder="+966 50 123 4567"
             />
-            <button onClick={() => removePhoneNumber(index)} className="px-3 py-2 text-red-500 hover:text-red-400">
-              ✕
+            <button onClick={() => removePhoneNumber(index)} className="px-3 py-2 text-red-500 hover:text-red-400" title="حذف">
+              <Trash2 size={16} />
             </button>
           </div>
         ))}
@@ -1630,16 +1680,16 @@ function FooterSection({ data, updateData }: { data: ContentData; updateData: an
                   type="button"
                   title={link.is_active === false ? 'تفعيل' : 'إيقاف مؤقت'}
                   onClick={() => updateLink(originalIndex, 'is_active', link.is_active === false)}
-                  className={`flex-shrink-0 w-7 h-7 rounded-sm text-xs font-bold transition-colors ${
+                  className={`flex-shrink-0 w-7 h-7 rounded-sm flex items-center justify-center transition-colors ${
                     link.is_active === false
                       ? 'bg-gray-700 text-gray-400 hover:bg-green-500/20 hover:text-green-400'
                       : 'bg-green-500/15 text-green-400 hover:bg-red-500/15 hover:text-red-400'
                   }`}
                 >
-                  {link.is_active === false ? '●' : '✓'}
+                  {link.is_active === false ? <X size={13} /> : <Check size={13} />}
                 </button>
-                <button onClick={() => removeLink(originalIndex)} className="flex-shrink-0 text-red-500 hover:text-red-400 text-xs">
-                  ✕
+                <button onClick={() => removeLink(originalIndex)} className="flex-shrink-0 text-red-500 hover:text-red-400 p-1" title="حذف">
+                  <Trash2 size={14} />
                 </button>
               </div>
             );
