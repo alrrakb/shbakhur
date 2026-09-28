@@ -215,7 +215,7 @@ export default function CartPage() {
                 <div className="pt-6 border-t border-luxury-gold/15 flex items-center justify-center gap-6 text-xs text-gray-400">
                   <span className="flex items-center gap-1.5"><span className="text-luxury-gold">✓</span> عود طبيعي 100%</span>
                   <span className="flex items-center gap-1.5"><span className="text-luxury-gold">✓</span> شحن سريع لكافة المدن</span>
-                  <span className="flex items-center gap-1.5"><span className="text-luxury-gold">✓</span> ضمان الاسترجاع الذهبي</span>
+                  <span className="flex items-center gap-1.5"><span className="text-luxury-gold">✓</span> تغليف فاخر ومحمي</span>
                 </div>
               </motion.div>
             ) : (
@@ -685,7 +685,7 @@ export default function CartPage() {
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
                           </svg>
                         </div>
-                        <span><strong>الضمان الذهبي:</strong> استرجاع واستبدال مرن وفوري لراحتك.</span>
+                        <span><strong>أصالة وجودة مضمونة:</strong> عود طبيعي وبخور فاخر منتقى بعناية فائقة.</span>
                       </div>
                       <div className="flex items-center gap-2.5">
                         <div className="w-6 h-6 rounded-full bg-luxury-gold/10 flex items-center justify-center text-luxury-gold flex-shrink-0">
@@ -693,7 +693,7 @@ export default function CartPage() {
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
                           </svg>
                         </div>
-                        <span><strong>شحن سريع:</strong> تسليم لباب بيتك خلال 24-72 ساعة لكافة المدن.</span>
+                        <span><strong>شحن سريع ومباشر:</strong> تسليم لباب بيتك خلال 24-72 ساعة لكافة المدن.</span>
                       </div>
                     </div>
 

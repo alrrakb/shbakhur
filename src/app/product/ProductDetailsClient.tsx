@@ -355,8 +355,8 @@ export default function ProductDetailsClient({
                     </svg>
                   </div>
                   <div className="text-xs">
-                    <strong className="text-white block">الضمان الذهبي</strong>
-                    <span className="text-gray-400">استبدال واسترجاع فوري لراحتك</span>
+                    <strong className="text-white block">أصالة وجودة مضمونة</strong>
+                    <span className="text-gray-400">أجود أنواع العود الطبيعي والبخور</span>
                   </div>
                 </div>
 
