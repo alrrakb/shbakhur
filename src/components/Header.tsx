@@ -182,14 +182,14 @@ export default function Header() {
   return (
     <>
       {/* News Ticker - Topmost */}
-      <div className="fixed top-0 left-0 right-0 z-[60] h-10 bg-[#1a1a1a] border-b border-luxury-gold/20 overflow-hidden">
+      <div className="fixed top-0 left-0 right-0 z-[60] h-10 bg-[#1a1a1a] border-b border-luxury-gold/20 overflow-hidden group">
         <div className="absolute inset-y-0 left-0 w-16 bg-gradient-to-r from-[#1a1a1a] to-transparent z-10" />
         <div className="absolute inset-y-0 right-0 w-16 bg-gradient-to-l from-[#1a1a1a] to-transparent z-10" />
         
         <div
-          className="flex items-center h-full w-max"
+          className="flex items-center h-full w-max group-hover:[animation-play-state:paused]"
           style={{
-            animation: 'marquee-rtl 40s linear infinite',
+            animation: 'marquee-rtl 90s linear infinite',
           }}
         >
           {tickerContent}

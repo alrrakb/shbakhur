@@ -77,8 +77,8 @@ export default function ProductCard({ product, index }: ProductCardProps) {
       whileHover={{ y: -6 }}
       className="group relative flex flex-col h-full w-full bg-[#161616] rounded-xl overflow-hidden border border-white/5 hover:border-luxury-gold/50 shadow-md hover:shadow-[0_10px_30px_rgba(212,175,55,0.15)] transition-all duration-300"
     >
-      {/* Image Section - fixed aspect ratio with instant dark shimmer skeleton */}
-      <div className="relative aspect-square overflow-hidden bg-[#181818]">
+      {/* Image Section - responsive aspect ratio with instant dark shimmer skeleton */}
+      <div className="relative aspect-square sm:aspect-[4/3.6] lg:aspect-[4/3.5] overflow-hidden bg-[#181818]">
         <Link 
           href={`/product/${productSlug}`} 
           className="absolute inset-0 z-10 block w-full h-full"
@@ -110,14 +110,14 @@ export default function ProductCard({ product, index }: ProductCardProps) {
           )}
         </div>
 
-        {/* Desktop: Button appears centered on hover */}
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-0 lg:group-hover:opacity-100 z-20 transition-opacity duration-300 pointer-events-none">
+        {/* Desktop: Full-width button slides up from bottom of image on hover without covering the product */}
+        <div className="hidden lg:block absolute bottom-0 inset-x-0 p-2.5 z-20 translate-y-full opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300 ease-out bg-gradient-to-t from-black/95 via-black/60 to-transparent pt-6 pointer-events-none">
           <button
             onClick={handleAddToCart}
-            className={`px-5 py-2.5 font-bold rounded-xl whitespace-nowrap pointer-events-auto shadow-2xl transition-all active:scale-95 flex items-center gap-1.5 ${
+            className={`w-full py-2.5 px-3 font-bold rounded-lg text-xs sm:text-sm whitespace-nowrap pointer-events-auto shadow-2xl transition-all active:scale-95 flex items-center justify-center gap-2 ${
               isAdded
                 ? 'bg-emerald-500 text-white shadow-emerald-500/50'
-                : 'bg-gradient-to-r from-luxury-gold via-luxury-gold-light to-luxury-gold text-luxury-black hover:shadow-[0_0_20px_rgba(212,175,55,0.6)]'
+                : 'bg-gradient-to-r from-luxury-gold via-luxury-gold-light to-luxury-gold text-luxury-black hover:brightness-110 shadow-[0_4px_15px_rgba(212,175,55,0.4)]'
             }`}
           >
             {isAdded ? (
@@ -125,7 +125,7 @@ export default function ProductCard({ product, index }: ProductCardProps) {
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
                 </svg>
-                <span>تمت الإضافة</span>
+                <span>تمت الإضافة للسلة</span>
               </>
             ) : (
               <>
@@ -140,55 +140,55 @@ export default function ProductCard({ product, index }: ProductCardProps) {
       </div>
 
       {/* Content Section - takes remaining space */}
-      <div className="p-3 sm:p-4 flex flex-col flex-1 justify-between">
+      <div className="p-3 sm:p-3.5 flex flex-col flex-1 justify-between">
         <Link 
           href={`/product/${productSlug}`} 
           className="block cursor-pointer flex-1"
         >
           {/* Category - Fixed height row */}
-          <div className="h-4 sm:h-5 mb-1 flex items-center">
+          <div className="h-4 mb-0.5 flex items-center">
             {categoryName ? (
-              <p className="text-luxury-gold text-xs font-medium truncate opacity-90">{categoryName}</p>
+              <p className="text-luxury-gold text-[11px] sm:text-xs font-medium truncate opacity-90">{categoryName}</p>
             ) : (
-              <span className="invisible text-xs">التصنيف</span>
+              <span className="invisible text-[11px] sm:text-xs">التصنيف</span>
             )}
           </div>
           
-          {/* Title - Fixed Height for 2 lines */}
-          <h3 className="text-white font-bold text-sm sm:text-base line-clamp-2 h-[2.6rem] sm:h-[3rem] group-hover:text-luxury-gold transition-colors leading-snug mb-1.5">
+          {/* Title - Compact 2 lines */}
+          <h3 className="text-white font-bold text-[13px] sm:text-[14px] line-clamp-2 min-h-[2.2rem] sm:min-h-[2.4rem] group-hover:text-luxury-gold transition-colors leading-snug mb-1">
             {productName}
           </h3>
           
-          {/* Short Description - Fixed Height container for 2 lines */}
-          <div className="h-[2.25rem] sm:h-[2.5rem] mb-2 overflow-hidden">
+          {/* Short Description - Compact 2 lines container */}
+          <div className="h-[2rem] sm:h-[2.2rem] mb-1.5 overflow-hidden">
             {product.short_description ? (
-              <p className="text-zinc-400 text-xs line-clamp-2 leading-relaxed opacity-80">
+              <p className="text-zinc-400 text-[11px] sm:text-xs line-clamp-2 leading-relaxed opacity-75">
                 {product.short_description}
               </p>
             ) : (
-              <span className="invisible text-xs block">وصف المنتج</span>
+              <span className="invisible text-[11px] sm:text-xs block">وصف المنتج</span>
             )}
           </div>
         </Link>
 
         {/* Price and Rating - Fixed bottom aligned row */}
-        <div className="mt-auto pt-2 flex flex-col border-t border-white/5">
+        <div className="mt-auto pt-1.5 flex flex-col border-t border-white/5">
           {/* Top row: Original price & discount */}
-          <div className="h-4 flex items-center gap-2 mb-0.5">
+          <div className="h-3.5 flex items-center gap-2 mb-0.5">
             {originalPrice ? (
-              <span className="text-gray-500 text-xs line-through">
+              <span className="text-gray-500 text-[11px] line-through">
                 {originalPrice} ر.س
               </span>
             ) : (
-              <span className="invisible text-xs">0 ر.س</span>
+              <span className="invisible text-[11px]">0 ر.س</span>
             )}
           </div>
           {/* Bottom row: Current Price and Stars */}
           <div className="flex items-center justify-between gap-1">
-            <span className="text-luxury-gold font-extrabold text-base sm:text-lg">{productPrice} ر.س</span>
+            <span className="text-luxury-gold font-extrabold text-sm sm:text-base">{productPrice} ر.س</span>
             <div className="flex gap-0.5">
               {[1, 2, 3, 4, 5].map((star) => (
-                <svg key={star} className="w-3 h-3 text-luxury-gold" fill="currentColor" viewBox="0 0 20 20">
+                <svg key={star} className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-luxury-gold" fill="currentColor" viewBox="0 0 20 20">
                   <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
                 </svg>
               ))}

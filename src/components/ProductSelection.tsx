@@ -202,9 +202,9 @@ export default function ProductSelection() {
           const showArrows = category.products.length > 3;
           
           return (
-          <div key={category.id} id={category.id} className="mb-20 scroll-mt-24 relative">
-            <div className="flex items-center justify-between mb-8">
-              <h3 className="text-2xl md:text-3xl font-bold text-white flex items-center gap-3">
+          <div key={category.id} id={category.id} className="mb-12 sm:mb-16 scroll-mt-24 relative">
+            <div className="flex items-center justify-between mb-5 sm:mb-6">
+              <h3 className="text-xl sm:text-2xl md:text-3xl font-bold text-white flex items-center gap-3">
                 <span className="w-8 h-8 rounded-lg bg-luxury-gold/10 border border-luxury-gold/30 flex items-center justify-center text-luxury-gold">
                   <CategoryIcon slug={category.id} className="w-4 h-4" />
                 </span>
@@ -239,15 +239,15 @@ export default function ProductSelection() {
                   prevEl: `.swiper-button-prev-${category.id}`,
                   nextEl: `.swiper-button-next-${category.id}`,
                 } : false}
-                spaceBetween={24}
+                spaceBetween={16}
                 slidesPerView={1.25}
                 dir="rtl"
                 breakpoints={{
-                  640: { slidesPerView: 2, spaceBetween: 24 },
-                  1024: { slidesPerView: 3, spaceBetween: 24 },
-                  1280: { slidesPerView: 4, spaceBetween: 24 },
+                  640: { slidesPerView: 2, spaceBetween: 18 },
+                  1024: { slidesPerView: 3, spaceBetween: 20 },
+                  1280: { slidesPerView: 4, spaceBetween: 22 },
                 }}
-                className="!pb-6 !pt-2"
+                className="!pb-4 !pt-1"
               >
                 {category.products.map((product, index) => (
                   <SwiperSlide key={product.id} className="!h-auto flex flex-col">
