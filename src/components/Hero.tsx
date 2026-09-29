@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getHeroSlides, getSiteSettings, type HeroSlide } from '@/lib/database';
 import Link from 'next/link';
@@ -9,10 +9,10 @@ import Image from 'next/image';
 const defaultSlides: HeroSlide[] = [
   {
     id: 1,
-    title: 'شحن سريع ومضمون',
-    subtitle: 'أجود أنواع البخور والعطور',
-    description: 'توصيل سريع وموثوق لجميع مدن ومناطق المملكة خلال 2-4 أيام عمل',
-    button_text: 'تسوق الآن',
+    title: 'لمسة من سحر الروائح في منزلك',
+    subtitle: 'أجواء هادئة وأنيقة',
+    description: 'أضف لمسة من الدفء والأناقة إلى مساحتك الخاصة مع مبخرة العود المزخرفة، التي تجمع بين التصميم الراقي والرائحة العذبة.',
+    button_text: 'اطلب مبخرتك الآن',
     button_link: '/products',
     image_url: 'https://images.unsplash.com/photo-1615634260167-c8cdede054de?w=1920&q=80',
     sort_order: 0,
@@ -20,10 +20,10 @@ const defaultSlides: HeroSlide[] = [
   },
   {
     id: 2,
-    title: 'العود الطبيعي',
-    subtitle: 'فاخر ومميز',
-    description: 'أجود قطع العود الطبيعي من تايلاند وإندونيسيا',
-    button_text: 'تسوق الآن',
+    title: 'فخامة العود الأصيل',
+    subtitle: 'تجربة عطرية لا تُنسى',
+    description: 'انغمس في عبق العود الشرقي الفاخر، الذي تم انتقاؤه بعناية ليعطر لحظاتك برائحة التقاليد والرقي.',
+    button_text: 'تسوق العود الآن',
     button_link: '/products',
     image_url: 'https://images.unsplash.com/photo-1595435934249-5df7ed86e1c0?w=1920&q=80',
     sort_order: 1,
@@ -31,10 +31,10 @@ const defaultSlides: HeroSlide[] = [
   },
   {
     id: 3,
-    title: 'عطور عالمية',
-    subtitle: 'أفضل الماركات',
-    description: 'شانيل، ديور، غوتشي، توم فورد والمزيد',
-    button_text: 'تسوق الآن',
+    title: 'سحر العطور الفاخرة',
+    subtitle: 'مجموعة استثنائية من الروائح',
+    description: 'اكتشف سحر مجموعتنا الجديدة من العطور الفاخرة، حيث تمتزج ألوان الدخان برائحة العطور لتخلق تجربة حسية فريدة.',
+    button_text: 'اكتشف المجموعة',
     button_link: '/products',
     image_url: 'https://images.unsplash.com/photo-1541643600914-78b084683601?w=1920&q=80',
     sort_order: 2,
@@ -46,6 +46,10 @@ export default function Hero() {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [slides, setSlides] = useState<HeroSlide[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isPaused, setIsPaused] = useState(false);
+  const touchStartX = useRef<number>(0);
+  const touchEndX = useRef<number>(0);
+
   const [heroInfo, setHeroInfo] = useState<{ title: string; description: string; icon: string; is_active: boolean }>({
     title: 'شحن سريع ومضمون',
     description: 'خلال 2-4 أيام عمل',
@@ -97,7 +101,6 @@ export default function Hero() {
             localStorage.setItem('sh_bakhoor_content', JSON.stringify(data));
           } catch (e) {}
         } else if (cachedSlides.length === 0) {
-          // Nothing in cache AND nothing in DB → show defaults
           setSlides(defaultSlides);
           setIsLoading(false);
         }
@@ -112,21 +115,78 @@ export default function Hero() {
     loadSlides();
   }, []);
 
+  // Auto slide rotation (pauses on hover)
   useEffect(() => {
-    if (slides.length === 0) return;
+    if (slides.length <= 1 || isPaused) return;
     const timer = setInterval(() => {
       setCurrentSlide((prev) => (prev + 1) % slides.length);
-    }, 5000);
+    }, 6000);
     return () => clearInterval(timer);
+  }, [slides.length, isPaused]);
+
+  const handleNext = () => {
+    if (slides.length === 0) return;
+    setCurrentSlide((prev) => (prev + 1) % slides.length);
+  };
+
+  const handlePrev = () => {
+    if (slides.length === 0) return;
+    setCurrentSlide((prev) => (prev - 1 + slides.length) % slides.length);
+  };
+
+  // Keyboard Arrow Navigation (ArrowLeft = Next in RTL, ArrowRight = Prev in RTL)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const target = e.target as HTMLElement;
+      if (
+        target &&
+        (target.tagName === 'INPUT' ||
+          target.tagName === 'TEXTAREA' ||
+          target.tagName === 'SELECT' ||
+          target.isContentEditable)
+      ) {
+        return;
+      }
+
+      if (e.key === 'ArrowLeft') {
+        handleNext();
+      } else if (e.key === 'ArrowRight') {
+        handlePrev();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
   }, [slides.length]);
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartX.current = e.touches[0].clientX;
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    touchEndX.current = e.touches[0].clientX;
+  };
+
+  const handleTouchEnd = () => {
+    const diff = touchStartX.current - touchEndX.current;
+    if (Math.abs(diff) > 50) {
+      if (diff > 0) {
+        // Swiped Left in RTL = Next
+        handleNext();
+      } else {
+        // Swiped Right in RTL = Prev
+        handlePrev();
+      }
+    }
+  };
 
   // Loading skeleton
   if (isLoading) {
     return (
-      <section className="relative h-screen min-h-[600px] flex items-center justify-center overflow-hidden pt-10 bg-luxury-black">
+      <section className="relative h-[84vh] min-h-[580px] max-h-[780px] flex items-center justify-center overflow-hidden pt-10 bg-luxury-black">
         <div className="absolute inset-0 bg-luxury-black animate-pulse" />
-        <div className="relative z-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
-          <div className="max-w-3xl space-y-4">
+        <div className="relative z-20 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 w-full text-center flex flex-col items-center">
+          <div className="max-w-2xl space-y-4 w-full flex flex-col items-center">
             <div className="h-6 w-48 bg-luxury-gold/20 rounded animate-pulse" />
             <div className="h-16 w-3/4 bg-white/10 rounded animate-pulse" />
             <div className="h-4 w-1/2 bg-white/5 rounded animate-pulse" />
@@ -137,142 +197,135 @@ export default function Hero() {
     );
   }
 
-  return (
-    <section className="relative h-screen min-h-[600px] flex items-center justify-center overflow-hidden pt-10">
-      {/* Background Images */}
-      <AnimatePresence mode="wait">
-        {(() => {
-          const slide = slides[currentSlide];
-          const hasLink = slide.button_link && slide.button_link !== '#' && slide.button_link !== '';
-          const Container = hasLink ? Link : 'div';
-          const containerProps = hasLink ? { href: slide.button_link } : {};
+  const activeSlide = slides[currentSlide] || defaultSlides[0];
+  const hasContent = activeSlide && (activeSlide.title || activeSlide.subtitle || activeSlide.description || activeSlide.button_text);
 
-          return (
-            <motion.div
-              key={currentSlide}
-              initial={{ opacity: 0, scale: 1.1 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.8 }}
-              className="absolute inset-0"
-            >
-              <Container {...(containerProps as any)} className="block w-full h-full relative">
-                {(() => {
-                  const slide = slides[currentSlide];
-                  const hasContent = slide.title || slide.subtitle || slide.description || slide.button_text;
-                  
-                  if (!hasContent) {
-                    return (
-                      <Image
-                        src={slide.image_url}
-                        alt="Hero"
-                        fill
-                        priority
-                        unoptimized
-                        sizes="100vw"
-                        className="object-cover"
-                      />
-                    );
-                  }
-                  
-                  return (
-                    <>
-                      <div className="absolute inset-0 bg-gradient-to-r from-luxury-black via-luxury-black/80 to-transparent z-10" />
-                      <Image
-                        src={slide.image_url}
-                        alt={slide.title || 'Hero'}
-                        fill
-                        priority
-                        unoptimized
-                        sizes="100vw"
-                        className="object-cover"
-                      />
-                    </>
-                  );
-                })()}
-              </Container>
-            </motion.div>
-          );
-        })()}
+  return (
+    <section 
+      className="group relative h-[84vh] min-h-[580px] max-h-[780px] flex items-center justify-center overflow-hidden pt-10 select-none"
+      onMouseEnter={() => setIsPaused(true)}
+      onMouseLeave={() => setIsPaused(false)}
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
+    >
+      {/* Background Slides with Ken Burns transition */}
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={currentSlide}
+          initial={{ opacity: 0, scale: 1.06 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.9, ease: 'easeOut' }}
+          className="absolute inset-0"
+        >
+          {/* Centered Multi-Layered Luxury Gradient Overlay */}
+          <div className="absolute inset-0 bg-black/60 z-10" />
+          <div className="absolute inset-0 bg-gradient-to-t from-luxury-black via-black/40 to-black/60 z-10" />
+          <div className="absolute bottom-0 inset-x-0 h-36 bg-gradient-to-t from-luxury-black to-transparent z-10" />
+
+          {activeSlide.image_url ? (
+            <Image
+              src={activeSlide.image_url}
+              alt={activeSlide.title || 'SH للبخور والعطور'}
+              fill
+              priority
+              unoptimized
+              sizes="100vw"
+              className="object-cover object-center"
+            />
+          ) : (
+            <div className="w-full h-full bg-luxury-dark" />
+          )}
+        </motion.div>
       </AnimatePresence>
 
-      {/* Content - Only show if there's content */}
-      {(() => {
-        const slide = slides[currentSlide];
-        const hasContent = slide.title || slide.subtitle || slide.description || slide.button_text;
-        
-        if (!hasContent) {
-          return null;
-        }
-        
-        return (
-          <div className="relative z-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="max-w-3xl">
-              <AnimatePresence mode="wait">
-                <motion.div
-                  key={currentSlide}
-                  initial={{ opacity: 0, y: 30 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -30 }}
-                  transition={{ duration: 0.5, delay: 0.2 }}
-                >
-                  {slide.subtitle && (
-                    <h2 className="text-luxury-gold text-xl md:text-2xl font-medium mb-2 tracking-wider">
-                      {slide.subtitle}
-                    </h2>
-                  )}
-                  {slide.title && (
-                    <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold text-white mb-4 leading-tight">
-                      {slide.title}
-                    </h1>
-                  )}
-                  {slide.description && (
-                    <p className="text-gray-300 text-lg md:text-xl mb-8 max-w-xl">
-                      {slide.description}
-                    </p>
-                  )}
-                  {slide.button_text && (
-                    <motion.button
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                      className="px-8 py-4 bg-luxury-gold text-luxury-black font-bold text-lg rounded-none hover:bg-luxury-gold-light transition-colors duration-300"
-                    >
-                      {slide.button_text || 'تسوق الآن'}
-                    </motion.button>
-                  )}
-                </motion.div>
-              </AnimatePresence>
-            </div>
-          </div>
-        );
-      })()}
+      {/* Hero Content Area - Centered Layout */}
+      <div className="relative z-20 max-w-4xl mx-auto px-12 sm:px-16 md:px-24 w-full text-center flex flex-col items-center justify-center">
+        {hasContent && (
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={currentSlide}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.5, delay: 0.15 }}
+              className="space-y-4 sm:space-y-5 flex flex-col items-center"
+            >
+              {/* Floating Brand Badge */}
+              <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-luxury-gold/15 border border-luxury-gold/35 backdrop-blur-md shadow-lg shadow-luxury-gold/5">
+                <span className="w-2 h-2 rounded-full bg-luxury-gold animate-pulse" />
+                <span className="text-luxury-gold text-xs sm:text-sm font-bold tracking-wide">
+                  {activeSlide.subtitle || 'تشكيلة العود والعطور الفاخرة'}
+                </span>
+              </div>
 
-      {/* Pagination Dots - Only show if there's content */}
-      {(() => {
-        const slide = slides[currentSlide];
-        const hasContent = slide.title || slide.subtitle || slide.description || slide.button_text;
-        
-        if (!hasContent) {
-          return null;
-        }
-        
-        return (
-          <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 z-20 flex gap-3">
-            {slides.map((_, index) => (
-              <button
-                key={index}
-                onClick={() => setCurrentSlide(index)}
-                className={`w-3 h-3 rounded-full transition-all duration-300 ${
-                  index === currentSlide
-                    ? 'bg-luxury-gold w-8'
-                    : 'bg-white/30 hover:bg-white/50'
-                }`}
-                aria-label={`Go to slide ${index + 1}`}
-              />
-            ))}
-          </div>
-        );
-      })()}
+              {/* Main Hero Title */}
+              {activeSlide.title && (
+                <h1 className="text-3xl sm:text-5xl lg:text-6xl font-black text-white leading-[1.25] tracking-tight drop-shadow-[0_4px_16px_rgba(0,0,0,0.85)] max-w-3xl">
+                  {activeSlide.title}
+                </h1>
+              )}
+
+              {/* Hero Description */}
+              {activeSlide.description && (
+                <p className="text-gray-200 text-sm sm:text-base lg:text-lg leading-relaxed max-w-2xl mx-auto opacity-90 drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)]">
+                  {activeSlide.description}
+                </p>
+              )}
+
+              {/* Action Buttons Group */}
+              <div className="pt-2 sm:pt-4 flex flex-wrap items-center justify-center gap-3 sm:gap-4">
+                {activeSlide.button_text && (
+                  <Link
+                    href={activeSlide.button_link || '/products'}
+                    className="inline-flex items-center justify-center gap-2 px-7 sm:px-9 py-3.5 sm:py-4 bg-gradient-to-r from-luxury-gold via-luxury-gold-light to-luxury-gold text-luxury-black font-extrabold text-sm sm:text-base rounded-xl shadow-[0_4px_25px_rgba(212,175,55,0.4)] hover:shadow-[0_6px_35px_rgba(212,175,55,0.6)] hover:scale-105 active:scale-95 transition-all duration-300"
+                  >
+                    <span>{activeSlide.button_text}</span>
+                    <svg className="w-4 h-4 sm:w-5 sm:h-5 transform rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                    </svg>
+                  </Link>
+                )}
+
+                <Link
+                  href="/products"
+                  className="inline-flex items-center justify-center gap-2 px-6 sm:px-7 py-3.5 sm:py-4 bg-black/40 hover:bg-white/10 text-white font-bold text-sm sm:text-base rounded-xl border border-white/20 hover:border-luxury-gold/50 backdrop-blur-md transition-all duration-300"
+                >
+                  <span>تصفح جميع المنتجات</span>
+                </Link>
+              </div>
+            </motion.div>
+          </AnimatePresence>
+        )}
+      </div>
+
+      {/* Navigation Arrows (Desktop & Hover with clear spacing from centered text) */}
+      {slides.length > 1 && (
+        <>
+          {/* RTL Next button on the Left */}
+          <button
+            onClick={handleNext}
+            aria-label="الشريحة التالية"
+            className="hidden sm:flex absolute left-4 lg:left-8 top-1/2 -translate-y-1/2 z-30 w-11 h-11 rounded-full bg-black/50 hover:bg-luxury-gold text-luxury-gold hover:text-luxury-black border border-luxury-gold/30 hover:border-luxury-gold backdrop-blur-md items-center justify-center transition-all duration-300 opacity-0 group-hover:opacity-100 shadow-2xl hover:scale-110 active:scale-90 cursor-pointer"
+          >
+            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
+            </svg>
+          </button>
+
+          {/* RTL Prev button on the Right */}
+          <button
+            onClick={handlePrev}
+            aria-label="الشريحة السابقة"
+            className="hidden sm:flex absolute right-4 lg:right-8 top-1/2 -translate-y-1/2 z-30 w-11 h-11 rounded-full bg-black/50 hover:bg-luxury-gold text-luxury-gold hover:text-luxury-black border border-luxury-gold/30 hover:border-luxury-gold backdrop-blur-md items-center justify-center transition-all duration-300 opacity-0 group-hover:opacity-100 shadow-2xl hover:scale-110 active:scale-90 cursor-pointer"
+          >
+            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
+            </svg>
+          </button>
+        </>
+      )}
     </section>
   );
 }

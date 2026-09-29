@@ -30,7 +30,7 @@ interface Section {
 }
 
 interface HeroSlide {
-  id?: number;
+  id?: number | string;
   title: string;
   subtitle: string;
   description: string;

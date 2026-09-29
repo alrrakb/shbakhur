@@ -396,7 +396,7 @@ export function formatPrice(price: string | number): string {
 }
 
 export interface HeroSlide {
-  id: number;
+  id: number | string;
   title: string;
   subtitle: string;
   description: string;
