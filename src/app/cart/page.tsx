@@ -428,22 +428,23 @@ export default function CartPage() {
                       <button
                         type="button"
                         role="switch"
+                        dir="ltr"
                         aria-checked={giftOptions.isGift}
                         onClick={(e) => {
                           e.stopPropagation();
                           toggleGiftOption();
                         }}
-                        className={`w-12 h-6.5 rounded-full p-0.5 transition-colors duration-300 relative focus:outline-none flex items-center flex-shrink-0 ${
+                        className={`w-12 h-6.5 rounded-full p-0.5 transition-colors duration-300 relative focus:outline-none flex items-center flex-shrink-0 cursor-pointer border ${
                           giftOptions.isGift
-                            ? 'bg-luxury-gold shadow-[0_0_12px_rgba(212,175,55,0.4)]'
-                            : 'bg-luxury-black border border-luxury-gold/30'
+                            ? 'bg-luxury-gold border-luxury-gold shadow-[0_0_12px_rgba(212,175,55,0.4)]'
+                            : 'bg-luxury-black border-luxury-gold/30'
                         }`}
                       >
                         <div
                           className={`w-5 h-5 rounded-full shadow-md transition-transform duration-300 flex items-center justify-center text-[10px] ${
                             giftOptions.isGift
-                              ? 'bg-luxury-black text-luxury-gold font-bold translate-x-0'
-                              : 'bg-gray-400 translate-x-5'
+                              ? 'bg-luxury-black text-luxury-gold font-bold translate-x-[22px]'
+                              : 'bg-gray-400 translate-x-0'
                           }`}
                         >
                           {giftOptions.isGift && '✓'}
