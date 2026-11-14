@@ -145,10 +145,13 @@ export default function Footer() {
         </div>
 
         {/* Copyright */}
-        <div className="mt-8 pt-6 border-t border-luxury-gold/10 text-center">
-          <p className="text-gray-500 text-sm">
-            © 2025 SH للبخور. {settings.copyright}.
+        <div className="mt-8 pt-6 border-t border-luxury-gold/10 text-center flex flex-col items-center gap-1.5">
+          <p className="text-gray-400 text-sm font-readex">
+            © {new Date().getFullYear()} SH للبخور. {settings.copyright}.
           </p>
+          <span className="text-luxury-gold/60 text-xs font-cormorant tracking-[0.25em] uppercase">
+            SH BAKHUR · LUXURY ARABIAN ESSENCES & ROYAL PERFUMES
+          </span>
         </div>
       </div>
     </footer>

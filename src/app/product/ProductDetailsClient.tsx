@@ -225,9 +225,14 @@ export default function ProductDetailsClient({
             >
               <div>
                 {product.categoryName && (
-                  <span className="text-luxury-gold text-xs sm:text-sm font-semibold tracking-wider uppercase bg-luxury-gold/10 px-3 py-1 rounded-full border border-luxury-gold/30 inline-block mb-3">
-                    {product.categoryName}
-                  </span>
+                  <div className="flex items-center gap-2.5 mb-3">
+                    <span className="text-luxury-gold text-xs sm:text-sm font-semibold tracking-wider bg-luxury-gold/10 px-3 py-1 rounded-full border border-luxury-gold/30 inline-block font-cairo">
+                      {product.categoryName}
+                    </span>
+                    <span className="text-luxury-gold/60 text-[11px] font-cormorant tracking-[0.2em] uppercase hidden sm:inline">
+                      HAUTE PARFUMERIE
+                    </span>
+                  </div>
                 )}
 
                 <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-white leading-tight mb-3">

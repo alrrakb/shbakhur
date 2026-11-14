@@ -256,8 +256,12 @@ export default function Hero() {
               {/* Floating Brand Badge */}
               <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-luxury-gold/15 border border-luxury-gold/35 backdrop-blur-md shadow-lg shadow-luxury-gold/5">
                 <span className="w-2 h-2 rounded-full bg-luxury-gold animate-pulse" />
-                <span className="text-luxury-gold text-xs sm:text-sm font-bold tracking-wide">
+                <span className="text-luxury-gold text-xs sm:text-sm font-bold font-cairo tracking-wide">
                   {activeSlide.subtitle || 'تشكيلة العود والعطور الفاخرة'}
+                </span>
+                <span className="text-luxury-gold/40 text-xs hidden sm:inline">|</span>
+                <span className="text-luxury-gold/80 text-[11px] font-cormorant tracking-[0.2em] uppercase font-semibold hidden sm:inline">
+                  ROYAL COLLECTION
                 </span>
               </div>
 

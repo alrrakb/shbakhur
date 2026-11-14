@@ -240,7 +240,10 @@ export default function Header() {
                   className="h-16 w-16 object-contain"
                   onError={() => setSiteLogo('/favicon.png')}
                 />
-                <span className="text-2xl font-bold text-gold hidden sm:block">{storeName}</span>
+                <div className="flex flex-col">
+                  <span className="text-2xl font-bold text-gold font-cairo hidden sm:block leading-tight">{storeName}</span>
+                  <span className="text-[10px] tracking-[0.22em] text-luxury-gold/70 font-cormorant uppercase hidden sm:block">HAUTE PARFUMERIE · OUD</span>
+                </div>
               </motion.div>
             </Link>
 
