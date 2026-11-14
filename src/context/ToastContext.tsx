@@ -39,11 +39,11 @@ export function ToastProvider({ children }: { children: ReactNode }) {
   ) => {
     const id = ++toastId;
 
-    // Auto-attach "عرض السلة" action for cart addition success messages if none provided
+    // Auto-attach "عرض سلة المشتريات" action for cart addition success messages if none provided
     let finalAction = action;
-    if (!finalAction && type === 'success' && (message.includes('سلة') || message.includes('السلة'))) {
+    if (!finalAction && type === 'success' && (message.includes('سلة') || message.includes('السلة') || message.toLowerCase().includes('cart'))) {
       finalAction = {
-        label: 'عرض السلة ←',
+        label: 'عرض سلة المشتريات ←',
         href: '/cart',
       };
     }

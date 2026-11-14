@@ -4,14 +4,29 @@ import { CartProvider } from "@/context/CartContext";
 import { ToastProvider } from "@/context/ToastContext";
 import NextTopLoader from 'nextjs-toploader';
 import { getSiteLogo } from '@/lib/database';
+import { getGoogleVerificationCode } from '@/lib/seo';
 
 export async function generateMetadata(): Promise<Metadata> {
-  const siteLogo = await getSiteLogo();
+  const [siteLogo, googleCode] = await Promise.all([
+    getSiteLogo().catch(() => null),
+    getGoogleVerificationCode().catch(() => ''),
+  ]);
+
   const faviconUrl = siteLogo?.favicon_url || '/favicon.png';
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://shbakhur.com';
 
   return {
-    title: "SH للبخور | متجر العطور والبخور الفاخرة",
+    metadataBase: new URL(siteUrl),
+    title: {
+      default: "SH للبخور | متجر العطور والبخور الفاخرة",
+      template: "%s | SH للبخور",
+    },
     description: "متخصص في أجود أنواع البخور والعطور والعود الطبيعي والفاخر",
+    verification: googleCode
+      ? {
+          google: googleCode,
+        }
+      : undefined,
     icons: {
       icon: faviconUrl,
       shortcut: faviconUrl,
@@ -20,7 +35,7 @@ export async function generateMetadata(): Promise<Metadata> {
         rel: 'apple-touch-icon-precomposed',
         url: faviconUrl,
       },
-    }
+    },
   };
 }
 

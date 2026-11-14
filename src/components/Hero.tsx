@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { getHeroSlides, getSiteSettings, type HeroSlide } from '@/lib/database';
 import Link from 'next/link';
 import Image from 'next/image';
+import { generateHeroSlideAlt } from '@/lib/imageSeo';
 
 const defaultSlides: HeroSlide[] = [
   {
@@ -227,7 +228,7 @@ export default function Hero() {
           {activeSlide.image_url ? (
             <Image
               src={activeSlide.image_url}
-              alt={activeSlide.title || 'SH للبخور والعطور'}
+              alt={generateHeroSlideAlt(activeSlide.title, activeSlide.description)}
               fill
               priority
               unoptimized

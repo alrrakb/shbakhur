@@ -6,6 +6,7 @@ import Footer from '@/components/Footer';
 export const metadata: Metadata = {
   title: 'من نحن | SH للبخور',
   description: 'تعرف على متجر SH للبخور - متخصص في أجود أنواع البخور والعطور والعود الطبيعي',
+  alternates: { canonical: '/about' },
 };
 
 export default function AboutPage() {

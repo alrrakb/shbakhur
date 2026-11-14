@@ -205,3 +205,77 @@ export async function getAllSeoSettings(): Promise<SeoData[]> {
     return [];
   }
 }
+
+/**
+ * Intelligent sanitizer for Google Site Verification inputs.
+ * Strips full <meta ...> tags or key-value wrappers down to the clean token.
+ */
+export function sanitizeGoogleVerificationCode(input: string): string {
+  if (!input) return '';
+  const trimmed = input.trim();
+
+  // 1. Check if full HTML <meta name="google-site-verification" content="..." />
+  const contentMatch = trimmed.match(/content=["']([^"']+)["']/i);
+  if (contentMatch && contentMatch[1]) {
+    return contentMatch[1].trim();
+  }
+
+  // 2. Check if key=value format (e.g. google-site-verification=XYZ)
+  const kvMatch = trimmed.match(/google-site-verification[=:]\s*([^\s"'>]+)/i);
+  if (kvMatch && kvMatch[1]) {
+    return kvMatch[1].trim();
+  }
+
+  // 3. Strip surrounding quotation marks or angle brackets
+  return trimmed.replace(/^[<"']|[>"']$/g, '').trim();
+}
+
+/**
+ * Retrieve Google Search Console verification code from site_settings table.
+ */
+export async function getGoogleVerificationCode(): Promise<string> {
+  try {
+    const { data, error } = await supabase
+      .from('site_settings')
+      .select('value')
+      .eq('key', 'google_site_verification')
+      .maybeSingle();
+
+    if (!error && data?.value) {
+      if (typeof data.value === 'string') return data.value.trim();
+      if (typeof data.value === 'object' && data.value.code) return String(data.value.code).trim();
+    }
+  } catch (err) {
+    console.error('Error fetching google_site_verification from DB:', err);
+  }
+
+  return (process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION || '').trim();
+}
+
+/**
+ * Persist sanitized Google Search Console verification code to site_settings table.
+ */
+export async function saveGoogleVerificationCode(rawInput: string): Promise<{ success: boolean; cleanCode: string; error?: string }> {
+  try {
+    const cleanCode = sanitizeGoogleVerificationCode(rawInput);
+
+    const { error } = await supabase
+      .from('site_settings')
+      .upsert(
+        {
+          key: 'google_site_verification',
+          value: cleanCode,
+          updated_at: new Date().toISOString(),
+        },
+        { onConflict: 'key' }
+      );
+
+    if (error) throw error;
+
+    return { success: true, cleanCode };
+  } catch (error: any) {
+    console.error('Error saving google_site_verification to DB:', error);
+    return { success: false, cleanCode: '', error: error?.message || 'Failed to save verification token' };
+  }
+}
+

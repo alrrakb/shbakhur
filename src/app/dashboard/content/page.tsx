@@ -207,7 +207,7 @@ export default function ContentManagement() {
       { id: 5, name: 'العطور', link: '/products/perfumes', has_dropdown: true, dropdown_items: '[{"name":"توم فورد","link":"/products/perfumes"},{"name":"جوتشي","link":"/products/perfumes"},{"name":"ديور","link":"/products/perfumes"}]', sort_order: 5, is_active: true },
       { id: 6, name: 'عروضنا', link: '/products/best-offers', has_dropdown: false, dropdown_items: '[]', sort_order: 6, is_active: true },
     ],
-    site_logo: [{ logo_url: 'http://localhost/my-store/wp-content/uploads/2025/03/sh-logo-1-300x300.png', store_name: 'SH للبخور', favicon_url: '' }],
+    site_logo: [{ logo_url: '/favicon.png', store_name: 'SH للبخور', favicon_url: '/favicon.png' }],
   };
 
   const [data, setData] = useState<ContentData>(initialData);

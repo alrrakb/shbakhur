@@ -7,6 +7,7 @@ import Footer from '@/components/Footer';
 import { supabase } from '@/lib/supabase';
 import { getProductsByCategory, getAllProducts, getSaleProducts } from '@/lib/database';
 import ProductsFilter from '@/components/ProductsFilter';
+import CategoryContentBox from '@/components/CategoryContentBox';
 
 interface PageProps {
   params: Promise<{ category: string }>;
@@ -46,13 +47,15 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       title: seo.title,
       description: seo.description,
       keywords: seo.keywords,
-      openGraph: { title: seo.title, description: seo.description, images: seo.og_image ? [seo.og_image] : [] }
+      openGraph: { title: seo.title, description: seo.description, images: seo.og_image ? [seo.og_image] : [] },
+      alternates: { canonical: `/products/${category}` },
     };
   }
   
   return {
     title: 'جميع المنتجات | SH للبخور',
     description: 'تسوق أجود أنواع البخور والعطور والعود الطبيعي من متجر SH للبخور',
+    alternates: { canonical: `/products/${category}` },
   };
 }
 
@@ -104,14 +107,24 @@ export default async function CategoryPage({
   let isCategoriesHidden = true;
 
   // Handle special routes
-  if (slug === 'featured' || slug === 'best-sellers' || slug === 'best-offers') {
+  if (slug === 'featured' || slug === 'best-sellers' || slug === 'الاكثر-مبيعا' || slug === 'الأكثر-مبيعا') {
     pageTitle = 'الأكثر مبيعا';
-    pageDesc = 'أفضل المنتجات الأكثر طلباً من عملائنا';
-    rawProducts = await getAllProducts();
+    pageDesc = 'نخبة مختارة من أكثر منتجات العود والبخور والعطور طلباً واعتماداً لدى عملائنا في المملكة';
+    const all = await getAllProducts();
+    rawProducts = (all || [])
+      .filter((p: any) => p.is_active !== false)
+      .sort((a: any, b: any) => {
+        const aHasSale = a.sale_price && Number(a.sale_price) < Number(a.price);
+        const bHasSale = b.sale_price && Number(b.sale_price) < Number(b.price);
+        if (aHasSale && !bHasSale) return -1;
+        if (!aHasSale && bHasSale) return 1;
+        return (Number(b.price) || 0) - (Number(a.price) || 0);
+      })
+      .slice(0, 12);
   }
-  else if (slug === 'best-offers' || slug === 'sale' || slug === 'عروضنا-المميزة' || slug === 'special-offers') {
+  else if (slug === 'best-offers' || slug === 'sale' || slug === 'عروضنا-المميزة' || slug === 'special-offers' || slug === 'عروضنا') {
     pageTitle = 'عروضنا المميزة';
-    pageDesc = 'تخفيضات وعروض خاصة على منتجات مختارة';
+    pageDesc = 'تخفيضات وباقات ملكية استثنائية على تشكيلات العود والبخور الفاخر';
     rawProducts = await getSaleProducts();
   }
   else if (slug === 'oud' || slug === 'bakhour' || slug === 'البخور-والعود' || slug === 'bakhour-oud') {
@@ -226,6 +239,8 @@ export default async function CategoryPage({
         <Breadcrumb items={[{ label: 'الرئيسية', href: '/' }, { label: 'المنتجات', href: '/products' }, { label: pageTitle }]} />
         <PageHeader title={pageTitle} description={pageDesc} />
         
+        <CategoryContentBox categorySlug={slug} />
+
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-6">
           <ProductsFilter 
              categories={uniqueCategories} 

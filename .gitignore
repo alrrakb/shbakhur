@@ -43,5 +43,14 @@ next-env.d.ts
 # ide / agents
 .claude/
 .gemini/
+.agents/
+.freebuff/
+tasks/
+AGENT_RULES.md
+PROJECT_STATE.json
+SYSTEM_ARCHITECTURE_DOSSIER.md
+skills-lock.json
+scratch/
+*.log
 test_db.js
 

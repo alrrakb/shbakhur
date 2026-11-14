@@ -89,16 +89,70 @@ function CategoryIcon({ slug, className = "w-5 h-5 text-luxury-gold" }: { slug: 
   }
 }
 
-export default function ProductSelection() {
-  const [sections, setSections] = useState<CategorySection[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [settingsLoaded, setSettingsLoaded] = useState(false);
+export interface ProductSelectionProps {
+  initialSections?: CategorySection[];
+  initialSettings?: {
+    section_title: string;
+    section_description: string;
+    items_per_section: number;
+    sort_order: string;
+  };
+}
+
+export function ProductSelectionSkeleton() {
+  return (
+    <section className="py-20 relative z-10" aria-label="تحميل تشكيلة المنتجات">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="text-center mb-16 animate-pulse">
+          <div className="h-10 w-64 bg-luxury-dark/90 rounded-lg mx-auto mb-4 border border-luxury-gold/10" />
+          <div className="h-5 w-96 max-w-full bg-luxury-dark/60 rounded mx-auto" />
+        </div>
+
+        <div className="space-y-16">
+          {[1, 2].map((sec) => (
+            <div key={sec} className="space-y-6">
+              <div className="flex items-center justify-between pb-3 border-b border-luxury-gold/20 animate-pulse">
+                <div className="h-7 w-48 bg-luxury-dark/90 rounded border border-luxury-gold/10" />
+                <div className="h-5 w-24 bg-luxury-dark/60 rounded" />
+              </div>
+
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6">
+                {[1, 2, 3, 4].map((card) => (
+                  <div 
+                    key={card} 
+                    className="bg-luxury-dark border border-luxury-gold/10 rounded-2xl p-3 flex flex-col justify-between h-[360px] animate-pulse overflow-hidden relative shadow-lg"
+                  >
+                    <div className="w-full aspect-square bg-luxury-black/70 rounded-xl mb-3 border border-white/5 relative overflow-hidden">
+                      <div className="absolute inset-0 bg-gradient-to-r from-transparent via-luxury-gold/5 to-transparent animate-pulse" />
+                    </div>
+                    <div className="space-y-2 mb-4">
+                      <div className="h-4 bg-luxury-black/80 rounded w-4/5" />
+                      <div className="h-3 bg-luxury-black/50 rounded w-3/5" />
+                    </div>
+                    <div className="pt-2 border-t border-white/5 flex items-center justify-between">
+                      <div className="h-5 w-16 bg-luxury-gold/10 rounded border border-luxury-gold/20" />
+                      <div className="h-3 w-12 bg-luxury-black/50 rounded" />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+export default function ProductSelection({ initialSections, initialSettings }: ProductSelectionProps = {}) {
+  const [sections, setSections] = useState<CategorySection[]>(initialSections || []);
+  const [loading, setLoading] = useState(!initialSections || initialSections.length === 0);
   const [productSettings, setProductSettings] = useState<{
     section_title: string;
     section_description: string;
     items_per_section: number;
     sort_order: string;
-  }>({
+  }>(initialSettings || {
     section_title: 'منتجاتنا',
     section_description: 'اكتشف تشكيلتنا الفاخرة',
     items_per_section: 4,
@@ -107,6 +161,10 @@ export default function ProductSelection() {
 
   useEffect(() => {
     async function loadData() {
+      if (initialSections && initialSections.length > 0) {
+        return;
+      }
+
       try {
         const dbSettings = await getSiteSettings('products_settings');
         if (dbSettings) setProductSettings(dbSettings);
@@ -136,19 +194,10 @@ export default function ProductSelection() {
     }
 
     loadData();
-  }, []);
+  }, [initialSections]);
 
   if (loading) {
-    return (
-      <section className="py-20 relative z-10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-luxury-gold mx-auto"></div>
-            <p className="text-gray-400 mt-4">جاري التحميل...</p>
-          </div>
-        </div>
-      </section>
-    );
+    return <ProductSelectionSkeleton />;
   }
 
   return (

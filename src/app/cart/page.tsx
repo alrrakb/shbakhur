@@ -9,6 +9,7 @@ import { supabase } from '@/lib/supabase';
 import { getShippingSettings, type ShippingSettings, DEFAULT_SHIPPING_SETTINGS } from '@/lib/database';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
+import { formatProductDisplayTitle } from '@/lib/productUtils';
 
 const PLACEHOLDER_IMAGE = 'https://placehold.co/400x400/1a1a1a/D4AF37?text=No+Image';
 
@@ -123,14 +124,15 @@ export default function CartPage() {
   // ── Quick Add Handler ────────────────────────────────────────────────────────
   const handleQuickAddRealProduct = (product: any) => {
     const unitPrice = parseFloat(product.sale_price || product.price || '0');
+    const formattedTitle = formatProductDisplayTitle(product.title);
     addItem({
       id: product.id,
-      name: product.title,
+      name: formattedTitle,
       price: unitPrice,
       image: product.image || PLACEHOLDER_IMAGE,
       quantity: 1,
     });
-    showToast(`تمت إضافة "${product.title}" إلى سلتك`, 'success');
+    showToast(`تمت إضافة "${formattedTitle}" إلى سلة المشتريات`, 'success');
   };
 
   const toggleGiftOption = () => {

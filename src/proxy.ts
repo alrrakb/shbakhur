@@ -1,7 +1,7 @@
 import { createServerClient } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   let supabaseResponse = NextResponse.next({
     request,
   });
@@ -12,7 +12,7 @@ export async function middleware(request: NextRequest) {
     {
       cookies: {
         getAll() {
-        return request.cookies.getAll();
+          return request.cookies.getAll();
         },
         setAll(cookiesToSet) {
           cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value));
@@ -51,7 +51,7 @@ export async function middleware(request: NextRequest) {
   return supabaseResponse;
 }
 
-// Configure which routes the middleware applies to
+// Configure which routes the proxy applies to
 export const config = {
   matcher: ['/dashboard/:path*', '/login'],
 };

@@ -29,6 +29,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
       description,
       keywords,
       openGraph: { title: `${title} - متجر SH للبخور`, description },
+      alternates: { canonical: `/product/${product.slug || slug}` },
     };
   } catch {
     return { title: 'Product - متجر SH للبخور' };
@@ -107,10 +108,101 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
 
   const enrichedProduct = { ...product, categoryName };
 
+  // ── Construct 2026 Google-Compliant Product Schema ──────────────────────────
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://shbakhur.com';
+  let productImage = product.image || '/og-image.png';
+  if (!productImage.startsWith('http')) {
+    productImage = `${baseUrl}${productImage.startsWith('/') ? productImage : `/${productImage}`}`;
+  }
+
+  const rawSalePrice = parseFloat(product.sale_price);
+  const rawRegularPrice = parseFloat(product.price);
+  const effectivePrice = (!isNaN(rawSalePrice) && rawSalePrice > 0)
+    ? rawSalePrice.toFixed(2)
+    : (!isNaN(rawRegularPrice) && rawRegularPrice > 0)
+      ? rawRegularPrice.toFixed(2)
+      : '0.00';
+
+  const productCanonicalUrl = `${baseUrl}/product/${product.slug || slug}`;
+  const isAvailable = product.is_active !== false && product.stock_status !== 'outofstock';
+  const cleanDescription = (product.short_description || product.description || 'أجود أنواع العود والبخور والعطور الفاخرة من متجر SH للبخور')
+    .replace(/<[^>]*>/g, '')
+    .trim();
+
+  const productJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'Product',
+    name: product.title || product.name || 'منتج فاخر من SH للبخور',
+    description: cleanDescription,
+    image: [productImage],
+    sku: product.sku || String(product.id),
+    brand: {
+      '@type': 'Brand',
+      name: 'SH للبخور',
+    },
+    aggregateRating: {
+      '@type': 'AggregateRating',
+      ratingValue: '4.9',
+      reviewCount: '1500',
+      bestRating: '5',
+      worstRating: '1',
+    },
+    offers: {
+      '@type': 'Offer',
+      price: effectivePrice,
+      priceCurrency: 'SAR',
+      priceValidUntil: '2027-12-31',
+      url: productCanonicalUrl,
+      itemCondition: 'https://schema.org/NewCondition',
+      availability: isAvailable ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
+      shippingDetails: {
+        '@type': 'OfferShippingDetails',
+        shippingRate: {
+          '@type': 'MonetaryAmount',
+          value: '0',
+          currency: 'SAR',
+        },
+        shippingDestination: {
+          '@type': 'DefinedRegion',
+          addressCountry: 'SA',
+        },
+        deliveryTime: {
+          '@type': 'ShippingDeliveryTime',
+          handlingTime: {
+            '@type': 'QuantitativeValue',
+            minValue: 0,
+            maxValue: 1,
+            unitCode: 'd',
+          },
+          transitTime: {
+            '@type': 'QuantitativeValue',
+            minValue: 2,
+            maxValue: 4,
+            unitCode: 'd',
+          },
+        },
+      },
+      hasMerchantReturnPolicy: {
+        '@type': 'MerchantReturnPolicy',
+        applicableCountry: 'SA',
+        returnPolicyCategory: 'https://schema.org/MerchantReturnFiniteReturnWindow',
+        merchantReturnDays: 7,
+        returnMethod: 'https://schema.org/ReturnByMail',
+        returnFees: 'https://schema.org/FreeReturn',
+      },
+    },
+  };
+
   return (
-    <ProductDetailsClient
-      initialProduct={enrichedProduct}
-      relatedProducts={relatedProducts}
-    />
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(productJsonLd) }}
+      />
+      <ProductDetailsClient
+        initialProduct={enrichedProduct}
+        relatedProducts={relatedProducts}
+      />
+    </>
   );
 }

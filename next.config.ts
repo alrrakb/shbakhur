@@ -25,18 +25,6 @@ const nextConfig: NextConfig = {
         protocol: 'https',
         hostname: '**.amazonaws.com',
       },
-      {
-        protocol: 'http',
-        hostname: 'localhost',
-        port: '',
-        pathname: '/**',
-      },
-      {
-        protocol: 'http',
-        hostname: '127.0.0.1',
-        port: '',
-        pathname: '/**',
-      },
     ],
   },
   allowedDevOrigins: ['172.20.10.2'],

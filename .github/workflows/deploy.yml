@@ -1,0 +1,45 @@
+name: Deploy SH Bakhur Storefront
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📥 Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: ⚙️ Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: 📦 Install Dependencies
+        run: npm ci
+
+      - name: 🏗️ Build Next.js Production Bundle
+        env:
+          NEXT_PUBLIC_SITE_URL: "https://shbakhur.com"
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+        run: npm run build
+
+      - name: 🚀 Sync Files to VPS via Rsync (Zero-Downtime)
+        uses: easingthemes/ssh-deploy@main
+        with:
+          SSH_PRIVATE_KEY: ${{ secrets.VPS_SSH_KEY }}
+          REMOTE_HOST: ${{ secrets.VPS_HOST }}
+          REMOTE_USER: ${{ secrets.VPS_USER }}
+          TARGET: /var/www/shbakhur
+          SOURCE: ".next/ public/ package.json package-lock.json next.config.ts"
+          EXCLUDE: "/.git/, /node_modules/, /tasks/, /docs/, /.agents/, /.gemini/"
+          SCRIPT_AFTER: |
+            cd /var/www/shbakhur
+            npm ci --omit=dev --ignore-scripts
+            pm2 reload shbakhur || pm2 start npm --name "shbakhur" -- start -- -p 3990
+            pm2 save

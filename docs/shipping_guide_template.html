@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <title>دليل العمليات التشغيلية للشحن وبوليصة - SH للبخور والعطور</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap');
+
+    @page {
+      size: A4;
+      margin: 10mm 12mm 8mm 12mm;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Cairo', 'Segoe UI', Tahoma, sans-serif;
+      background-color: #ffffff;
+      color: #1a1a1a;
+      line-height: 1.5;
+      font-size: 12px;
+      direction: rtl;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+
+    .container {
+      max-width: 100%;
+      margin: 0 auto;
+    }
+
+    /* Header Banner */
+    .header {
+      background: linear-gradient(135deg, #111111 0%, #1f1d17 100%);
+      border: 1.5px solid #d4af37;
+      border-radius: 10px;
+      padding: 14px 18px;
+      color: #ffffff;
+      margin-bottom: 11px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 3px 10px rgba(0, 0, 0, 0.06);
+    }
+
+    .header-text h1 {
+      font-size: 18px;
+      font-weight: 900;
+      color: #d4af37;
+      margin-bottom: 2px;
+      letter-spacing: -0.5px;
+    }
+
+    .header-text p {
+      font-size: 11.5px;
+      color: #e0e0e0;
+      font-weight: 600;
+    }
+
+    .header-meta {
+      text-align: left;
+      font-size: 10.5px;
+      color: #bbbbbb;
+      border-right: 1px solid rgba(212, 175, 55, 0.3);
+      padding-right: 14px;
+      line-height: 1.4;
+    }
+
+    .badge-status {
+      display: inline-block;
+      background: rgba(212, 175, 55, 0.2);
+      color: #d4af37;
+      border: 1px solid #d4af37;
+      padding: 2px 8px;
+      border-radius: 20px;
+      font-weight: 700;
+      font-size: 9.5px;
+      margin-bottom: 3px;
+    }
+
+    /* Main Sections */
+    .section {
+      background: #ffffff;
+      border: 1px solid #e8e8e8;
+      border-radius: 8px;
+      padding: 10px 14px;
+      margin-bottom: 9px;
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.02);
+    }
+
+    .section-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 8px;
+      border-bottom: 1.5px solid #f2f2f2;
+      padding-bottom: 5px;
+    }
+
+    .section-number {
+      background: linear-gradient(135deg, #d4af37, #aa820a);
+      color: #111111;
+      font-weight: 900;
+      width: 22px;
+      height: 22px;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11.5px;
+      flex-shrink: 0;
+    }
+
+    .section-title {
+      font-size: 13.5px;
+      font-weight: 800;
+      color: #111111;
+    }
+
+    .section-subtitle {
+      font-size: 10.5px;
+      color: #888888;
+      font-weight: 600;
+      margin-right: auto;
+    }
+
+    /* List items */
+    .feature-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+
+    .feature-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 6px;
+      font-size: 11.5px;
+      color: #333333;
+      line-height: 1.45;
+    }
+
+    .bullet {
+      color: #d4af37;
+      font-weight: 900;
+      font-size: 12px;
+      line-height: 1.2;
+    }
+
+    .feature-item strong {
+      color: #111111;
+      font-weight: 700;
+    }
+
+    /* Step Boxes */
+    .steps-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-top: 5px;
+    }
+
+    .step-card {
+      background: #fafafa;
+      border: 1px solid #ebebeb;
+      border-right: 3px solid #d4af37;
+      border-radius: 6px;
+      padding: 7px 10px;
+    }
+
+    .step-card-header {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-weight: 800;
+      color: #111111;
+      font-size: 11.5px;
+      margin-bottom: 2px;
+    }
+
+    .step-card-desc {
+      font-size: 10.5px;
+      color: #555555;
+      line-height: 1.4;
+    }
+
+    /* Highlight Banner */
+    .highlight-box {
+      background: #fffdf5;
+      border: 1px solid #e8dcad;
+      border-radius: 8px;
+      padding: 9px 12px;
+      margin-top: 9px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .highlight-text {
+      font-size: 11px;
+      color: #4a3b00;
+      font-weight: 600;
+      line-height: 1.45;
+    }
+
+    .highlight-tag {
+      background: #d4af37;
+      color: #111111;
+      font-weight: 800;
+      font-size: 10.5px;
+      padding: 4px 10px;
+      border-radius: 5px;
+      white-space: nowrap;
+    }
+
+    /* Footer */
+    .footer {
+      margin-top: 10px;
+      border-top: 1px dashed #dcdcdc;
+      padding-top: 6px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 9.5px;
+      color: #888888;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+
+    <!-- Header Banner -->
+    <div class="header">
+      <div class="header-text">
+        <span class="badge-status">دليل العمليات التشغيلية (SOP)</span>
+        <h1>متجر SH للبخور والعطور</h1>
+        <p>دليل إدارة الشحن والربط مع منصة بوليصة (Bolesa) والتغليف</p>
+      </div>
+      <div class="header-meta">
+        <div><strong>تاريخ التقرير:</strong> أكتوبر 2026</div>
+        <div><strong>حالة النظام:</strong> جاهز ومربوط 100%</div>
+        <div><strong>النطاق:</strong> shbkhur.com</div>
+      </div>
+    </div>
+
+    <!-- Section 1 -->
+    <div class="section">
+      <div class="section-header">
+        <div class="section-number">1</div>
+        <div class="section-title">نظام الاشتراك والمحاسبة المالية في بوليصة</div>
+        <div class="section-subtitle">المحفظة مسبقة الدفع (Prepaid Wallet)</div>
+      </div>
+      <ul class="feature-list">
+        <li class="feature-item">
+          <span class="bullet">◆</span>
+          <div><strong>نظام المحفظة المرن:</strong> لا توجد أي رسوم اشتراك شهرية إجبارية ولا توجد عقود التزامية سنوية.</div>
+        </li>
+        <li class="feature-item">
+          <span class="bullet">◆</span>
+          <div><strong>آلية الدفع والرصيد:</strong> تقوم الإدارة بشحن رصيد في محفظة الحساب (مثلاً 500 أو 1000 ريال) عبر مدى أو البطاقة الائتمانية.</div>
+        </li>
+        <li class="feature-item">
+          <span class="bullet">◆</span>
+          <div><strong>الخصم التلقائي:</strong> عند إصدار بوليصة شحن لأي طلب جديد، يُخصم سعرها المخفض مباشرة من رصيد المحفظة، والمبلغ المتبقي يظل محفوظاً دون تاريخ انتهاء.</div>
+        </li>
+      </ul>
+    </div>
+
+    <!-- Section 2 -->
+    <div class="section">
+      <div class="section-header">
+        <div class="section-number">2</div>
+        <div class="section-title">آلية التغليف ومستلزمات الشحن للمنتجات الفاخرة</div>
+        <div class="section-subtitle">حماية العطور والعود والمباخر</div>
+      </div>
+      <ul class="feature-list">
+        <li class="feature-item">
+          <span class="bullet">◆</span>
+          <div><strong>مسؤولية المتجر:</strong> تجهيز وتغليف المنتجات يقع بالكامل على عاتق المتجر لضمان حماية الزجاجات من الكسر أثناء الشحن.</div>
+        </li>
+        <li class="feature-item">
+          <span class="bullet">◆</span>
+          <div><strong>مصادر التغليف:</strong> يمكن توفير كراتين الشحن ورولات الفقاعات الهوائية إما بطلبها مباشرة من متجر منصة «بوليصة» أو شرائها بأسعار الجملة من المتاجر السعودية المتخصصة (مثل متجر كنان، الذييب للكرتون، وعالم الكراتين).</div>
+        </li>
+        <li class="feature-item">
+          <span class="bullet">◆</span>
+          <div><strong>قبول شركات الشحن:</strong> شركات الشحن تقبل أي كرتون سليم ومحمي، والشرط الأساسي الوحيد هو إلصاق ملصق البوليصة الخارجي (AWB) بوضوح.</div>
+        </li>
+      </ul>
+    </div>
+
+    <!-- Section 3 -->
+    <div class="section">
+      <div class="section-header">
+        <div class="section-number">3</div>
+        <div class="section-title">دورة التعامل مع الطلبات في المتجر (خطوة بخطوة)</div>
+        <div class="section-subtitle">من استلام الطلب حتى التسليم للعميل</div>
+      </div>
+      <div class="steps-grid">
+        <div class="step-card">
+          <div class="step-card-header">① استلام الطلب والإشعار</div>
+          <div class="step-card-desc">يصل إشعار فوري للإدارة عبر تيليجرام وواتساب، ويظهر الطلب في لوحة التحكم تحت حالة (جديد/Pending).</div>
+        </div>
+        <div class="step-card">
+          <div class="step-card-header">② تجهيز وتغليف المنتجات</div>
+          <div class="step-card-desc">يقوم مسؤول التجهيز بطباعة الفاتورة التفصيلية للطلب وتغليف المنتجات داخل كرتون الشحن المقوى بالفقاعات.</div>
+        </div>
+        <div class="step-card">
+          <div class="step-card-header">③ إصدار البوليصة بضغطة زر</div>
+          <div class="step-card-desc">من لوحة التحكم، يضغط المسؤول على زر (إنشاء وإصدار بوليصة شحن)، فيقوم النظام بإنشاء الشحنة تلقائياً.</div>
+        </div>
+        <div class="step-card">
+          <div class="step-card-header">④ طباعة ملصق الشحن (PDF)</div>
+          <div class="step-card-desc">يتم طباعة ملصق البوليصة الحراري المتضمن رقم التتبع وبيانات العميل، ولصقه على الكرتون الخارجي.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Section 4 -->
+    <div class="section">
+      <div class="section-header">
+        <div class="section-number">4</div>
+        <div class="section-title">شحن العطور وخدمة الدفع عند الاستلام (COD)</div>
+        <div class="section-subtitle">السياسات والتحصيل المالي</div>
+      </div>
+      <ul class="feature-list">
+        <li class="feature-item">
+          <span class="bullet">◆</span>
+          <div><strong>شحن العطور والسوائل:</strong> شحن العطور والزيوت العطرية والبخور مسموح ومدعوم بالكامل داخل كافة مدن ومناطق المملكة عبر شركات الشحن (أرامكس، سمسا، سبل).</div>
+        </li>
+        <li class="feature-item">
+          <span class="bullet">◆</span>
+          <div><strong>الدفع عند الاستلام (COD):</strong> الخدمة مدعومة، حيث يقوم المندوب بتحصيل قيمة الطلب من العميل نقداً أو بالشبكة، وتُودع المبالغ في حساب المتجر بعد إتمام التوصيل.</div>
+        </li>
+        <li class="feature-item">
+          <span class="bullet">◆</span>
+          <div><strong>صلاحية وإلغاء البوليصة:</strong> البوليصة صالحة لمدة 7 أيام، ويمكن إلغاؤها واسترداد قيمتها للمحفظة خلال أول 24 ساعة إذا تراجع العميل عن الطلب.</div>
+        </li>
+      </ul>
+    </div>
+
+    <!-- Highlight Box -->
+    <div class="highlight-box">
+      <div class="highlight-text">
+        <strong>خلاصة الجاهزية التشغيلية:</strong> المتجر مربوط برمجياً بنسبة 100% مع منصة بوليصة، والخطوة المطلوبة للبدء الفوري هي شحن رصيد المحفظة وتوفير كراتين التغليف لبدء شحن أولى الطلبيات بنجاح.
+      </div>
+      <div class="highlight-tag">جاهز للتشغيل الفوري ✓</div>
+    </div>
+
+    <!-- Footer -->
+    <div class="footer">
+      <span>متجر SH للبخور والعطور — وثيقة تشغيلية مرجعية سرية لإدارة المتجر</span>
+      <span>تمت المراجعة والاعتماد التقني | أكتوبر 2026</span>
+    </div>
+
+  </div>
+
+</body>
+</html>

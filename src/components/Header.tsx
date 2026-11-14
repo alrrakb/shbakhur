@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useCart } from '@/context/CartContext';
 import { getNavigationLinks, getSiteLogo, getNewsTickerMessages, type NavLink } from '@/lib/database';
+import { generateLogoAlt, generateProductImageAlt } from '@/lib/imageSeo';
 
 const defaultNavLinks: NavLink[] = [
   { id: 1, name: 'الرئيسية', link: '/', has_dropdown: false, dropdown_items: [], sort_order: 0, is_active: true },
@@ -26,12 +27,18 @@ const defaultNavLinks: NavLink[] = [
 ];
 
 const defaultAnnouncements = [
-  'الشحن مجاني للطلبات بقيمة 250 ر.س فأكثر',
-  'شحن وتوصيل سريع لجميع مدن ومناطق المملكة',
-  'توصيل موثوق لباب منزلك خلال 2-4 أيام عمل',
-  'جودة وأصالة مضمونة 100% على كافة أنواع العود والعطور',
-  'للطلب والاستفسار يرجى التواصل عبر الواتساب',
+  '🚚 شحن مجاني للطلبات بقيمة 250 ر.س فأكثر لكافة مدن ومناطق المملكة',
+  '⚡ توصيل فوري وسريع لباب منزلك خلال 2-4 أيام عمل عبر بوليصة Bolesa',
+  '👑 الضمان الذهبي: عود طبيعي فاخر وأدهان نقية مضمونة 100%',
+  '🎁 خيارات إهداء ملكية وباقات عود وتغليف استثنائي للمناسبات',
 ];
+
+function formatNavLabel(name: string, linkHref?: string): string {
+  if (name === '/cart' || (linkHref === '/cart' && (!name || name.startsWith('/')))) {
+    return 'سلة المشتريات';
+  }
+  return name;
+}
 
 function SearchResultsList({ query, onClose }: { query: string, onClose: () => void }) {
   const [results, setResults] = useState<any[]>([]);
@@ -84,7 +91,11 @@ function SearchResultsList({ query, onClose }: { query: string, onClose: () => v
         >
           <div className="w-16 h-16 bg-black rounded shadow overflow-hidden flex-shrink-0 flex items-center justify-center">
             {product.image ? (
-              <img src={product.image} alt={product.title} className="w-full h-full object-cover" />
+              <img
+                src={product.image}
+                alt={generateProductImageAlt({ title: product.title })}
+                className="w-full h-full object-cover"
+              />
             ) : (
               <span className="text-gray-600 text-xs text-center">لا توجد صورة</span>
             )}
@@ -116,7 +127,7 @@ export default function Header() {
   const [searchQuery, setSearchQuery] = useState('');
   const [navLinks, setNavLinks] = useState<NavLink[]>(defaultNavLinks);
   const [announcements, setAnnouncements] = useState<string[]>(defaultAnnouncements);
-  const [siteLogo, setSiteLogo] = useState('http://localhost/my-store/wp-content/uploads/2025/03/sh-logo-1-300x300.png');
+  const [siteLogo, setSiteLogo] = useState('/favicon.png');
   const [storeName, setStoreName] = useState('SH للبخور');
   const dropdownRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
@@ -146,7 +157,9 @@ export default function Header() {
       }
       const newsMessages = await getNewsTickerMessages();
       if (newsMessages.length > 0) {
-        setAnnouncements(newsMessages.filter((m: any) => m.is_active !== false).map(m => m.message));
+        const activeDb = newsMessages.filter((m: any) => m.is_active !== false).map(m => m.message);
+        const uniqueMessages = Array.from(new Set([...activeDb, ...defaultAnnouncements]));
+        setAnnouncements(uniqueMessages);
       } else {
         setAnnouncements(defaultAnnouncements);
       }
@@ -172,8 +185,8 @@ export default function Header() {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const tickerContent = [...announcements, ...announcements, ...announcements, ...announcements].map((item, index) => (
-    <span key={index} className="inline-flex items-center gap-4 text-gray-400 text-sm px-4 whitespace-nowrap">
+  const tickerTrack = announcements.map((item, index) => (
+    <span key={index} className="inline-flex items-center gap-4 text-gray-400 text-sm px-6 whitespace-nowrap">
       <span className="text-luxury-gold">●</span>
       {item}
     </span>
@@ -189,11 +202,15 @@ export default function Header() {
         <div
           className="flex items-center h-full w-max group-hover:[animation-play-state:paused]"
           style={{
-            animation: 'marquee-rtl 90s linear infinite',
+            animation: 'marquee-rtl 60s linear infinite',
           }}
         >
-          {tickerContent}
-          {tickerContent}
+          <div className="flex items-center shrink-0">
+            {tickerTrack}
+          </div>
+          <div className="flex items-center shrink-0" aria-hidden="true">
+            {tickerTrack}
+          </div>
         </div>
       </div>
 
@@ -219,8 +236,9 @@ export default function Header() {
               >
                 <img
                   src={siteLogo}
-                  alt={storeName}
+                  alt={generateLogoAlt(storeName)}
                   className="h-16 w-16 object-contain"
+                  onError={() => setSiteLogo('/favicon.png')}
                 />
                 <span className="text-2xl font-bold text-gold hidden sm:block">{storeName}</span>
               </motion.div>
@@ -244,7 +262,7 @@ export default function Header() {
                       href={link.link || '#'}
                       className="relative flex items-center gap-1 text-gray-300 hover:text-luxury-gold transition-colors duration-300 text-lg font-medium py-2 group cursor-pointer"
                     >
-                      {link.name}
+                      {formatNavLabel(link.name, link.link)}
                       {link.has_dropdown && (
                         <svg className={`w-4 h-4 transition-transform duration-300 ${openDropdown === link.name ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
@@ -317,7 +335,7 @@ export default function Header() {
                 whileTap={{ scale: 0.95 }}
                 onClick={() => setIsSearchOpen(true)}
                 className="p-2 text-gray-300 hover:text-luxury-gold transition-colors"
-                aria-label="Search"
+                aria-label="البحث عن منتجات"
               >
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -327,7 +345,7 @@ export default function Header() {
               <Link
                 href="/cart"
                 className="p-2 text-gray-300 hover:text-luxury-gold transition-colors relative"
-                aria-label="Cart"
+                aria-label="سلة المشتريات"
               >
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 8a2 2 0 100-4 2 2 0 000 4z" />
@@ -376,7 +394,7 @@ export default function Header() {
                       href={link.link || '#'}
                       className="text-gray-300 hover:text-luxury-gold transition-colors text-lg font-medium py-3 block"
                     >
-                      {link.name}
+                      {formatNavLabel(link.name, link.link)}
                     </Link>
                     {link.has_dropdown && link.dropdown_items && (() => {
                       const items = (typeof link.dropdown_items === 'string'

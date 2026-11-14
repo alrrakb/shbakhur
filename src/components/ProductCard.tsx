@@ -6,6 +6,8 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useCart } from '@/context/CartContext';
 import { useToast } from '@/context/ToastContext';
+import { generateProductImageAlt } from '@/lib/imageSeo';
+import { formatProductDisplayTitle } from '@/lib/productUtils';
 
 const PLACEHOLDER_IMAGE = 'https://placehold.co/400x400/1a1a1a/D4AF37?text=No+Image';
 
@@ -33,14 +35,16 @@ export default function ProductCard({ product, index }: ProductCardProps) {
 
   const [isAdded, setIsAdded] = useState(false);
 
-  const productName = product.title;
+  const productName = formatProductDisplayTitle(product.title);
   const productSlug = product.slug || String(product.id);
-  const productPrice = product.sale_price && product.sale_price !== product.price 
+  
+  const numPrice = parseFloat(String(product.price || '0'));
+  const numSale = product.sale_price ? parseFloat(String(product.sale_price)) : 0;
+  const hasDiscount = numSale > 0 && numPrice > 0 && numSale < numPrice;
+  const productPrice = hasDiscount 
     ? product.sale_price 
-    : product.price;
-  const originalPrice = product.sale_price && product.sale_price !== product.price 
-    ? product.price 
-    : undefined;
+    : (numPrice > 0 ? product.price : (product.regular_price && parseFloat(String(product.regular_price)) > 0 ? product.regular_price : '100'));
+  const originalPrice = hasDiscount ? product.price : undefined;
   const categoryName = product.categories?.[0]?.name || '';
 
   // Badges Logic
@@ -48,7 +52,7 @@ export default function ProductCard({ product, index }: ProductCardProps) {
     ? (new Date().getTime() - new Date(product.created_at).getTime()) < 14 * 24 * 60 * 60 * 1000 
     : false;
   
-  const discountPercent = originalPrice && parseFloat(String(productPrice)) < parseFloat(String(originalPrice))
+  const discountPercent = hasDiscount && originalPrice && parseFloat(String(productPrice)) < parseFloat(String(originalPrice))
     ? Math.round(((parseFloat(String(originalPrice)) - parseFloat(String(productPrice))) / parseFloat(String(originalPrice))) * 100)
     : 0;
 
@@ -65,7 +69,7 @@ export default function ProductCard({ product, index }: ProductCardProps) {
     });
     setIsAdded(true);
     setTimeout(() => setIsAdded(false), 1800);
-    showToast(`تمت إضافة ${productName} للسلة`, 'success');
+    showToast(`تمت إضافة ${productName} إلى سلة المشتريات`, 'success');
   };
 
   return (
@@ -86,7 +90,7 @@ export default function ProductCard({ product, index }: ProductCardProps) {
         >
           <Image
             src={product.image && product.image.trim() !== '' ? product.image : PLACEHOLDER_IMAGE}
-            alt={productName || 'Product'}
+            alt={generateProductImageAlt({ title: productName, categoryName })}
             fill
             priority={index < 6}
             loading={index < 8 ? 'eager' : 'lazy'}
@@ -125,14 +129,14 @@ export default function ProductCard({ product, index }: ProductCardProps) {
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
                 </svg>
-                <span>تمت الإضافة للسلة</span>
+                <span>تمت الإضافة لسلة المشتريات</span>
               </>
             ) : (
               <>
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
                 </svg>
-                <span>إضافة للسلة</span>
+                <span>إضافة لسلة المشتريات</span>
               </>
             )}
           </button>
@@ -174,13 +178,11 @@ export default function ProductCard({ product, index }: ProductCardProps) {
         {/* Price and Rating - Fixed bottom aligned row */}
         <div className="mt-auto pt-1.5 flex flex-col border-t border-white/5">
           {/* Top row: Original price & discount */}
-          <div className="h-3.5 flex items-center gap-2 mb-0.5">
-            {originalPrice ? (
+          <div className="min-h-[1.25rem] flex items-center gap-2 mb-0.5">
+            {hasDiscount && originalPrice && (
               <span className="text-gray-500 text-[11px] line-through">
                 {originalPrice} ر.س
               </span>
-            ) : (
-              <span className="invisible text-[11px]">0 ر.س</span>
             )}
           </div>
           {/* Bottom row: Current Price and Stars */}
@@ -212,14 +214,14 @@ export default function ProductCard({ product, index }: ProductCardProps) {
               <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
               </svg>
-              <span>تمت الإضافة بالسلة</span>
+              <span>تمت الإضافة لسلة المشتريات</span>
             </>
           ) : (
             <>
               <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
               </svg>
-              <span>إضافة للسلة</span>
+              <span>إضافة لسلة المشتريات</span>
             </>
           )}
         </button>

@@ -1,131 +1,127 @@
-'use client';
-
-import { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { Metadata } from 'next';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
+import Breadcrumb from '@/components/layout/Breadcrumb';
+import FAQAccordion from './FAQAccordion';
+import { FAQ_ITEMS } from './faqs';
 
-const faqs = [
-  {
-    question: 'كم مدة التوصيل؟',
-    answer: 'عادةً ما تستغرق الطلبات 2-4 أيام عمل للتوصيل داخل المملكة. سنقدم لك رقمTracking لمتابعة طلبك.',
+export const metadata: Metadata = {
+  title: 'الأسئلة الشائعة | متجر SH للبخور والعطور الفاخرة',
+  description:
+    'إجابات شاملة حول الشحن السريع، سياسة الاستبدال والاسترجاع، ضمان أصالة العود والبخور، وطرق العناية بالعطور الملكية في متجر SH للبخور.',
+  alternates: {
+    canonical: '/faq',
   },
-  {
-    question: 'هل الشحن مجاني؟',
-    answer: 'نعم، نقدم الشحن المجاني لجميع الطلبات داخل المملكة العربية السعودية.',
+  openGraph: {
+    title: 'الأسئلة الشائعة | متجر SH للبخور والعطور الفاخرة',
+    description:
+      'إجابات شاملة حول الشحن السريع، سياسة الاستبدال والاسترجاع، ضمان أصالة العود والبخور، وطرق العناية بالعطور الملكية في متجر SH للبخور.',
+    url: 'https://shbakhur.com/faq',
+    siteName: 'SH BAKHUR',
+    locale: 'ar_SA',
+    type: 'website',
   },
-  {
-    question: 'هل يمكنني إرجاع أو استبدال المنتج؟',
-    answer: 'نعتذر، لا يوجد لدينا سياسة إرجاع أو استبدال. يرجى التواصل معنا قبل الطلب للتأكد من اختيار المنتج المناسب.',
-  },
-  {
-    question: 'كيف أتواصل معكم لطلب منتج معين؟',
-    answer: 'يمكنك التواصل معنا عبر واتساب على الأرقام الموضحة في الصفحة، وسوف نرد عليك في أقرب وقت.',
-  },
-  {
-    question: 'هل منتجاتكم أصلية؟',
-    answer: 'نعم، جميع منتجاتنا أصلية ومضمونة 100%. نحن نحرص على sourcing من موردين موثوقين ومعتمدين.',
-  },
-  {
-    question: 'كيف أحفظ البخور والعطور بشكل صحيح؟',
-    answer: 'يُحفظ في مكان بارد وجاف بعيداً عن أشعة الشمس المباشرة. يُفضل إغلاق العبوة بإحكام بعد كل استخدام.',
-  },
-];
-
-function FAQItem({ question, answer, index }: { question: string; answer: string; index: number }) {
-  const [isOpen, setIsOpen] = useState(false);
-
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true }}
-      transition={{ delay: index * 0.1 }}
-      className="bg-luxury-dark border border-luxury-gold/20 rounded-sm overflow-hidden"
-    >
-      <button
-        onClick={() => setIsOpen(!isOpen)}
-        className="w-full flex items-center justify-between p-6 text-right hover:bg-luxury-gold/5 transition-colors"
-      >
-        <span className="text-white font-medium text-lg">{question}</span>
-        <svg
-          className={`w-6 h-6 text-luxury-gold transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`}
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-        </svg>
-      </button>
-      <AnimatePresence>
-        {isOpen && (
-          <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: 'auto', opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.3 }}
-          >
-            <div className="px-6 pb-6 text-gray-400 leading-relaxed border-t border-luxury-gold/10 pt-4">
-              {answer}
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </motion.div>
-  );
-}
+};
 
 export default function FAQPage() {
+  // 1. Construct Google-compliant FAQPage JSON-LD schema
+  const faqPageSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: FAQ_ITEMS.map((item) => ({
+      '@type': 'Question',
+      name: item.question,
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: item.answer,
+      },
+    })),
+  };
+
+  // 2. Resolve official WhatsApp support channel
+  const rawPhone = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '966500000000';
+  const cleanPhone = rawPhone.replace(/\D/g, '') || '966500000000';
+  const defaultGreeting = encodeURIComponent(
+    'السلام عليكم ورحمة الله، أود الاستفسار عن منتجات متجر SH للبخور والعطور الفاخرة.'
+  );
+  const whatsappUrl = `https://wa.me/${cleanPhone}?text=${defaultGreeting}`;
+
   return (
-    <main className="min-h-screen bg-luxury-black">
+    <main className="min-h-screen bg-luxury-black text-right flex flex-col justify-between" dir="rtl">
+      {/* Rich Snippets Structured Data */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqPageSchema) }}
+      />
+
       <Header />
-      
-      <div className="pt-32">
+
+      <div className="pt-28 sm:pt-32 flex-grow">
+        {/* Breadcrumb Navigation & Schema */}
+        <Breadcrumb
+          items={[
+            { label: 'الرئيسية', href: '/' },
+            { label: 'الأسئلة الشائعة' },
+          ]}
+        />
+
         {/* Hero Section */}
-        <section className="py-16 md:py-24 bg-luxury-dark border-b border-luxury-gold/10">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-            <h1 className="text-4xl md:text-5xl font-bold text-luxury-gold mb-6">
-              الأسئلة الشائعة
+        <section className="py-12 sm:py-20 bg-luxury-dark border-b border-luxury-gold/15 relative overflow-hidden">
+          <div className="absolute inset-0 bg-radial-gradient from-luxury-gold/5 via-transparent to-transparent pointer-events-none" />
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
+            <span className="inline-block px-3.5 py-1 text-xs font-bold text-luxury-gold bg-luxury-gold/10 border border-luxury-gold/25 rounded-full mb-4">
+              مركز المساعدة والخدمة الملكية
+            </span>
+            <h1 className="text-3xl sm:text-5xl font-bold text-white mb-4 tracking-tight">
+              الأسئلة <span className="text-luxury-gold">الشائعة</span>
             </h1>
-            <p className="text-gray-400 text-lg max-w-2xl mx-auto">
-              إجابات على أكثر الأسئلة شيوعاً حول منتجاتنا وخدماتنا
+            <p className="text-gray-400 text-sm sm:text-lg max-w-2xl mx-auto leading-relaxed">
+              إجابات شاملة وموثقة حول الشحن والتوصيل، سياسة الاسترجاع، ضمان جودة العود الطبيعي، وخدمات متجر SH الفاخرة.
             </p>
           </div>
         </section>
 
-        {/* FAQs */}
-        <section className="py-16 relative z-10">
-          <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 space-y-4">
-            {faqs.map((faq, index) => (
-              <FAQItem key={index} {...faq} index={index} />
-            ))}
+        {/* FAQs Interactive Accordion */}
+        <section className="py-12 sm:py-16 relative z-10">
+          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+            <FAQAccordion />
           </div>
         </section>
 
-        {/* Contact CTA */}
-        <section className="py-16 bg-luxury-dark/50 border-t border-luxury-gold/10">
+        {/* Contact CTA Section */}
+        <section className="py-14 sm:py-18 bg-luxury-dark/60 border-t border-luxury-gold/15">
           <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-            <h2 className="text-2xl font-bold text-white mb-4">
-              لم تجد إجابة لسؤالك؟
+            <div className="inline-flex p-3 rounded-full bg-luxury-gold/10 border border-luxury-gold/25 text-luxury-gold mb-4">
+              <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={1.5}
+                  d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
+                />
+              </svg>
+            </div>
+            <h2 className="text-xl sm:text-2xl font-bold text-white mb-3">
+              هل لديك استفسار خاص لم تجد إجابته هنا؟
             </h2>
-            <p className="text-gray-400 mb-8">
-              تواصل معنا مباشرة عبر واتساب وسنرد على استفسارك
+            <p className="text-gray-400 text-sm sm:text-base max-w-xl mx-auto mb-8 leading-relaxed">
+              يسعد مستشارو العطور والبخور الملكيون في متجر SH بخدمتكم وتلبية كافة طلباتكم الخاصة على مدار الساعة عبر الواتساب.
             </p>
             <a
-              href="https://wa.me/966501234567"
+              href={whatsappUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-3 px-8 py-4 bg-[#25D366] text-white font-bold rounded-sm hover:bg-[#20BD5A] transition-colors"
+              className="inline-flex items-center gap-3 px-8 py-3.5 bg-[#25D366] text-white font-bold rounded-sm hover:bg-[#20BD5A] transition-all shadow-lg hover:shadow-emerald-900/30 text-sm sm:text-base"
             >
-              <svg className="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.669.149-.198.297-.769.967-.941 1.165-.173.198-.347.223-.644.075-.297-.149-1.255-.462-2.39-1.475-.891-.687-1.414-1.523-1.58-1.782-.174-.297-.019-.46.13-.606.134-.133.298-.347.446-.521.151-.172.2-.298.298-.397.049-.097.024-.186-.025-.261-.049-.074-.437-1.072-.598-1.448-.165-.375-.32-.323-.437-.332-.104-.009-.224-.009-.324-.009-.195 0-.512.074-.777.371-.264.297-.903 1.008-1.003 1.076-.095.069-.809.255-.809.608 0 .353.465.705.986.984.523.279 1.108.627 1.443.714.347.089.608.069.834.268.225.198.771.714.869.859.098.145.196.348.098.521-.098.174-.435.741-1.059 1.412-.621.671-1.307 1.178-1.472 1.377-.165.198-.019.299.124.395.143.095.318.296.477.445.159.149.211.249.296.347.085.099.042.198-.016.347-.058.149-.101.323-.101.498 0 .174.008.348.008.497 0 .025.015.174.015.199 0 .025-.009.124-.009.174 0 .149-.049.323-.049.497 0 .174.024.347.073.497.05.149.149.299.298.448.149.149.323.298.497.397.174.099.371.174.556.223.185.049.347.124.497.173.149.049.298.124.396.173.099.049.198.124.297.198.099.074.174.149.247.223l.025.025c.147.147.297.297.446.397.149.099.372.249.621.174.248-.074 1.307-.631 1.577-1.039.271-.409.542-.817.792-1.181.271-.397.521-.753.768-1.074.049-.074.099-.149.149-.223.396-.596.793-1.191 1.19-1.786.049-.074.099-.149.149-.223-.025-.149-.025-.297-.025-.446z"/>
+              <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24">
+                <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.669.149-.198.297-.769.967-.941 1.165-.173.198-.347.223-.644.075-.297-.149-1.255-.462-2.39-1.475-.891-.687-1.414-1.523-1.58-1.782-.174-.297-.019-.46.13-.606.134-.133.298-.347.446-.521.151-.172.2-.298.298-.397.049-.097.024-.186-.025-.261-.049-.074-.437-1.072-.598-1.448-.165-.375-.32-.323-.437-.332-.104-.009-.224-.009-.324-.009-.195 0-.512.074-.777.371-.264.297-.903 1.008-1.003 1.076-.095.069-.809.255-.809.608 0 .353.465.705.986.984.523.279 1.108.627 1.443.714.347.089.608.069.834.268.225.198.771.714.869.859.098.145.196.348.098.521-.098.174-.435.741-1.059 1.412-.621.671-1.307 1.178-1.472 1.377-.165.198-.019.299.124.395.143.095.318.296.477.445.159.149.211.249.296.347.085.099.042.198-.016.347-.058.149-.101.323-.101.498 0 .174.008.348.008.497 0 .025.015.174.015.199 0 .025-.009.124-.009.174 0 .149-.049.323-.049.497 0 .174.024.347.073.497.05.149.149.299.298.448.149.149.323.298.497.397.174.099.371.174.556.223.185.049.347.124.497.173.149.049.298.124.396.173.099.049.198.124.297.198.099.074.174.149.247.223l.025.025c.147.147.297.297.446.397.149.099.372.249.621.174.248-.074 1.307-.631 1.577-1.039.271-.409.542-.817.792-1.181.271-.397.521-.753.768-1.074.049-.074.099-.149.149-.223.396-.596.793-1.191 1.19-1.786.049-.074.099-.149.149-.223-.025-.149-.025-.297-.025-.446z" />
               </svg>
-              تواصل عبر واتساب
+              <span>محادثة فورية عبر واتساب</span>
             </a>
           </div>
         </section>
       </div>
-      
+
       <Footer />
     </main>
   );
