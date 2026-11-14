@@ -38,10 +38,10 @@ jobs:
           REMOTE_HOST: ${{ secrets.VPS_HOST }}
           REMOTE_USER: ${{ secrets.VPS_USER }}
           TARGET: /var/www/shbakhur
-          SOURCE: ".next/ public/ package.json package-lock.json next.config.ts"
+          SOURCE: ".next public package.json package-lock.json next.config.ts"
           EXCLUDE: "/.git/, /node_modules/, /tasks/, /docs/, /.agents/, /.gemini/"
           SCRIPT_AFTER: |
             cd /var/www/shbakhur
-            npm ci --omit=dev --ignore-scripts
-            pm2 reload shbakhur || pm2 start npm --name "shbakhur" -- start -- -p 3990
+            npm install --omit=dev --legacy-peer-deps
+            pm2 reload shbakhur || pm2 restart shbakhur || pm2 start npm --name "shbakhur" -- start -- -p 3990
             pm2 save
