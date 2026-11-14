@@ -2,13 +2,16 @@ import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { executeQuery } from '@/lib/db';
 
+export const dynamic = 'force-dynamic';
+
 // Supabase client is initialized lazily inside the handler to avoid
 // throwing at module-level during the Next.js build phase.
 function getSupabaseClient() {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const supabaseServiceKey =
     process.env.SUPABASE_SERVICE_ROLE_KEY ||
-    process.env.SUPABASE_Service_role_key;
+    process.env.SUPABASE_Service_role_key ||
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
   if (!supabaseUrl || !supabaseServiceKey) {
     throw new Error('Missing Supabase environment variables');

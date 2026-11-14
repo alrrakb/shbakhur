@@ -1,10 +1,21 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY ?? process.env.SUPABASE_Service_role_key!;
+export const dynamic = 'force-dynamic';
 
-const supabase = createClient(supabaseUrl, supabaseServiceKey);
+function getSupabaseClient() {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
+  const supabaseServiceKey =
+    process.env.SUPABASE_SERVICE_ROLE_KEY ||
+    process.env.SUPABASE_Service_role_key ||
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
+    '';
+
+  if (!supabaseUrl || !supabaseServiceKey) {
+    throw new Error('Missing Supabase environment variables');
+  }
+  return createClient(supabaseUrl, supabaseServiceKey);
+}
 
 const WP_DB_HOST = process.env.WP_DB_HOST || 'localhost';
 const WP_DB_USER = process.env.WP_DB_USER || 'root';
@@ -22,6 +33,7 @@ async function getWpConnection() {
 }
 
 async function downloadAndUploadImage(
+  supabase: any,
   imageUrl: string,
   bucket: string,
   folder: string
@@ -69,6 +81,7 @@ async function downloadAndUploadImage(
 }
 
 export async function GET() {
+  const supabase = getSupabaseClient();
   const connection = await getWpConnection().catch((err) => {
     console.error('MySQL connection failed:', err.message);
     return null;
@@ -156,7 +169,7 @@ export async function GET() {
         const uploadedUrls: string[] = [];
         for (const att of attachments) {
           if (!att.guid) continue;
-          const uploadedUrl = await downloadAndUploadImage(att.guid, 'products', 'gallery');
+          const uploadedUrl = await downloadAndUploadImage(supabase, att.guid, 'products', 'gallery');
           if (uploadedUrl) {
             uploadedUrls.push(uploadedUrl);
           }
