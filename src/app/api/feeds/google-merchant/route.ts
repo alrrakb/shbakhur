@@ -2,7 +2,7 @@ import { createClient } from '@supabase/supabase-js';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.SUPABASE_Anon_key || '';
-const CANONICAL_BASE_URL = 'https://shbakhur.com';
+const CANONICAL_BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://shbkhur.com';
 
 export const dynamic = 'force-dynamic';
 

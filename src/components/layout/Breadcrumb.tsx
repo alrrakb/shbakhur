@@ -9,7 +9,7 @@ export interface BreadcrumbProps {
   items: BreadcrumbItem[];
 }
 
-const CANONICAL_DOMAIN = 'https://shbakhur.com';
+const CANONICAL_DOMAIN = process.env.NEXT_PUBLIC_SITE_URL || 'https://shbkhur.com';
 
 export default function Breadcrumb({ items }: BreadcrumbProps) {
   if (!items || items.length === 0) return null;

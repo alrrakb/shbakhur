@@ -4,7 +4,7 @@ import { createClient } from '@supabase/supabase-js';
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.SUPABASE_Anon_key || '';
 
-export const CANONICAL_BASE_URL = 'https://shbakhur.com';
+export const CANONICAL_BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://shbkhur.com';
 
 export interface SitemapEntry {
   url: string;

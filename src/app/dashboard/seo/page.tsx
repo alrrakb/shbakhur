@@ -51,7 +51,7 @@ export default function SeoPage() {
   const { showToast } = useToast();
 
   const handleCopyFeed = async () => {
-    const feedUrl = 'https://shbakhur.com/api/feeds/google-merchant';
+    const feedUrl = 'https://shbkhur.com/api/feeds/google-merchant';
     try {
       await navigator.clipboard.writeText(feedUrl);
       setCopiedFeed(true);
@@ -280,7 +280,7 @@ export default function SeoPage() {
               <h2 className="text-lg sm:text-xl font-bold text-white">مركز التحكم في خريطة الموقع والفهرسة (Sitemap & Robots Hub)</h2>
             </div>
             <p className="text-gray-400 text-xs sm:text-sm">
-              إدارة الفهرسة التلقائية لمحركات البحث عبر النطاق الرسمي <span className="text-luxury-gold font-mono">https://shbakhur.com</span> وتتبع الروابط النشطة.
+              إدارة الفهرسة التلقائية لمحركات البحث عبر النطاق الرسمي <span className="text-luxury-gold font-mono">https://shbkhur.com</span> وتتبع الروابط النشطة.
             </p>
           </div>
 
@@ -320,7 +320,7 @@ export default function SeoPage() {
               <Globe size={14} className="text-luxury-gold" />
             </div>
             <div className="text-sm sm:text-base font-bold text-white font-mono truncate mb-1">
-              https://shbakhur.com
+              https://shbkhur.com
             </div>
             <p className="text-gray-400 text-xs truncate font-mono text-luxury-gold/80">
               /sitemap.xml
@@ -506,7 +506,7 @@ export default function SeoPage() {
               <input
                 type="text"
                 readOnly
-                value="https://shbakhur.com/api/feeds/google-merchant"
+                value="https://shbkhur.com/api/feeds/google-merchant"
                 className="w-full px-4 py-3 bg-luxury-black border border-luxury-gold/20 rounded-sm text-gray-200 text-xs sm:text-sm font-mono focus:border-luxury-gold focus:outline-none"
                 dir="ltr"
               />
@@ -709,7 +709,7 @@ export default function SeoPage() {
                     {currentPage.title || 'عنوان الصفحة'}
                   </div>
                   <div className="text-green-700 text-sm truncate" dir="ltr">
-                    https://shbakhur.com{currentPage.page_path}
+                    https://shbkhur.com{currentPage.page_path}
                   </div>
                   <div className="text-gray-600 text-sm line-clamp-2 mt-1">
                     {currentPage.description || 'وصف الصفحة يظهر هنا في نتائج البحث...'}

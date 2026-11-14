@@ -16,7 +16,7 @@ export const metadata: Metadata = {
     title: 'الأسئلة الشائعة | متجر SH للبخور والعطور الفاخرة',
     description:
       'إجابات شاملة حول الشحن السريع، سياسة الاستبدال والاسترجاع، ضمان أصالة العود والبخور، وطرق العناية بالعطور الملكية في متجر SH للبخور.',
-    url: 'https://shbakhur.com/faq',
+    url: 'https://shbkhur.com/faq',
     siteName: 'SH BAKHUR',
     locale: 'ar_SA',
     type: 'website',

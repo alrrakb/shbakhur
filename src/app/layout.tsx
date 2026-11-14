@@ -13,7 +13,7 @@ export async function generateMetadata(): Promise<Metadata> {
   ]);
 
   const faviconUrl = siteLogo?.favicon_url || '/favicon.png';
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://shbakhur.com';
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://shbkhur.com';
 
   return {
     metadataBase: new URL(siteUrl),

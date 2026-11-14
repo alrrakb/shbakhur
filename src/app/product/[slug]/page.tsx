@@ -109,7 +109,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
   const enrichedProduct = { ...product, categoryName };
 
   // ── Construct 2026 Google-Compliant Product Schema ──────────────────────────
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://shbakhur.com';
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://shbkhur.com';
   let productImage = product.image || '/og-image.png';
   if (!productImage.startsWith('http')) {
     productImage = `${baseUrl}${productImage.startsWith('/') ? productImage : `/${productImage}`}`;

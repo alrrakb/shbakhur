@@ -21,7 +21,7 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function Home() {
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://shbakhur.com';
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://shbkhur.com';
   const rawPhone = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '+966500000000';
   const telephone = rawPhone.startsWith('+') ? rawPhone : `+${rawPhone.replace(/\D/g, '') || '966500000000'}`;
 
