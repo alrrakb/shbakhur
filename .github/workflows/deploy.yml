@@ -20,7 +20,9 @@ jobs:
           cache: 'npm'
 
       - name: 📦 Install Dependencies
-        run: npm ci
+        run: |
+          npm ci
+          npm install --no-save lightningcss-linux-x64-gnu @tailwindcss/oxide-linux-x64-gnu || true
 
       - name: 🏗️ Build Next.js Production Bundle
         env:
