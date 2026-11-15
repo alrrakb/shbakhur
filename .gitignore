@@ -30,7 +30,7 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
-# env files (can opt-in for committing if needed)
+# env files
 .env*
 
 # vercel
@@ -40,17 +40,26 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-# ide / agents
+# reports & generated media
+/reports/
+*.pdf
+
+# ide / agents / ai infrastructure & non-source documentation
 .claude/
 .gemini/
 .agents/
 .freebuff/
+.windsurf/
+.cursor/
+.copilot/
 tasks/
 AGENT_RULES.md
+PROJECT_RULES.md
+PROJECT_TASKS.md
 PROJECT_STATE.json
 SYSTEM_ARCHITECTURE_DOSSIER.md
 skills-lock.json
 scratch/
+docs/logs/
 *.log
 test_db.js
-
