@@ -1,4 +1,5 @@
 import { Metadata } from 'next';
+import Image from 'next/image';
 import Header from '@/components/Header';
 import Breadcrumb from '@/components/layout/Breadcrumb';
 import Footer from '@/components/Footer';
@@ -39,9 +40,26 @@ export default function AboutPage() {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
               {/* Image */}
-              <div className="relative aspect-square md:aspect-[4/3] bg-luxury-dark rounded-sm overflow-hidden border border-luxury-gold/20">
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <span className="text-8xl text-luxury-gold/20">✦</span>
+              <div className="relative aspect-square md:aspect-[4/3] bg-luxury-dark rounded-md overflow-hidden border border-luxury-gold/30 shadow-2xl group">
+                <Image
+                  src="/about-luxury-oud.jpg"
+                  alt="متجر SH للبخور والعطور الفاخرة - عود طبيعي ومبخرة ملكية"
+                  fill
+                  sizes="(max-width: 768px) 100vw, 50vw"
+                  className="object-cover object-center transform group-hover:scale-105 transition-transform duration-700 ease-out"
+                  priority
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-luxury-black/70 via-transparent to-transparent pointer-events-none" />
+                <div className="absolute bottom-4 right-4 left-4 p-3 bg-luxury-black/80 backdrop-blur-md rounded border border-luxury-gold/20 flex items-center justify-between">
+                  <div>
+                    <span className="text-[10px] uppercase font-cormorant tracking-widest text-luxury-gold block">
+                      ROYAL ESSENCE · SH BAKHUR
+                    </span>
+                    <span className="text-xs font-bold text-white font-readex">
+                      أصالة العود الطبيعي والبخور الملكي
+                    </span>
+                  </div>
+                  <span className="text-luxury-gold text-lg">✦</span>
                 </div>
               </div>
 

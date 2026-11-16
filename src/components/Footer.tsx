@@ -23,8 +23,6 @@ const DEFAULT_LINKS: GroupedLinks = {
     { id: 1, section: 'quick_links', name: 'الرئيسية', link: '/', sort_order: 0 },
     { id: 2, section: 'quick_links', name: 'جميع المنتجات', link: '/products', sort_order: 1 },
     { id: 3, section: 'quick_links', name: 'عروضنا', link: '/products/best-offers', sort_order: 2 },
-    { id: 4, section: 'quick_links', name: 'سياسة الاستبدال والاسترجاع', link: '/return-policy', sort_order: 3 },
-    { id: 5, section: 'quick_links', name: 'سياسة الخصوصية', link: '/privacy-policy', sort_order: 4 },
   ],
   incense: [
     { id: 6, section: 'incense', name: 'عود طبيعي', link: '/products/عود-طبيعي', sort_order: 0 },
