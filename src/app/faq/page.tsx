@@ -4,6 +4,7 @@ import Footer from '@/components/Footer';
 import Breadcrumb from '@/components/layout/Breadcrumb';
 import FAQAccordion from './FAQAccordion';
 import { FAQ_ITEMS } from './faqs';
+import { getStoreWhatsAppNumber } from '@/lib/database';
 
 export const metadata: Metadata = {
   title: 'الأسئلة الشائعة | متجر SH للبخور والعطور الفاخرة',
@@ -23,7 +24,7 @@ export const metadata: Metadata = {
   },
 };
 
-export default function FAQPage() {
+export default async function FAQPage() {
   // 1. Construct Google-compliant FAQPage JSON-LD schema
   const faqPageSchema = {
     '@context': 'https://schema.org',
@@ -39,8 +40,7 @@ export default function FAQPage() {
   };
 
   // 2. Resolve official WhatsApp support channel
-  const rawPhone = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '966500000000';
-  const cleanPhone = rawPhone.replace(/\D/g, '') || '966500000000';
+  const cleanPhone = await getStoreWhatsAppNumber();
   const defaultGreeting = encodeURIComponent(
     'السلام عليكم ورحمة الله، أود الاستفسار عن منتجات متجر SH للبخور والعطور الفاخرة.'
   );

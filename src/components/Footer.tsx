@@ -12,8 +12,8 @@ interface GroupedLinks {
 const DEFAULT_SETTINGS = {
   about_title: 'نحن',
   about_description: 'متجر SH للبخور متخصص في أجود أنواع البخور والعطور والعود الطبيعي والفاخر من جميع أنحاء العالم.',
-  phone_numbers: ['+966 50 123 4567'],
-  whatsapp: '+966501234567',
+  phone_numbers: ['+966 58 009 0886'],
+  whatsapp: '+966 58 009 0886',
   copyright: 'جميع الحقوق محفوظة',
   is_active: true,
 };

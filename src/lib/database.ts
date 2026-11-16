@@ -725,6 +725,19 @@ export async function getFooterSettings(): Promise<FooterSettings | null> {
   }
 }
 
+export async function getStoreWhatsAppNumber(): Promise<string> {
+  try {
+    const settings = await getFooterSettings();
+    if (settings?.whatsapp) {
+      const clean = settings.whatsapp.replace(/\D/g, '');
+      if (clean) return clean;
+    }
+  } catch (error) {
+    console.error('Error fetching footer WhatsApp number:', error);
+  }
+  return (process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '966580090886').replace(/\D/g, '') || '966580090886';
+}
+
 export async function saveFooterSettings(settings: FooterSettings): Promise<{ success: boolean; error?: string }> {
   try {
     const { error } = await supabase

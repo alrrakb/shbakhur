@@ -227,7 +227,7 @@ export default function CheckoutSuccess({ params }: { params: Promise<{ orderId:
           >
             {/* WhatsApp Live Tracking */}
             <a
-              href={`https://wa.me/966500000000?text=${whatsappMessage}`}
+              href={`https://wa.me/${(process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '966580090886').replace(/\D/g, '') || '966580090886'}?text=${whatsappMessage}`}
               target="_blank"
               rel="noopener noreferrer"
               className="w-full sm:w-auto flex-1 px-6 py-3.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl transition-all shadow-lg flex items-center justify-center gap-2 text-sm"

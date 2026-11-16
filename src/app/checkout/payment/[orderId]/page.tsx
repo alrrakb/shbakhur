@@ -470,7 +470,7 @@ export default function BankTransferPage({ params }: { params: Promise<{ orderId
                   <p className="text-gray-400 text-[11px] mt-0.5">فريق خدمة العملاء جاهز لخدمتك والتحقق فوراً</p>
                 </div>
                 <a
-                  href={`https://wa.me/966500000000?text=${encodeURIComponent(`مرحباً، أود المساعدة في إتمام التحويل البنكي لطلبي بمبلغ ${totalAmount} ر.س`)}`}
+                  href={`https://wa.me/${(process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '966580090886').replace(/\D/g, '') || '966580090886'}?text=${encodeURIComponent(`مرحباً، أود المساعدة في إتمام التحويل البنكي لطلبي بمبلغ ${totalAmount} ر.س`)}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-xl transition-colors flex-shrink-0 shadow-md"

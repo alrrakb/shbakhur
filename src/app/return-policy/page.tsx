@@ -3,6 +3,7 @@ import Link from 'next/link';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import Breadcrumb from '@/components/layout/Breadcrumb';
+import { getStoreWhatsAppNumber } from '@/lib/database';
 
 export const metadata: Metadata = {
   title: 'سياسة الاستبدال والاسترجاع | متجر SH للبخور والعطور الفاخرة',
@@ -22,9 +23,8 @@ export const metadata: Metadata = {
   },
 };
 
-export default function ReturnPolicyPage() {
-  const rawPhone = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '966500000000';
-  const cleanPhone = rawPhone.replace(/\D/g, '') || '966500000000';
+export default async function ReturnPolicyPage() {
+  const cleanPhone = await getStoreWhatsAppNumber();
   const whatsappUrl = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(
     'السلام عليكم، أود تقديم طلب استبدال / استرجاع بخصوص طلبي من متجر SH للبخور.'
   )}`;

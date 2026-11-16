@@ -7,7 +7,7 @@ import Partners from '@/components/Partners';
 import Footer from '@/components/Footer';
 import { Metadata } from 'next';
 import { getSeoData } from '@/lib/seo';
-import { getCategories, getProductsByCategory, getSiteSettings } from '@/lib/database';
+import { getCategories, getProductsByCategory, getSiteSettings, getStoreWhatsAppNumber } from '@/lib/database';
 
 export async function generateMetadata(): Promise<Metadata> {
   const seo = await getSeoData('/');
@@ -22,8 +22,8 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default async function Home() {
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://shbkhur.com';
-  const rawPhone = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '+966500000000';
-  const telephone = rawPhone.startsWith('+') ? rawPhone : `+${rawPhone.replace(/\D/g, '') || '966500000000'}`;
+  const cleanPhone = await getStoreWhatsAppNumber();
+  const telephone = `+${cleanPhone}`;
 
   // Pre-fetch initial product sections for instant SSR rendering (zero CLS, zero spinner)
   let initialSections: any[] = [];
