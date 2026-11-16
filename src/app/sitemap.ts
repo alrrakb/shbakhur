@@ -27,6 +27,8 @@ export const STATIC_SITEMAP_ROUTES: Omit<SitemapEntry, 'lastModified'>[] = [
   { url: `${CANONICAL_BASE_URL}/products/special-offers`, changeFrequency: 'daily', priority: 0.8 },
   { url: `${CANONICAL_BASE_URL}/about`, changeFrequency: 'monthly', priority: 0.6 },
   { url: `${CANONICAL_BASE_URL}/faq`, changeFrequency: 'monthly', priority: 0.6 },
+  { url: `${CANONICAL_BASE_URL}/return-policy`, changeFrequency: 'monthly', priority: 0.5 },
+  { url: `${CANONICAL_BASE_URL}/privacy-policy`, changeFrequency: 'monthly', priority: 0.5 },
 ];
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {

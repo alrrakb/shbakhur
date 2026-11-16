@@ -28,6 +28,22 @@ const nextConfig: NextConfig = {
     ],
   },
   allowedDevOrigins: ['172.20.10.2'],
+  async rewrites() {
+    return [
+      {
+        source: '/returns',
+        destination: '/return-policy',
+      },
+      {
+        source: '/refund-policy',
+        destination: '/return-policy',
+      },
+      {
+        source: '/privacy',
+        destination: '/privacy-policy',
+      },
+    ];
+  },
 };
 
 export default nextConfig;

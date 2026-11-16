@@ -23,11 +23,13 @@ const DEFAULT_LINKS: GroupedLinks = {
     { id: 1, section: 'quick_links', name: 'الرئيسية', link: '/', sort_order: 0 },
     { id: 2, section: 'quick_links', name: 'جميع المنتجات', link: '/products', sort_order: 1 },
     { id: 3, section: 'quick_links', name: 'عروضنا', link: '/products/best-offers', sort_order: 2 },
+    { id: 4, section: 'quick_links', name: 'سياسة الاستبدال والاسترجاع', link: '/return-policy', sort_order: 3 },
+    { id: 5, section: 'quick_links', name: 'سياسة الخصوصية', link: '/privacy-policy', sort_order: 4 },
   ],
   incense: [
-    { id: 4, section: 'incense', name: 'عود طبيعي', link: '/products/عود-طبيعي', sort_order: 0 },
-    { id: 5, section: 'incense', name: 'عود محسن', link: '/products/عود-محسن', sort_order: 1 },
-    { id: 6, section: 'incense', name: 'دهن العود', link: '/products/دهن-العود', sort_order: 2 },
+    { id: 6, section: 'incense', name: 'عود طبيعي', link: '/products/عود-طبيعي', sort_order: 0 },
+    { id: 7, section: 'incense', name: 'عود محسن', link: '/products/عود-محسن', sort_order: 1 },
+    { id: 8, section: 'incense', name: 'دهن العود', link: '/products/دهن-العود', sort_order: 2 },
   ],
 };
 
@@ -144,8 +146,27 @@ export default function Footer() {
           </motion.div>
         </div>
 
+        {/* Legal & Policy Navigation Strip */}
+        <div className="mt-12 pt-8 border-t border-luxury-gold/15 flex flex-wrap items-center justify-center gap-x-6 gap-y-3 text-xs sm:text-sm text-gray-400 font-readex">
+          <Link href="/return-policy" className="hover:text-luxury-gold transition-colors">
+            سياسة الاستبدال والاسترجاع
+          </Link>
+          <span className="text-luxury-gold/30 hidden sm:inline">•</span>
+          <Link href="/privacy-policy" className="hover:text-luxury-gold transition-colors">
+            سياسة الخصوصية
+          </Link>
+          <span className="text-luxury-gold/30 hidden sm:inline">•</span>
+          <Link href="/faq" className="hover:text-luxury-gold transition-colors">
+            الأسئلة الشائعة
+          </Link>
+          <span className="text-luxury-gold/30 hidden sm:inline">•</span>
+          <Link href="/about" className="hover:text-luxury-gold transition-colors">
+            من نحن
+          </Link>
+        </div>
+
         {/* Copyright */}
-        <div className="mt-8 pt-6 border-t border-luxury-gold/10 text-center flex flex-col items-center gap-1.5">
+        <div className="mt-6 pt-6 border-t border-luxury-gold/10 text-center flex flex-col items-center gap-1.5">
           <p className="text-gray-400 text-sm font-readex">
             © {new Date().getFullYear()} SH للبخور. {settings.copyright}.
           </p>
