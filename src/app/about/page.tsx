@@ -120,6 +120,164 @@ export default function AboutPage() {
                 <p className="text-gray-400">نقدم أفضل قيمة مقابل المال</p>
               </div>
             </div>
+
+            {/* Official Credentials & Store Verification Section */}
+            <div className="mt-24 pt-16 border-t border-luxury-gold/20">
+              <div className="text-center max-w-3xl mx-auto mb-12">
+                <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-luxury-gold/10 border border-luxury-gold/30 text-luxury-gold text-xs font-semibold mb-4">
+                  <span>🛡️</span>
+                  <span>كيان سعودي مرخص وموثق رسمياً 🇸🇦</span>
+                </div>
+                <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white mb-4">
+                  بيانات التوثيق والاعتماد القانوني
+                </h2>
+                <p className="text-gray-400 text-sm sm:text-base leading-relaxed">
+                  نؤمن في متجر SH للبخور بأن الشفافية هي جوهر الثقة. متجرنا يمارس أعماله بموجب سجلات وتراخيص نظامية معتمدة من وزارة التجارة، والمركز السعودي للأعمال، وهيئة الزكاة والضريبة والجمارك.
+                </p>
+              </div>
+
+              {/* Legal Entity Banner */}
+              <div className="bg-gradient-to-r from-luxury-dark via-luxury-black to-luxury-dark border border-luxury-gold/30 rounded-xl p-6 sm:p-8 mb-10 shadow-2xl relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-40 h-40 bg-luxury-gold/5 rounded-full blur-2xl pointer-events-none" />
+                <div className="flex flex-col md:flex-row items-center justify-between gap-6 relative z-10">
+                  <div className="flex items-center gap-4 text-right">
+                    <div className="w-16 h-16 rounded-xl bg-luxury-gold/10 border border-luxury-gold/40 flex items-center justify-center shrink-0">
+                      <svg className="w-8 h-8 text-luxury-gold" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 2L3 7v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-9-5zm-1 15l-4-4 1.41-1.41L11 14.17l6.59-6.59L19 9l-8 8z"/>
+                      </svg>
+                    </div>
+                    <div>
+                      <span className="text-xs uppercase tracking-widest text-luxury-gold block mb-1">
+                        الاسم القانوني للمنشأة التجارية
+                      </span>
+                      <h3 className="text-xl sm:text-2xl font-bold text-white">
+                        مؤسسة طلائع الركب للتسويق الالكتروني
+                      </h3>
+                      <p className="text-xs text-gray-400 mt-1">
+                        المالك والمشغل الرسمي لمتجر SH للبخور · المملكة العربية السعودية
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-3">
+                    <div className="bg-luxury-black/80 px-4 py-2.5 rounded-lg border border-luxury-gold/20 text-center">
+                      <span className="text-[11px] text-gray-400 block">الرقم الوطني الموحد (700)</span>
+                      <span className="text-sm font-mono font-bold text-luxury-gold tracking-wider" dir="ltr">
+                        7016764560
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* 3 Detailed Verified Credential Cards */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+
+                {/* Card 1: Commercial Registration */}
+                <div className="bg-luxury-dark/80 rounded-xl border border-luxury-gold/25 p-6 hover:border-luxury-gold/50 transition-all duration-300 flex flex-col justify-between group shadow-xl">
+                  <div>
+                    <div className="flex items-center justify-between mb-4">
+                      <span className="px-2.5 py-1 rounded bg-luxury-gold/15 text-luxury-gold text-xs font-semibold border border-luxury-gold/30">
+                        وزارة التجارة
+                      </span>
+                      <span className="text-2xl">📜</span>
+                    </div>
+                    <h3 className="text-lg font-bold text-white mb-1">السجل التجاري</h3>
+                    <p className="text-xs text-gray-400 mb-4 leading-relaxed">
+                      سجل تجاري إلكتروني نظامي ساري المفعول صادر عن وزارة التجارة بالمملكة العربية السعودية.
+                    </p>
+                    <div className="bg-luxury-black/90 rounded-lg p-3 border border-luxury-gold/15 mb-6">
+                      <span className="text-[11px] text-gray-400 block mb-0.5">رقم السجل التجاري:</span>
+                      <span className="text-base sm:text-lg font-mono font-bold text-luxury-gold tracking-wider block" dir="ltr">
+                        1010624835
+                      </span>
+                    </div>
+                  </div>
+
+                  <a
+                    href="/docs/commercial-registration.pdf"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-luxury-gold/15 hover:bg-luxury-gold text-luxury-gold hover:text-luxury-black font-semibold text-xs sm:text-sm border border-luxury-gold/30 transition-all duration-300 group-hover:shadow-lg"
+                  >
+                    <span>استعراض السجل التجاري</span>
+                    <svg className="w-4 h-4 rtl:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                    </svg>
+                  </a>
+                </div>
+
+                {/* Card 2: E-Commerce Authentication (Saudi Business Center) */}
+                <div className="bg-luxury-dark/80 rounded-xl border border-luxury-gold/40 p-6 hover:border-luxury-gold/60 transition-all duration-300 flex flex-col justify-between group shadow-xl relative overflow-hidden">
+                  <div className="absolute -top-12 -left-12 w-28 h-28 bg-luxury-gold/10 rounded-full blur-xl pointer-events-none" />
+                  <div>
+                    <div className="flex items-center justify-between mb-4">
+                      <span className="px-2.5 py-1 rounded bg-luxury-gold text-luxury-black text-xs font-bold shadow-md">
+                        المركز السعودي للأعمال
+                      </span>
+                      <span className="text-2xl">🛡️</span>
+                    </div>
+                    <h3 className="text-lg font-bold text-white mb-1">شهادة توثيق التجارة الإلكترونية</h3>
+                    <p className="text-xs text-gray-400 mb-4 leading-relaxed">
+                      شهادة توثيق المتجر الإلكتروني الرسمية برقم موثق معتمد صادر من المركز السعودي للأعمال (SBC).
+                    </p>
+                    <div className="bg-luxury-black/90 rounded-lg p-3 border border-luxury-gold/15 mb-6">
+                      <span className="text-[11px] text-gray-400 block mb-0.5">رقم التوثيق المعتمد:</span>
+                      <span className="text-base sm:text-lg font-mono font-bold text-luxury-gold tracking-wider block" dir="ltr">
+                        0000199532
+                      </span>
+                    </div>
+                  </div>
+
+                  <a
+                    href="/docs/e-commerce-certificate.pdf"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-luxury-gold hover:bg-luxury-gold-light text-luxury-black font-bold text-xs sm:text-sm transition-all duration-300 shadow-md group-hover:shadow-luxury-gold/20"
+                  >
+                    <span>استعراض شهادة التوثيق</span>
+                    <svg className="w-4 h-4 rtl:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                    </svg>
+                  </a>
+                </div>
+
+                {/* Card 3: Tax / VAT Certificate */}
+                <div className="bg-luxury-dark/80 rounded-xl border border-luxury-gold/25 p-6 hover:border-luxury-gold/50 transition-all duration-300 flex flex-col justify-between group shadow-xl">
+                  <div>
+                    <div className="flex items-center justify-between mb-4">
+                      <span className="px-2.5 py-1 rounded bg-luxury-gold/15 text-luxury-gold text-xs font-semibold border border-luxury-gold/30">
+                        هيئة الزكاة والضريبة والجمارك
+                      </span>
+                      <span className="text-2xl">📑</span>
+                    </div>
+                    <h3 className="text-lg font-bold text-white mb-1">الشهادة الضريبية (VAT)</h3>
+                    <p className="text-xs text-gray-400 mb-4 leading-relaxed">
+                      شهادة تسجيل معتمدة في ضريبة القيمة المضافة صادرة عن هيئة الزكاة والضريبة والجمارك (ZATCA).
+                    </p>
+                    <div className="bg-luxury-black/90 rounded-lg p-3 border border-luxury-gold/15 mb-6">
+                      <span className="text-[11px] text-gray-400 block mb-0.5">الرقم الضريبي (الحساب الضريبي):</span>
+                      <span className="text-base sm:text-lg font-mono font-bold text-luxury-gold tracking-wider block" dir="ltr">
+                        302225392200003
+                      </span>
+                    </div>
+                  </div>
+
+                  <a
+                    href="/docs/tax-certificate.pdf"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-luxury-gold/15 hover:bg-luxury-gold text-luxury-gold hover:text-luxury-black font-semibold text-xs sm:text-sm border border-luxury-gold/30 transition-all duration-300 group-hover:shadow-lg"
+                  >
+                    <span>استعراض الشهادة الضريبية</span>
+                    <svg className="w-4 h-4 rtl:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                    </svg>
+                  </a>
+                </div>
+
+              </div>
+            </div>
           </div>
         </section>
       </div>

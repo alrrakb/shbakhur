@@ -43,6 +43,7 @@ next-env.d.ts
 # reports & generated media
 /reports/
 *.pdf
+!public/docs/*.pdf
 
 # ide / agents / ai infrastructure & non-source documentation
 .claude/

@@ -60,18 +60,50 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 }
 
 
-async function getCategoryBySlug(slug: string): Promise<Category | null> {
-  // Try exact match first
-  const decodedSlug = decodeURIComponent(slug);
-  
-  const { data, error } = await supabase
+const CATEGORY_SLUG_ALIASES: Record<string, string> = {
+  'عود-طبيعي': 'natural-oud',
+  'عود_طبيعي': 'natural-oud',
+  'natural-oud': 'natural-oud',
+  'عود-محسن': 'enhanced-oud',
+  'عود_محسن': 'enhanced-oud',
+  'enhanced-oud': 'enhanced-oud',
+  'دهن-العود': 'aloud',
+  'دهن_العود': 'aloud',
+  'دهن-عود': 'aloud',
+  'aloud': 'aloud',
+  'oil-oud': 'aloud',
+  'عود-مسقى': 'scented-oud',
+  'عود-مُسقّى': 'scented-oud',
+  'عود_مسقى': 'scented-oud',
+  'scented-oud': 'scented-oud',
+  'اكسسوارات-البخور': 'bakhur-accessories',
+  'bakhur-accessories': 'bakhur-accessories',
+};
+
+async function getCategoryBySlug(rawSlug: string): Promise<Category | null> {
+  const decoded = decodeURIComponent(rawSlug).trim();
+  const targetSlug = CATEGORY_SLUG_ALIASES[decoded] || CATEGORY_SLUG_ALIASES[rawSlug] || decoded;
+
+  // 1. Try exact slug match
+  const { data: bySlug, error: slugErr } = await supabase
     .from('categories')
     .select('id, name, slug, description, is_active')
-    .or(`slug.eq.${slug},slug.eq.${decodedSlug}`)
+    .or(`slug.eq.${targetSlug},slug.eq.${rawSlug},slug.eq.${decoded}`)
     .limit(1);
-  
-  if (error || !data || data.length === 0) return null;
-  return data[0] as Category;
+
+  if (bySlug && bySlug.length > 0) return bySlug[0] as Category;
+
+  // 2. Try match by Arabic category name (e.g. "عود طبيعي")
+  const nameVariant = decoded.replace(/[-_]/g, ' ');
+  const { data: byName } = await supabase
+    .from('categories')
+    .select('id, name, slug, description, is_active')
+    .or(`name.eq.${decoded},name.eq.${nameVariant}`)
+    .limit(1);
+
+  if (byName && byName.length > 0) return byName[0] as Category;
+
+  return null;
 }
 
 function getCategoryInfo(slug: string): { name: string; description: string } | null {
@@ -98,7 +130,9 @@ export default async function CategoryPage({
   params: Promise<{ category: string }>;
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
-  const { category: slug } = await params;
+  const { category: rawCategory } = await params;
+  const decodedCategory = decodeURIComponent(rawCategory).trim();
+  const slug = CATEGORY_SLUG_ALIASES[decodedCategory] || CATEGORY_SLUG_ALIASES[rawCategory] || decodedCategory;
   const resolvedSearchParams = await searchParams;
   
   let pageTitle = '';

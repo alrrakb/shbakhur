@@ -42,6 +42,22 @@ const nextConfig: NextConfig = {
         source: '/privacy',
         destination: '/privacy-policy',
       },
+      {
+        source: '/products/%D8%B9%D9%88%D8%AF-%D8%B7%D8%A8%D9%8A%D8%B9%D9%8A',
+        destination: '/products/natural-oud',
+      },
+      {
+        source: '/products/%D8%B9%D9%88%D8%AF-%D9%85%D8%AD%D8%B3%D9%86',
+        destination: '/products/enhanced-oud',
+      },
+      {
+        source: '/products/%D8%AF%D9%87%D9%86-%D8%A7%D9%84%D8%B9%D9%88%D8%AF',
+        destination: '/products/aloud',
+      },
+      {
+        source: '/products/%D8%B9%D9%88%D8%AF-%D9%85%D8%B3%D9%82%D9%89',
+        destination: '/products/scented-oud',
+      },
     ];
   },
 };

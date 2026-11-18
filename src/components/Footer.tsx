@@ -25,9 +25,10 @@ const DEFAULT_LINKS: GroupedLinks = {
     { id: 3, section: 'quick_links', name: 'عروضنا', link: '/products/best-offers', sort_order: 2 },
   ],
   incense: [
-    { id: 6, section: 'incense', name: 'عود طبيعي', link: '/products/عود-طبيعي', sort_order: 0 },
-    { id: 7, section: 'incense', name: 'عود محسن', link: '/products/عود-محسن', sort_order: 1 },
-    { id: 8, section: 'incense', name: 'دهن العود', link: '/products/دهن-العود', sort_order: 2 },
+    { id: 6, section: 'incense', name: 'عود طبيعي', link: '/products/natural-oud', sort_order: 0 },
+    { id: 7, section: 'incense', name: 'عود محسن', link: '/products/enhanced-oud', sort_order: 1 },
+    { id: 8, section: 'incense', name: 'عود مُسقّى', link: '/products/scented-oud', sort_order: 2 },
+    { id: 9, section: 'incense', name: 'دهن العود', link: '/products/aloud', sort_order: 3 },
   ],
 };
 
@@ -142,6 +143,124 @@ export default function Footer() {
 
             </div>
           </motion.div>
+        </div>
+
+        {/* Official Saudi Business Credentials & Trust Badges Strip */}
+        <div className="mt-12 pt-8 border-t border-luxury-gold/15">
+          <div className="bg-luxury-black/60 rounded-xl border border-luxury-gold/20 p-5 sm:p-6 flex flex-col lg:flex-row items-center justify-between gap-6">
+            
+            {/* Entity & Official Registration Details */}
+            <div className="flex flex-col sm:flex-row items-center sm:items-start text-center sm:text-right gap-4">
+              <div className="w-12 h-12 rounded-lg bg-luxury-gold/10 border border-luxury-gold/30 flex items-center justify-center shrink-0 text-luxury-gold">
+                {/* Saudi Emblem Palm & Swords SVG */}
+                <svg className="w-7 h-7" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12 2a1 1 0 011 1v1.1c2.8.3 5 2.7 5 5.6 0 1.9-.9 3.6-2.3 4.6l1.8 1.8a1 1 0 01-1.4 1.4L13 14.4V21a1 1 0 11-2 0v-6.6l-3.1 3.1a1 1 0 01-1.4-1.4l1.8-1.8C6.9 13.3 6 11.6 6 9.7c0-2.9 2.2-5.3 5-5.6V3a1 1 0 011-1zm0 4.1C9.8 6.1 8 7.9 8 10.1c0 1.3.6 2.5 1.5 3.2L12 10.8l2.5 2.5c.9-.7 1.5-1.9 1.5-3.2 0-2.2-1.8-4-4-4z"/>
+                </svg>
+              </div>
+              <div className="space-y-1">
+                <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2">
+                  <span className="text-white font-bold text-sm">مؤسسة طلائع الركب للتسويق الالكتروني</span>
+                  <span className="text-[11px] px-2 py-0.5 rounded bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 font-medium inline-flex items-center gap-1">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                    متجر موثق
+                  </span>
+                </div>
+                <div className="flex flex-wrap items-center justify-center sm:justify-start gap-x-4 gap-y-1 text-xs text-gray-400 font-readex">
+                  <span>س.ت: <strong className="text-luxury-gold font-mono" dir="ltr">1010624835</strong></span>
+                  <span className="text-luxury-gold/30">•</span>
+                  <span>الرقم الضريبي: <strong className="text-luxury-gold font-mono" dir="ltr">302225392200003</strong></span>
+                  <span className="text-luxury-gold/30">•</span>
+                  <span>توثيق التجارة الإلكترونية: <strong className="text-luxury-gold font-mono" dir="ltr">0000199532</strong></span>
+                </div>
+              </div>
+            </div>
+
+            {/* Official PDF Document Quick Links */}
+            <div className="flex flex-wrap items-center justify-center gap-2.5">
+              <a
+                href="/docs/e-commerce-certificate.pdf"
+                target="_blank"
+                rel="noopener noreferrer"
+                title="عرض شهادة توثيق التجارة الإلكترونية (المركز السعودي للأعمال)"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-luxury-dark border border-luxury-gold/30 hover:border-luxury-gold text-xs text-gray-300 hover:text-white transition-all shadow-sm group"
+              >
+                <span className="w-2 h-2 rounded-full bg-luxury-gold group-hover:scale-125 transition-transform" />
+                <span>شهادة التوثيق (SBC)</span>
+                <span className="text-luxury-gold text-[10px]">↗</span>
+              </a>
+
+              <a
+                href="/docs/commercial-registration.pdf"
+                target="_blank"
+                rel="noopener noreferrer"
+                title="عرض السجل التجاري الرسمي"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-luxury-dark border border-luxury-gold/30 hover:border-luxury-gold text-xs text-gray-300 hover:text-white transition-all shadow-sm group"
+              >
+                <span className="w-2 h-2 rounded-full bg-luxury-gold group-hover:scale-125 transition-transform" />
+                <span>السجل التجاري</span>
+                <span className="text-luxury-gold text-[10px]">↗</span>
+              </a>
+
+              <a
+                href="/docs/tax-certificate.pdf"
+                target="_blank"
+                rel="noopener noreferrer"
+                title="عرض شهادة التسجيل في ضريبة القيمة المضافة (ZATCA)"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-luxury-dark border border-luxury-gold/30 hover:border-luxury-gold text-xs text-gray-300 hover:text-white transition-all shadow-sm group"
+              >
+                <span className="w-2 h-2 rounded-full bg-luxury-gold group-hover:scale-125 transition-transform" />
+                <span>الشهادة الضريبية</span>
+                <span className="text-luxury-gold text-[10px]">↗</span>
+              </a>
+            </div>
+
+          </div>
+
+          {/* Payment Providers & Methods Bar */}
+          <div className="mt-6 flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 border-t border-luxury-gold/10">
+            <span className="text-xs text-gray-400 font-readex">
+              طرق دفع آمنة ومعتمدة في المملكة:
+            </span>
+            <div className="flex flex-wrap items-center justify-center gap-2">
+              {/* mada */}
+              <div className="h-7 px-2.5 rounded bg-white/95 flex items-center justify-center shadow-sm" title="مدى mada">
+                <span className="text-xs font-bold text-[#004f2d] tracking-tighter">mada | مدى</span>
+              </div>
+              {/* Apple Pay */}
+              <div className="h-7 px-2.5 rounded bg-white/95 flex items-center justify-center shadow-sm" title="Apple Pay">
+                <span className="text-xs font-semibold text-black tracking-tight"> Pay</span>
+              </div>
+              {/* Visa */}
+              <div className="h-7 px-2.5 rounded bg-white/95 flex items-center justify-center shadow-sm" title="Visa">
+                <span className="text-xs font-extrabold text-[#1a1f71] italic tracking-wider">VISA</span>
+              </div>
+              {/* MasterCard */}
+              <div className="h-7 px-2.5 rounded bg-white/95 flex items-center justify-center shadow-sm" title="MasterCard">
+                <div className="flex items-center">
+                  <div className="w-3.5 h-3.5 rounded-full bg-[#eb001b] -mr-1.5 opacity-90" />
+                  <div className="w-3.5 h-3.5 rounded-full bg-[#f79e1b] opacity-90" />
+                </div>
+              </div>
+              {/* Tabby */}
+              <div className="h-7 px-2.5 rounded bg-[#3efe9f] text-black font-extrabold text-xs flex items-center justify-center shadow-sm" title="تابي Tabby">
+                tabby
+              </div>
+              {/* Tamara */}
+              <div className="h-7 px-2.5 rounded bg-[#ff735c] text-white font-extrabold text-xs flex items-center justify-center shadow-sm" title="تمارا Tamara">
+                tamara
+              </div>
+              {/* ZATCA Tax Compliance Badge */}
+              <a
+                href="/docs/tax-certificate.pdf"
+                target="_blank"
+                rel="noopener noreferrer"
+                title="شهادة ضريبة القيمة المضافة 15%"
+                className="h-7 px-2 rounded bg-luxury-dark border border-luxury-gold/30 text-[10px] text-luxury-gold flex items-center gap-1 font-semibold hover:border-luxury-gold transition-colors"
+              >
+                <span>ضريبة القيمة المضافة 15%</span>
+              </a>
+            </div>
+          </div>
         </div>
 
         {/* Legal & Policy Navigation Strip */}
