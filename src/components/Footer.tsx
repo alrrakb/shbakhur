@@ -215,52 +215,6 @@ export default function Footer() {
             </div>
 
           </div>
-
-          {/* Payment Providers & Methods Bar */}
-          <div className="mt-6 flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 border-t border-luxury-gold/10">
-            <span className="text-xs text-gray-400 font-readex">
-              طرق دفع آمنة ومعتمدة في المملكة:
-            </span>
-            <div className="flex flex-wrap items-center justify-center gap-2">
-              {/* mada */}
-              <div className="h-7 px-2.5 rounded bg-white/95 flex items-center justify-center shadow-sm" title="مدى mada">
-                <span className="text-xs font-bold text-[#004f2d] tracking-tighter">mada | مدى</span>
-              </div>
-              {/* Apple Pay */}
-              <div className="h-7 px-2.5 rounded bg-white/95 flex items-center justify-center shadow-sm" title="Apple Pay">
-                <span className="text-xs font-semibold text-black tracking-tight"> Pay</span>
-              </div>
-              {/* Visa */}
-              <div className="h-7 px-2.5 rounded bg-white/95 flex items-center justify-center shadow-sm" title="Visa">
-                <span className="text-xs font-extrabold text-[#1a1f71] italic tracking-wider">VISA</span>
-              </div>
-              {/* MasterCard */}
-              <div className="h-7 px-2.5 rounded bg-white/95 flex items-center justify-center shadow-sm" title="MasterCard">
-                <div className="flex items-center">
-                  <div className="w-3.5 h-3.5 rounded-full bg-[#eb001b] -mr-1.5 opacity-90" />
-                  <div className="w-3.5 h-3.5 rounded-full bg-[#f79e1b] opacity-90" />
-                </div>
-              </div>
-              {/* Tabby */}
-              <div className="h-7 px-2.5 rounded bg-[#3efe9f] text-black font-extrabold text-xs flex items-center justify-center shadow-sm" title="تابي Tabby">
-                tabby
-              </div>
-              {/* Tamara */}
-              <div className="h-7 px-2.5 rounded bg-[#ff735c] text-white font-extrabold text-xs flex items-center justify-center shadow-sm" title="تمارا Tamara">
-                tamara
-              </div>
-              {/* ZATCA Tax Compliance Badge */}
-              <a
-                href="/docs/tax-certificate.pdf"
-                target="_blank"
-                rel="noopener noreferrer"
-                title="شهادة ضريبة القيمة المضافة 15%"
-                className="h-7 px-2 rounded bg-luxury-dark border border-luxury-gold/30 text-[10px] text-luxury-gold flex items-center gap-1 font-semibold hover:border-luxury-gold transition-colors"
-              >
-                <span>ضريبة القيمة المضافة 15%</span>
-              </a>
-            </div>
-          </div>
         </div>
 
         {/* Legal & Policy Navigation Strip */}
