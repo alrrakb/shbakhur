@@ -146,7 +146,7 @@ export default function Footer() {
         </div>
 
         {/* Official Saudi Business Credentials & Trust Badges Strip */}
-        <div className="mt-12 pt-8 border-t border-luxury-gold/15">
+        <div className="mt-10">
           <div className="bg-luxury-black/60 rounded-xl border border-luxury-gold/20 p-5 sm:p-6 flex flex-col lg:flex-row items-center justify-between gap-6">
             
             {/* Entity & Official Registration Details */}
