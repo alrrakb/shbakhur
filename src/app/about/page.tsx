@@ -186,25 +186,13 @@ export default function AboutPage() {
                     <p className="text-xs text-gray-400 mb-4 leading-relaxed">
                       سجل تجاري إلكتروني نظامي ساري المفعول صادر عن وزارة التجارة بالمملكة العربية السعودية.
                     </p>
-                    <div className="bg-luxury-black/90 rounded-lg p-3 border border-luxury-gold/15 mb-6">
+                    <div className="bg-luxury-black/90 rounded-lg p-3 border border-luxury-gold/15">
                       <span className="text-[11px] text-gray-400 block mb-0.5">رقم السجل التجاري:</span>
                       <span className="text-base sm:text-lg font-mono font-bold text-luxury-gold tracking-wider block" dir="ltr">
                         1010624835
                       </span>
                     </div>
                   </div>
-
-                  <a
-                    href="/docs/commercial-registration.pdf"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-luxury-gold/15 hover:bg-luxury-gold text-luxury-gold hover:text-luxury-black font-semibold text-xs sm:text-sm border border-luxury-gold/30 transition-all duration-300 group-hover:shadow-lg"
-                  >
-                    <span>استعراض السجل التجاري</span>
-                    <svg className="w-4 h-4 rtl:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                    </svg>
-                  </a>
                 </div>
 
                 {/* Card 2: E-Commerce Authentication (Saudi Business Center) */}
@@ -221,25 +209,13 @@ export default function AboutPage() {
                     <p className="text-xs text-gray-400 mb-4 leading-relaxed">
                       شهادة توثيق المتجر الإلكتروني الرسمية برقم موثق معتمد صادر من المركز السعودي للأعمال (SBC).
                     </p>
-                    <div className="bg-luxury-black/90 rounded-lg p-3 border border-luxury-gold/15 mb-6">
+                    <div className="bg-luxury-black/90 rounded-lg p-3 border border-luxury-gold/15">
                       <span className="text-[11px] text-gray-400 block mb-0.5">رقم التوثيق المعتمد:</span>
                       <span className="text-base sm:text-lg font-mono font-bold text-luxury-gold tracking-wider block" dir="ltr">
                         0000199532
                       </span>
                     </div>
                   </div>
-
-                  <a
-                    href="/docs/e-commerce-certificate.pdf"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-luxury-gold hover:bg-luxury-gold-light text-luxury-black font-bold text-xs sm:text-sm transition-all duration-300 shadow-md group-hover:shadow-luxury-gold/20"
-                  >
-                    <span>استعراض شهادة التوثيق</span>
-                    <svg className="w-4 h-4 rtl:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                    </svg>
-                  </a>
                 </div>
 
                 {/* Card 3: Tax / VAT Certificate */}
@@ -255,25 +231,13 @@ export default function AboutPage() {
                     <p className="text-xs text-gray-400 mb-4 leading-relaxed">
                       شهادة تسجيل معتمدة في ضريبة القيمة المضافة صادرة عن هيئة الزكاة والضريبة والجمارك (ZATCA).
                     </p>
-                    <div className="bg-luxury-black/90 rounded-lg p-3 border border-luxury-gold/15 mb-6">
+                    <div className="bg-luxury-black/90 rounded-lg p-3 border border-luxury-gold/15">
                       <span className="text-[11px] text-gray-400 block mb-0.5">الرقم الضريبي (الحساب الضريبي):</span>
                       <span className="text-base sm:text-lg font-mono font-bold text-luxury-gold tracking-wider block" dir="ltr">
                         302225392200003
                       </span>
                     </div>
                   </div>
-
-                  <a
-                    href="/docs/tax-certificate.pdf"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-luxury-gold/15 hover:bg-luxury-gold text-luxury-gold hover:text-luxury-black font-semibold text-xs sm:text-sm border border-luxury-gold/30 transition-all duration-300 group-hover:shadow-lg"
-                  >
-                    <span>استعراض الشهادة الضريبية</span>
-                    <svg className="w-4 h-4 rtl:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                    </svg>
-                  </a>
                 </div>
 
               </div>

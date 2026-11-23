@@ -147,10 +147,10 @@ export default function Footer() {
 
         {/* Official Saudi Business Credentials & Trust Badges Strip */}
         <div className="mt-10">
-          <div className="bg-luxury-black/60 rounded-xl border border-luxury-gold/20 p-5 sm:p-6 flex flex-col lg:flex-row items-center justify-between gap-6">
+          <div className="bg-luxury-black/60 rounded-xl border border-luxury-gold/20 p-5 sm:p-6 flex flex-col sm:flex-row items-center justify-center text-center gap-4">
             
             {/* Entity & Official Registration Details */}
-            <div className="flex flex-col sm:flex-row items-center sm:items-start text-center sm:text-right gap-4">
+            <div className="flex flex-col sm:flex-row items-center text-center sm:text-right gap-4">
               <div className="w-12 h-12 rounded-lg bg-luxury-gold/10 border border-luxury-gold/30 flex items-center justify-center shrink-0 text-luxury-gold">
                 {/* Saudi Emblem Palm & Swords SVG */}
                 <svg className="w-7 h-7" viewBox="0 0 24 24" fill="currentColor">
@@ -173,45 +173,6 @@ export default function Footer() {
                   <span>توثيق التجارة الإلكترونية: <strong className="text-luxury-gold font-mono" dir="ltr">0000199532</strong></span>
                 </div>
               </div>
-            </div>
-
-            {/* Official PDF Document Quick Links */}
-            <div className="flex flex-wrap items-center justify-center gap-2.5">
-              <a
-                href="/docs/e-commerce-certificate.pdf"
-                target="_blank"
-                rel="noopener noreferrer"
-                title="عرض شهادة توثيق التجارة الإلكترونية (المركز السعودي للأعمال)"
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-luxury-dark border border-luxury-gold/30 hover:border-luxury-gold text-xs text-gray-300 hover:text-white transition-all shadow-sm group"
-              >
-                <span className="w-2 h-2 rounded-full bg-luxury-gold group-hover:scale-125 transition-transform" />
-                <span>شهادة التوثيق (SBC)</span>
-                <span className="text-luxury-gold text-[10px]">↗</span>
-              </a>
-
-              <a
-                href="/docs/commercial-registration.pdf"
-                target="_blank"
-                rel="noopener noreferrer"
-                title="عرض السجل التجاري الرسمي"
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-luxury-dark border border-luxury-gold/30 hover:border-luxury-gold text-xs text-gray-300 hover:text-white transition-all shadow-sm group"
-              >
-                <span className="w-2 h-2 rounded-full bg-luxury-gold group-hover:scale-125 transition-transform" />
-                <span>السجل التجاري</span>
-                <span className="text-luxury-gold text-[10px]">↗</span>
-              </a>
-
-              <a
-                href="/docs/tax-certificate.pdf"
-                target="_blank"
-                rel="noopener noreferrer"
-                title="عرض شهادة التسجيل في ضريبة القيمة المضافة (ZATCA)"
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-luxury-dark border border-luxury-gold/30 hover:border-luxury-gold text-xs text-gray-300 hover:text-white transition-all shadow-sm group"
-              >
-                <span className="w-2 h-2 rounded-full bg-luxury-gold group-hover:scale-125 transition-transform" />
-                <span>الشهادة الضريبية</span>
-                <span className="text-luxury-gold text-[10px]">↗</span>
-              </a>
             </div>
 
           </div>
